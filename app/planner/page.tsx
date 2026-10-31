@@ -103,6 +103,56 @@ function PlannerContent() {
     }, 600);
   };
 
+  const handleProceedToBookingBlueprint = async () => {
+    if (!blueprint) return;
+    addEvent({
+      title: `${eventType} in ${city} for ${guestCount} Guests`,
+      category: eventType,
+      city,
+      date,
+      guestCount,
+      totalBudget: budgetINR,
+      venuePreference,
+      styleTheme,
+      status: "planning",
+      blueprint,
+    });
+
+    try {
+      const primaryVenue = blueprint.venueRecommendations[0]?.name || venuePreference || "Selected Palace Venue";
+      const venueCostEstimate = Math.round(budgetINR * 0.35); // 35% venue allocation
+      const res = await fetch("/api/bookings/create", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          vendorId: "v-01",
+          vendorName: primaryVenue,
+          vendorCategory: "Venues & Royal Estates",
+          packageName: `${eventType} Royal Palace Booking`,
+          eventDate: date,
+          eventCity: city,
+          guestCount,
+          totalAmount: venueCostEstimate,
+          advancePercentage: 25,
+          requirements: requirements || `Blueprint booking for ${eventType} in ${city}`,
+          serviceDetails: {
+            styleTheme,
+            venuePreference,
+          },
+        }),
+      });
+
+      const data = await res.json();
+      if (res.ok && data.bookingId) {
+        router.push(`/checkout?bookingId=${data.bookingId}`);
+      } else {
+        router.push("/dashboard/workspace");
+      }
+    } catch {
+      router.push("/dashboard/workspace");
+    }
+  };
+
   const handleSendChatMessage = (e: React.FormEvent) => {
     e.preventDefault();
     if (!chatInput.trim()) return;
@@ -386,19 +436,28 @@ function PlannerContent() {
                   <button
                     onClick={handleSaveToDashboard}
                     disabled={savedToDashboard}
-                    className="px-6 py-2.5 rounded-xl bg-[#173F35] hover:bg-[#0F2B24] text-[#FAF8F3] font-bold text-xs tracking-wide transition-all shadow-sm flex items-center gap-1.5 cursor-pointer disabled:opacity-50"
+                    className="px-5 py-2.5 rounded-xl bg-[#FAF8F3] dark:bg-[#1C2520] hover:bg-[#E7EFEA] border border-[#E8E2D7] dark:border-[#344139] text-[#173F35] dark:text-[#A9C7B2] font-bold text-xs tracking-wide transition-all shadow-2xs flex items-center gap-1.5 cursor-pointer disabled:opacity-50"
                   >
                     {savedToDashboard ? (
                       <>
                         <Check className="w-4 h-4" />
-                        <span>Saved to Workspace!</span>
+                        <span>Saved to Workspace</span>
                       </>
                     ) : (
                       <>
                         <Save className="w-4 h-4" />
-                        <span>Save to Customer Dashboard</span>
+                        <span>Save Workspace</span>
                       </>
                     )}
+                  </button>
+
+                  <button
+                    onClick={handleProceedToBookingBlueprint}
+                    className="px-5 py-2.5 rounded-xl bg-[#173F35] hover:bg-[#0F2B24] text-[#FAF8F3] font-bold text-xs uppercase tracking-wider flex items-center gap-1.5 cursor-pointer shadow-sm transition-all"
+                  >
+                    <Sparkles className="w-3.5 h-3.5 text-[#C6A66B]" />
+                    <span>Book Blueprint • Pay Advance</span>
+                    <ArrowRight className="w-3.5 h-3.5" />
                   </button>
                 </div>
               </div>

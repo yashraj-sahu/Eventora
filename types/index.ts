@@ -171,6 +171,8 @@ export interface Vendor {
   }[];
 }
 
+export type VendorItem = Vendor;
+
 export interface VendorEnquiry {
   id: string;
   vendorId: string;
@@ -197,5 +199,39 @@ export interface Destination {
   venueCount: number;
   featuredVenue: string;
   popularFor: string[];
+}
+
+export interface BookingRecord {
+  id: string;
+  booking_reference: string;
+  customer_id: string;
+  vendor_id: string;
+  vendor_name: string;
+  vendor_category: string;
+  package_name?: string | null;
+  event_date: string;
+  event_city: string;
+  guest_count?: number | null;
+  total_amount: number; // in paise
+  advance_amount: number; // in paise
+  paid_amount: number; // in paise
+  currency: string;
+  status: "draft" | "pending_vendor_confirmation" | "awaiting_payment" | "confirmed" | "cancelled" | "completed";
+  created_at: string;
+}
+
+export interface PaymentItem {
+  id: string;
+  booking_id: string;
+  customer_id: string;
+  razorpay_order_id: string;
+  razorpay_payment_id?: string | null;
+  amount: number; // in paise
+  currency: string;
+  status: "created" | "captured" | "failed" | "refunded";
+  purpose: "advance" | "remaining" | "full";
+  payment_method?: string | null;
+  verified_at?: string | null;
+  created_at: string;
 }
 

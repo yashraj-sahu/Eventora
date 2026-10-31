@@ -206,17 +206,51 @@ export default function BudgetTrackerPage() {
                     {formatINR(exp.amount)}
                   </td>
                   <td className="py-3.5 px-4">
-                    <span
-                      className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider ${
-                        exp.status === "paid"
-                          ? "bg-emerald-500/10 text-emerald-400 border border-emerald-500/20"
-                          : exp.status === "due"
-                          ? "bg-rose-500/10 text-rose-400 border border-rose-500/20"
-                          : "bg-amber-500/10 text-amber-400 border border-amber-500/20"
-                      }`}
-                    >
-                      {exp.status}
-                    </span>
+                    <div className="flex items-center gap-2">
+                      <span
+                        className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider ${
+                          exp.status === "paid"
+                            ? "bg-emerald-500/10 text-emerald-400 border border-emerald-500/20"
+                            : exp.status === "due"
+                            ? "bg-rose-500/10 text-rose-400 border border-rose-500/20"
+                            : "bg-amber-500/10 text-amber-400 border border-amber-500/20"
+                        }`}
+                      >
+                        {exp.status}
+                      </span>
+                      {exp.status !== "paid" && (
+                        <button
+                          onClick={async () => {
+                            try {
+                              const res = await fetch("/api/bookings/create", {
+                                method: "POST",
+                                headers: { "Content-Type": "application/json" },
+                                body: JSON.stringify({
+                                  vendorId: "v-01",
+                                  vendorName: exp.vendorName || exp.title,
+                                  vendorCategory: exp.category || "Vendor Services",
+                                  packageName: exp.title,
+                                  eventDate: exp.dueDate || "2026-11-20",
+                                  eventCity: activeEvent?.city || "Udaipur",
+                                  totalAmount: exp.amount,
+                                  advancePercentage: 100,
+                                  requirements: `Settlement for ${exp.title}`,
+                                }),
+                              });
+                              const data = await res.json();
+                              if (data.bookingId) {
+                                window.location.assign(`/checkout?bookingId=${data.bookingId}`);
+                              }
+                            } catch (e) {
+                              console.error(e);
+                            }
+                          }}
+                          className="px-2 py-0.5 rounded bg-emerald-600 hover:bg-emerald-500 text-white text-[10px] font-bold uppercase transition-all cursor-pointer shadow-xs inline-flex items-center gap-1"
+                        >
+                          Pay
+                        </button>
+                      )}
+                    </div>
                   </td>
                   <td className="py-3.5 px-4 text-right">
                     <button

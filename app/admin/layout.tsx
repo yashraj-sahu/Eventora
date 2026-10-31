@@ -10,6 +10,7 @@ import { ThemeToggle } from "@/components/ui/ThemeToggle";
 import {
   ShieldCheck,
   LayoutDashboard,
+  CreditCard,
   ArrowLeft,
   RotateCcw,
   Database,
@@ -147,6 +148,13 @@ export default function AdminLayout({
             >
               <LayoutDashboard className="w-4 h-4 text-[#C6A66B] dark:text-[#D4B77D]" />
               <span>Executive Overview</span>
+            </Link>
+            <Link
+              href="/admin/payments"
+              className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-medium text-[#77746D] dark:text-[#B5B5AA] hover:text-[#173F35] dark:hover:text-[#F4F0E7] hover:bg-[#E7EFEA]/60 dark:hover:bg-[#232F28] transition-colors"
+            >
+              <CreditCard className="w-4 h-4" />
+              <span>Payments & Escrow Desk</span>
             </Link>
           </nav>
 

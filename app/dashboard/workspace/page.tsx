@@ -83,6 +83,41 @@ export default function WorkspacePage() {
                 </div>
                 <p className="text-slate-400 text-[11px]">{v.type} • Capacity: {v.capacity}</p>
                 <p className="text-slate-300">{v.highlight}</p>
+                <div className="pt-2 flex items-center justify-between border-t border-slate-800">
+                  <span className="text-[10px] text-slate-400">Lock date with advance</span>
+                  <button
+                    onClick={async () => {
+                      try {
+                        const res = await fetch("/api/bookings/create", {
+                          method: "POST",
+                          headers: { "Content-Type": "application/json" },
+                          body: JSON.stringify({
+                            vendorId: "v-01",
+                            vendorName: v.name,
+                            vendorCategory: "Venues & Royal Estates",
+                            packageName: "Venue Exclusive Reservation",
+                            eventDate: activeEvent?.date || "2026-11-20",
+                            eventCity: activeEvent?.city || "Udaipur",
+                            guestCount: activeEvent?.guestCount || 250,
+                            totalAmount: Math.round((activeEvent?.totalBudget || 4500000) * 0.35),
+                            advancePercentage: 25,
+                            requirements: `Venue reservation for ${v.name} (${v.type})`,
+                          }),
+                        });
+                        const data = await res.json();
+                        if (data.bookingId) {
+                          window.location.assign(`/checkout?bookingId=${data.bookingId}`);
+                        }
+                      } catch (err) {
+                        console.error(err);
+                      }
+                    }}
+                    className="px-3 py-1 rounded-lg bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-[11px] uppercase tracking-wider flex items-center gap-1 cursor-pointer transition-all"
+                  >
+                    <Sparkles className="w-3 h-3" />
+                    <span>Book Venue</span>
+                  </button>
+                </div>
               </div>
             ))}
           </div>

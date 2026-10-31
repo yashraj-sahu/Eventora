@@ -18,7 +18,10 @@ import {
   ArrowRight,
   Filter,
   RotateCcw,
+  Sparkles,
 } from "lucide-react";
+import { BookingModal } from "@/components/booking/BookingModal";
+import type { VendorItem } from "@/types";
 
 export default function VendorsPage() {
   const { state, toggleSaveVendor } = useEvntoraStore();
@@ -27,6 +30,8 @@ export default function VendorsPage() {
   const [selectedCategory, setSelectedCategory] = useState("All");
   const [selectedPriceRange, setSelectedPriceRange] = useState("All");
   const [minRating, setMinRating] = useState(0);
+  const [bookingModalOpen, setBookingModalOpen] = useState(false);
+  const [selectedVendorForBooking, setSelectedVendorForBooking] = useState<VendorItem | null>(null);
 
   const filteredVendors = useMemo(() => {
     return SAMPLE_VENDORS.filter((v) => {
@@ -280,13 +285,26 @@ export default function VendorsPage() {
                         </span>
                       </div>
 
-                      <Link
-                        href={`/vendors/${vendor.id}`}
-                        className="px-3.5 py-2 rounded-xl bg-[#FAF8F3] dark:bg-[#1C2520] hover:bg-[#E7EFEA] dark:hover:bg-[#173F35]/40 text-[#173F35] dark:text-[#A9C7B2] border border-[#E8E2D7] dark:border-[#344139] text-xs font-semibold transition-all flex items-center gap-1.5 cursor-pointer shadow-2xs"
-                      >
-                        <span>View Profile</span>
-                        <ArrowRight className="w-3 h-3" />
-                      </Link>
+                      <div className="flex items-center gap-1.5">
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setSelectedVendorForBooking(vendor);
+                            setBookingModalOpen(true);
+                          }}
+                          className="px-3 py-2 rounded-xl bg-[#173F35] hover:bg-[#0F2B24] text-[#FAF8F3] text-xs font-bold uppercase tracking-wider flex items-center gap-1 cursor-pointer shadow-xs transition-all"
+                        >
+                          <Sparkles className="w-3 h-3 text-[#C6A66B]" />
+                          <span>Book</span>
+                        </button>
+                        <Link
+                          href={`/vendors/${vendor.id}`}
+                          className="px-3 py-2 rounded-xl bg-[#FAF8F3] dark:bg-[#1C2520] hover:bg-[#E7EFEA] dark:hover:bg-[#173F35]/40 text-[#173F35] dark:text-[#A9C7B2] border border-[#E8E2D7] dark:border-[#344139] text-xs font-semibold transition-all flex items-center gap-1 cursor-pointer shadow-2xs"
+                        >
+                          <span>Profile</span>
+                          <ArrowRight className="w-3 h-3" />
+                        </Link>
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -295,6 +313,14 @@ export default function VendorsPage() {
           </div>
         )}
       </main>
+
+      {selectedVendorForBooking && (
+        <BookingModal
+          isOpen={bookingModalOpen}
+          onClose={() => setBookingModalOpen(false)}
+          vendor={selectedVendorForBooking}
+        />
+      )}
 
       <Footer />
     </div>

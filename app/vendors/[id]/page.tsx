@@ -19,7 +19,10 @@ import {
   ArrowLeft,
   CheckCircle2,
   Send,
+  Sparkles,
+  Lock,
 } from "lucide-react";
+import { BookingModal } from "@/components/booking/BookingModal";
 
 export default function VendorDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const resolvedParams = use(params);
@@ -35,6 +38,8 @@ export default function VendorDetailPage({ params }: { params: Promise<{ id: str
   const [estimatedBudget, setEstimatedBudget] = useState(2500000);
   const [message, setMessage] = useState("");
   const [submitted, setSubmitted] = useState(false);
+  const [bookingModalOpen, setBookingModalOpen] = useState(false);
+  const [selectedPackageForModal, setSelectedPackageForModal] = useState<string | undefined>(undefined);
 
   if (!vendor) {
     return notFound();
@@ -199,6 +204,21 @@ export default function VendorDetailPage({ params }: { params: Promise<{ id: str
                         </li>
                       ))}
                     </ul>
+
+                    <div className="pt-3 border-t border-[#E8E2D7] dark:border-[#344139] flex items-center justify-between">
+                      <span className="text-[11px] text-[#77746D] dark:text-[#B5B5AA]">25% advance lock available</span>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setSelectedPackageForModal(pkg.name);
+                          setBookingModalOpen(true);
+                        }}
+                        className="px-4 py-2 rounded-xl bg-[#173F35] hover:bg-[#0F2B24] text-[#FAF8F3] text-xs font-bold uppercase tracking-wider flex items-center gap-1.5 cursor-pointer shadow-xs transition-all"
+                      >
+                        <Sparkles className="w-3.5 h-3.5 text-[#C6A66B]" />
+                        <span>Book Package</span>
+                      </button>
+                    </div>
                   </div>
                 ))}
               </div>
@@ -208,6 +228,39 @@ export default function VendorDetailPage({ params }: { params: Promise<{ id: str
           {/* Sticky Enquiry Sidebar */}
           <div className="lg:col-span-4">
             <div className="sticky top-28 p-6 sm:p-8 rounded-3xl bg-white dark:bg-[#232F28] border border-[#E8E2D7] dark:border-[#344139] shadow-xl space-y-6">
+              {/* Direct Booking Card */}
+              <div className="p-5 rounded-2xl bg-[#E7EFEA] dark:bg-[#173F35]/40 border border-[#173F35]/30 space-y-3">
+                <div className="flex items-center justify-between">
+                  <span className="text-[10px] font-bold uppercase tracking-wider text-[#173F35] dark:text-[#A9C7B2]">
+                    Verified Booking
+                  </span>
+                  <span className="text-[11px] font-bold text-[#173F35] dark:text-[#A9C7B2]">
+                    25% Advance Lock
+                  </span>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setSelectedPackageForModal(undefined);
+                    setBookingModalOpen(true);
+                  }}
+                  className="w-full py-3 rounded-xl bg-[#173F35] hover:bg-[#0F2B24] text-[#FAF8F3] text-xs font-bold uppercase tracking-wider flex items-center justify-center gap-2 shadow-sm transition-all cursor-pointer"
+                >
+                  <Sparkles className="w-4 h-4 text-[#C6A66B]" />
+                  <span>Book This Artisan Now</span>
+                </button>
+                <div className="text-[10px] text-center text-[#77746D] dark:text-[#B5B5AA] flex items-center justify-center gap-1">
+                  <Lock className="w-3 h-3 text-[#C6A66B]" />
+                  <span>Secure Razorpay Escrow Guarantee</span>
+                </div>
+              </div>
+
+              <div className="relative flex py-1 items-center">
+                <div className="flex-grow border-t border-[#E8E2D7] dark:border-[#344139]"></div>
+                <span className="flex-shrink mx-3 text-[10px] uppercase font-bold text-[#77746D] dark:text-[#B5B5AA]">Or Send Custom Brief</span>
+                <div className="flex-grow border-t border-[#E8E2D7] dark:border-[#344139]"></div>
+              </div>
+
               <div className="space-y-1">
                 <span className="text-[10px] uppercase font-bold tracking-wider text-[#C6A66B] dark:text-[#D4B77D]">
                   Direct Enquiry
@@ -326,6 +379,13 @@ export default function VendorDetailPage({ params }: { params: Promise<{ id: str
           </div>
         </div>
       </main>
+
+      <BookingModal
+        isOpen={bookingModalOpen}
+        onClose={() => setBookingModalOpen(false)}
+        vendor={vendor}
+        initialPackageName={selectedPackageForModal}
+      />
 
       <Footer />
     </div>
