@@ -156,33 +156,37 @@ export default function VendorSignUpPage() {
 
   if (success) {
     return (
-      <div className="min-h-screen flex flex-col bg-[#08090d] text-slate-100">
+      <div className="min-h-screen flex flex-col bg-[#FAF8F3] dark:bg-[#151B18] text-[#252522] dark:text-[#F4F0E7] transition-colors duration-200">
         <Navbar />
         <main className="flex-1 flex items-center justify-center py-16 px-4">
-          <div className="w-full max-w-md p-10 rounded-3xl bg-[#0d0f18]/90 border border-amber-500/20 shadow-2xl text-center space-y-6">
-            <div className="w-16 h-16 rounded-2xl bg-amber-500/10 border border-amber-500/30 flex items-center justify-center mx-auto">
-              <CheckCircle className="w-8 h-8 text-amber-400" />
+          <div className="w-full max-w-md p-8 sm:p-10 rounded-3xl bg-white dark:bg-[#232F28] border border-[#E8E2D7] dark:border-[#344139] shadow-xl text-center space-y-6">
+            <div className="w-16 h-16 rounded-2xl bg-[#E7EFEA] dark:bg-[#173F35]/40 border border-[#173F35]/20 dark:border-[#A9C7B2]/30 flex items-center justify-center mx-auto">
+              <CheckCircle className="w-8 h-8 text-[#173F35] dark:text-[#A9C7B2]" />
             </div>
             <div>
-              <h2 className="text-2xl font-serif font-bold text-white">Application Submitted</h2>
-              <p className="text-sm text-slate-400 mt-2">
-                Thank you, <span className="text-amber-400 font-semibold">{contactName}</span>.
-                We&apos;ve received your vendor application for{" "}
-                <span className="text-white font-semibold">{businessName}</span>.
+              <h2 className="text-2xl font-serif font-bold text-[#173F35] dark:text-[#F4F0E7]">
+                Application Submitted
+              </h2>
+              <p className="text-xs text-[#77746D] dark:text-[#B5B5AA] mt-2">
+                Thank you, <span className="text-[#173F35] dark:text-[#A9C7B2] font-semibold">{contactName}</span>.
+                We&apos;ve received your artisan partner application for{" "}
+                <span className="text-[#252522] dark:text-[#F4F0E7] font-semibold">{businessName}</span>.
               </p>
             </div>
-            <div className="p-4 rounded-2xl bg-slate-950 border border-slate-800 text-left space-y-2">
-              <p className="text-xs font-bold text-amber-400 uppercase tracking-wider">What happens next?</p>
-              <ol className="text-xs text-slate-400 space-y-1.5 list-decimal list-inside">
+            <div className="p-4 rounded-2xl bg-[#FAF8F3] dark:bg-[#1C2520] border border-[#E8E2D7] dark:border-[#344139] text-left space-y-2">
+              <p className="text-xs font-bold text-[#173F35] dark:text-[#A9C7B2] uppercase tracking-wider">
+                What happens next?
+              </p>
+              <ol className="text-xs text-[#77746D] dark:text-[#B5B5AA] space-y-1.5 list-decimal list-inside">
                 <li>Check your email ({email}) and verify your account.</li>
-                <li>Our team will review your application within 2–3 business days.</li>
-                <li>You&apos;ll receive an approval email once verified.</li>
-                <li>After approval, access your partner dashboard.</li>
+                <li>Our verification team reviews your portfolio and GST credentials.</li>
+                <li>You&apos;ll receive an approval notification once verified.</li>
+                <li>After approval, access your full partner operations hub.</li>
               </ol>
             </div>
             <Link
               href="/signin"
-              className="block w-full py-3 rounded-xl bg-amber-500 text-slate-950 font-bold text-sm text-center"
+              className="block w-full py-3 rounded-xl bg-[#173F35] hover:bg-[#0F2B24] text-[#FAF8F3] font-bold text-xs uppercase tracking-wider transition-colors shadow-sm"
             >
               Back to Sign In
             </Link>
@@ -194,32 +198,34 @@ export default function VendorSignUpPage() {
   }
 
   return (
-    <div className="min-h-screen flex flex-col bg-[#08090d] text-slate-100">
+    <div className="min-h-screen flex flex-col bg-[#FAF8F3] dark:bg-[#151B18] text-[#252522] dark:text-[#F4F0E7] transition-colors duration-200">
       <Navbar />
       <main className="flex-1 flex items-center justify-center py-16 px-4 sm:px-6 lg:px-8">
-        <div className="w-full max-w-lg p-8 sm:p-10 rounded-3xl bg-[#0d0f18]/90 border border-amber-500/20 shadow-2xl backdrop-blur-md space-y-6">
+        <div className="w-full max-w-lg p-8 sm:p-10 rounded-3xl bg-white dark:bg-[#232F28] border border-[#E8E2D7] dark:border-[#344139] shadow-xl space-y-6">
           {/* Header */}
           <div className="text-center space-y-2">
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-amber-500 to-amber-600 flex items-center justify-center mx-auto shadow-lg shadow-amber-500/20">
-              <Store className="w-5 h-5 text-slate-950" />
+            <div className="w-10 h-10 rounded-xl bg-[#173F35] flex items-center justify-center mx-auto shadow-xs">
+              <Store className="w-5 h-5 text-[#C6A66B]" />
             </div>
-            <h1 className="text-2xl font-serif font-bold text-white">Vendor Registration</h1>
-            <p className="text-xs text-slate-400">
-              Join India&apos;s premier event planning marketplace as an artisan partner
+            <h1 className="text-2xl font-serif font-bold text-[#173F35] dark:text-[#F4F0E7]">
+              Artisan Partner Registration
+            </h1>
+            <p className="text-xs text-[#77746D] dark:text-[#B5B5AA]">
+              Join India&apos;s verified event planning ecosystem as a premier vendor partner
             </p>
           </div>
 
           {/* Pending approval notice */}
-          <div className="flex items-start gap-2.5 p-3 rounded-xl bg-amber-500/5 border border-amber-500/20 text-xs text-amber-300">
+          <div className="flex items-start gap-2.5 p-3 rounded-xl bg-[#E7EFEA] dark:bg-[#173F35]/40 border border-[#173F35]/20 dark:border-[#A9C7B2]/30 text-xs text-[#173F35] dark:text-[#A9C7B2]">
             <AlertCircle className="w-3.5 h-3.5 shrink-0 mt-0.5" />
             <span>
-              All vendor accounts are reviewed by our team before approval. You&apos;ll be
-              notified within 2–3 business days.
+              All vendor accounts are vetted for quality, reviews, and legal registration. You&apos;ll be
+              contacted by our desk within 2–3 business days.
             </span>
           </div>
 
           {error && (
-            <div className="flex items-start gap-2 p-3 rounded-xl bg-rose-500/10 border border-rose-500/30 text-xs text-rose-300">
+            <div className="flex items-start gap-2 p-3 rounded-xl bg-rose-50 dark:bg-rose-950/30 border border-rose-200 dark:border-rose-900/40 text-xs text-rose-700 dark:text-rose-300">
               <AlertCircle className="w-3.5 h-3.5 shrink-0 mt-0.5" />
               <span>{error}</span>
             </div>
@@ -229,11 +235,11 @@ export default function VendorSignUpPage() {
             <div className="grid grid-cols-2 gap-3">
               {/* Contact Name */}
               <div className="col-span-2 sm:col-span-1">
-                <label htmlFor="contactName" className="block text-slate-400 mb-1.5">
-                  Your Name <span className="text-rose-400">*</span>
+                <label htmlFor="contactName" className="block text-[#77746D] dark:text-[#B5B5AA] mb-1.5 font-medium">
+                  Your Name <span className="text-rose-500">*</span>
                 </label>
                 <div className="relative">
-                  <User className="w-4 h-4 text-slate-500 absolute left-3 top-1/2 -translate-y-1/2" />
+                  <User className="w-4 h-4 text-[#77746D] dark:text-[#B5B5AA] absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
                   <input
                     id="contactName"
                     type="text"
@@ -241,26 +247,26 @@ export default function VendorSignUpPage() {
                     value={contactName}
                     onChange={(e) => setContactName(e.target.value)}
                     placeholder="Rajiv Sharma"
-                    className="w-full pl-9 pr-3 py-2.5 rounded-xl bg-slate-950 border border-slate-800 text-white placeholder-slate-600 focus:outline-none focus:border-amber-400 transition-colors"
+                    className="w-full pl-9 pr-3 py-2.5 rounded-xl bg-[#FAF8F3] dark:bg-[#1C2520] border border-[#E8E2D7] dark:border-[#344139] text-[#252522] dark:text-[#F4F0E7] placeholder-[#77746D]/60 focus:outline-none focus:border-[#173F35] dark:focus:border-[#A9C7B2] transition-colors"
                   />
                 </div>
               </div>
 
               {/* Business Name */}
               <div className="col-span-2 sm:col-span-1">
-                <label htmlFor="businessName" className="block text-slate-400 mb-1.5">
-                  Business Name <span className="text-rose-400">*</span>
+                <label htmlFor="businessName" className="block text-[#77746D] dark:text-[#B5B5AA] mb-1.5 font-medium">
+                  Business Name <span className="text-rose-500">*</span>
                 </label>
                 <div className="relative">
-                  <Store className="w-4 h-4 text-slate-500 absolute left-3 top-1/2 -translate-y-1/2" />
+                  <Store className="w-4 h-4 text-[#77746D] dark:text-[#B5B5AA] absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
                   <input
                     id="businessName"
                     type="text"
                     required
                     value={businessName}
                     onChange={(e) => setBusinessName(e.target.value)}
-                    placeholder="Lakshmi Decors"
-                    className="w-full pl-9 pr-3 py-2.5 rounded-xl bg-slate-950 border border-slate-800 text-white placeholder-slate-600 focus:outline-none focus:border-amber-400 transition-colors"
+                    placeholder="The Oberoi Udaivilas"
+                    className="w-full pl-9 pr-3 py-2.5 rounded-xl bg-[#FAF8F3] dark:bg-[#1C2520] border border-[#E8E2D7] dark:border-[#344139] text-[#252522] dark:text-[#F4F0E7] placeholder-[#77746D]/60 focus:outline-none focus:border-[#173F35] dark:focus:border-[#A9C7B2] transition-colors"
                   />
                 </div>
               </div>
@@ -268,11 +274,11 @@ export default function VendorSignUpPage() {
 
             {/* Email */}
             <div>
-              <label htmlFor="email" className="block text-slate-400 mb-1.5">
-                Business Email <span className="text-rose-400">*</span>
+              <label htmlFor="email" className="block text-[#77746D] dark:text-[#B5B5AA] mb-1.5 font-medium">
+                Business Email <span className="text-rose-500">*</span>
               </label>
               <div className="relative">
-                <Mail className="w-4 h-4 text-slate-500 absolute left-3 top-1/2 -translate-y-1/2" />
+                <Mail className="w-4 h-4 text-[#77746D] dark:text-[#B5B5AA] absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
                 <input
                   id="email"
                   type="email"
@@ -280,19 +286,19 @@ export default function VendorSignUpPage() {
                   autoComplete="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  placeholder="contact@yourbusiness.com"
-                  className="w-full pl-9 pr-3 py-2.5 rounded-xl bg-slate-950 border border-slate-800 text-white placeholder-slate-600 focus:outline-none focus:border-amber-400 transition-colors"
+                  placeholder="contact@udaivilas.com"
+                  className="w-full pl-9 pr-3 py-2.5 rounded-xl bg-[#FAF8F3] dark:bg-[#1C2520] border border-[#E8E2D7] dark:border-[#344139] text-[#252522] dark:text-[#F4F0E7] placeholder-[#77746D]/60 focus:outline-none focus:border-[#173F35] dark:focus:border-[#A9C7B2] transition-colors"
                 />
               </div>
             </div>
 
             {/* Phone */}
             <div>
-              <label htmlFor="phone" className="block text-slate-400 mb-1.5">
-                Business Phone <span className="text-rose-400">*</span>
+              <label htmlFor="phone" className="block text-[#77746D] dark:text-[#B5B5AA] mb-1.5 font-medium">
+                Business Phone <span className="text-rose-500">*</span>
               </label>
               <div className="relative">
-                <Phone className="w-4 h-4 text-slate-500 absolute left-3 top-1/2 -translate-y-1/2" />
+                <Phone className="w-4 h-4 text-[#77746D] dark:text-[#B5B5AA] absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
                 <input
                   id="phone"
                   type="tel"
@@ -300,8 +306,8 @@ export default function VendorSignUpPage() {
                   autoComplete="tel"
                   value={phone}
                   onChange={(e) => setPhone(e.target.value)}
-                  placeholder="+91 98765 43210"
-                  className="w-full pl-9 pr-3 py-2.5 rounded-xl bg-slate-950 border border-slate-800 text-white placeholder-slate-600 focus:outline-none focus:border-amber-400 transition-colors"
+                  placeholder="+91 294 243 3300"
+                  className="w-full pl-9 pr-3 py-2.5 rounded-xl bg-[#FAF8F3] dark:bg-[#1C2520] border border-[#E8E2D7] dark:border-[#344139] text-[#252522] dark:text-[#F4F0E7] placeholder-[#77746D]/60 focus:outline-none focus:border-[#173F35] dark:focus:border-[#A9C7B2] transition-colors"
                 />
               </div>
             </div>
@@ -309,19 +315,19 @@ export default function VendorSignUpPage() {
             <div className="grid grid-cols-2 gap-3">
               {/* Category */}
               <div>
-                <label htmlFor="category" className="block text-slate-400 mb-1.5">
-                  Category <span className="text-rose-400">*</span>
+                <label htmlFor="category" className="block text-[#77746D] dark:text-[#B5B5AA] mb-1.5 font-medium">
+                  Category <span className="text-rose-500">*</span>
                 </label>
                 <select
                   id="category"
                   required
                   value={category}
                   onChange={(e) => setCategory(e.target.value)}
-                  className="w-full py-2.5 px-3 rounded-xl bg-slate-950 border border-slate-800 text-white focus:outline-none focus:border-amber-400 transition-colors appearance-none"
+                  className="w-full py-2.5 px-3 rounded-xl bg-[#FAF8F3] dark:bg-[#1C2520] border border-[#E8E2D7] dark:border-[#344139] text-[#252522] dark:text-[#F4F0E7] focus:outline-none focus:border-[#173F35] dark:focus:border-[#A9C7B2] transition-colors"
                 >
-                  <option value="" className="text-slate-600">Select...</option>
+                  <option value="">Select category...</option>
                   {VENDOR_CATEGORIES.map((c) => (
-                    <option key={c} value={c} className="bg-slate-950">
+                    <option key={c} value={c} className="bg-white dark:bg-[#1C2520]">
                       {c}
                     </option>
                   ))}
@@ -330,21 +336,20 @@ export default function VendorSignUpPage() {
 
               {/* City */}
               <div>
-                <label htmlFor="city" className="block text-slate-400 mb-1.5">
-                  City <span className="text-rose-400">*</span>
+                <label htmlFor="city" className="block text-[#77746D] dark:text-[#B5B5AA] mb-1.5 font-medium">
+                  City <span className="text-rose-500">*</span>
                 </label>
                 <div className="relative">
-                  <MapPin className="w-4 h-4 text-slate-500 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
                   <select
                     id="city"
                     required
                     value={city}
                     onChange={(e) => setCity(e.target.value)}
-                    className="w-full pl-9 pr-3 py-2.5 rounded-xl bg-slate-950 border border-slate-800 text-white focus:outline-none focus:border-amber-400 transition-colors appearance-none"
+                    className="w-full py-2.5 px-3 rounded-xl bg-[#FAF8F3] dark:bg-[#1C2520] border border-[#E8E2D7] dark:border-[#344139] text-[#252522] dark:text-[#F4F0E7] focus:outline-none focus:border-[#173F35] dark:focus:border-[#A9C7B2] transition-colors"
                   >
-                    <option value="" className="text-slate-600">Select...</option>
+                    <option value="">Select city...</option>
                     {CITIES.map((c) => (
-                      <option key={c} value={c} className="bg-slate-950">
+                      <option key={c} value={c} className="bg-white dark:bg-[#1C2520]">
                         {c}
                       </option>
                     ))}
@@ -355,19 +360,18 @@ export default function VendorSignUpPage() {
 
             {/* Description */}
             <div>
-              <label htmlFor="description" className="block text-slate-400 mb-1.5">
+              <label htmlFor="description" className="block text-[#77746D] dark:text-[#B5B5AA] mb-1.5 font-medium">
                 Business Description{" "}
-                <span className="text-slate-600 font-normal">(optional)</span>
+                <span className="text-[#77746D]/60 font-normal">(optional)</span>
               </label>
               <div className="relative">
-                <FileText className="w-4 h-4 text-slate-500 absolute left-3 top-3" />
                 <textarea
                   id="description"
                   value={description}
                   onChange={(e) => setDescription(e.target.value)}
-                  placeholder="Tell us about your business, specialties, and experience..."
+                  placeholder="Tell us about your property, services, heritage specialty, and past celebrations..."
                   rows={3}
-                  className="w-full pl-9 pr-3 py-2.5 rounded-xl bg-slate-950 border border-slate-800 text-white placeholder-slate-600 focus:outline-none focus:border-amber-400 transition-colors resize-none"
+                  className="w-full p-3 rounded-xl bg-[#FAF8F3] dark:bg-[#1C2520] border border-[#E8E2D7] dark:border-[#344139] text-[#252522] dark:text-[#F4F0E7] placeholder-[#77746D]/60 focus:outline-none focus:border-[#173F35] dark:focus:border-[#A9C7B2] transition-colors resize-none"
                 />
               </div>
             </div>
@@ -375,11 +379,10 @@ export default function VendorSignUpPage() {
             {/* Password */}
             <div className="grid grid-cols-2 gap-3">
               <div>
-                <label htmlFor="password" className="block text-slate-400 mb-1.5">
-                  Password <span className="text-rose-400">*</span>
+                <label htmlFor="password" className="block text-[#77746D] dark:text-[#B5B5AA] mb-1.5 font-medium">
+                  Password <span className="text-rose-500">*</span>
                 </label>
                 <div className="relative">
-                  <Lock className="w-4 h-4 text-slate-500 absolute left-3 top-1/2 -translate-y-1/2" />
                   <input
                     id="password"
                     type={showPassword ? "text" : "password"}
@@ -388,23 +391,22 @@ export default function VendorSignUpPage() {
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     placeholder="Min 8 chars"
-                    className="w-full pl-9 pr-9 py-2.5 rounded-xl bg-slate-950 border border-slate-800 text-white placeholder-slate-600 focus:outline-none focus:border-amber-400 transition-colors"
+                    className="w-full pl-3 pr-9 py-2.5 rounded-xl bg-[#FAF8F3] dark:bg-[#1C2520] border border-[#E8E2D7] dark:border-[#344139] text-[#252522] dark:text-[#F4F0E7] placeholder-[#77746D]/60 focus:outline-none focus:border-[#173F35] dark:focus:border-[#A9C7B2] transition-colors"
                   />
                   <button
                     type="button"
                     onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-300"
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-[#77746D] dark:text-[#B5B5AA] hover:text-[#252522]"
                   >
                     {showPassword ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
                   </button>
                 </div>
               </div>
               <div>
-                <label htmlFor="confirmPassword" className="block text-slate-400 mb-1.5">
-                  Confirm Password <span className="text-rose-400">*</span>
+                <label htmlFor="confirmPassword" className="block text-[#77746D] dark:text-[#B5B5AA] mb-1.5 font-medium">
+                  Confirm Password <span className="text-rose-500">*</span>
                 </label>
                 <div className="relative">
-                  <Lock className="w-4 h-4 text-slate-500 absolute left-3 top-1/2 -translate-y-1/2" />
                   <input
                     id="confirmPassword"
                     type={showPassword ? "text" : "password"}
@@ -413,10 +415,10 @@ export default function VendorSignUpPage() {
                     value={confirmPassword}
                     onChange={(e) => setConfirmPassword(e.target.value)}
                     placeholder="Repeat"
-                    className={`w-full pl-9 pr-3 py-2.5 rounded-xl bg-slate-950 border text-white placeholder-slate-600 focus:outline-none transition-colors ${
+                    className={`w-full px-3 py-2.5 rounded-xl bg-[#FAF8F3] dark:bg-[#1C2520] border text-[#252522] dark:text-[#F4F0E7] placeholder-[#77746D]/60 focus:outline-none transition-colors ${
                       confirmPassword && confirmPassword !== password
-                        ? "border-rose-500/50"
-                        : "border-slate-800 focus:border-amber-400"
+                        ? "border-rose-400"
+                        : "border-[#E8E2D7] dark:border-[#344139] focus:border-[#173F35] dark:focus:border-[#A9C7B2]"
                     }`}
                   />
                 </div>
@@ -430,15 +432,15 @@ export default function VendorSignUpPage() {
                 type="checkbox"
                 checked={agreedToTerms}
                 onChange={(e) => setAgreedToTerms(e.target.checked)}
-                className="w-4 h-4 rounded accent-amber-500 mt-0.5 cursor-pointer"
+                className="w-4 h-4 rounded accent-[#173F35] mt-0.5 cursor-pointer"
               />
-              <label htmlFor="terms" className="text-slate-400 leading-relaxed cursor-pointer">
+              <label htmlFor="terms" className="text-[#77746D] dark:text-[#B5B5AA] leading-relaxed cursor-pointer text-xs">
                 I agree to the{" "}
-                <Link href="/terms" className="text-amber-400 hover:underline">
-                  Vendor Terms
+                <Link href="/terms" className="text-[#173F35] dark:text-[#A9C7B2] hover:underline font-semibold">
+                  Artisan Partner Agreement
                 </Link>{" "}
                 and{" "}
-                <Link href="/privacy" className="text-amber-400 hover:underline">
+                <Link href="/privacy" className="text-[#173F35] dark:text-[#A9C7B2] hover:underline font-semibold">
                   Privacy Policy
                 </Link>
               </label>
@@ -447,24 +449,24 @@ export default function VendorSignUpPage() {
             <button
               type="submit"
               disabled={isLoading}
-              className="w-full py-3 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 font-bold text-xs uppercase tracking-wider transition-all shadow-lg shadow-amber-500/20 flex items-center justify-center gap-2 cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed mt-2"
+              className="w-full py-3 rounded-xl bg-[#173F35] hover:bg-[#0F2B24] text-[#FAF8F3] font-bold text-xs uppercase tracking-wider transition-all shadow-sm hover:shadow-md flex items-center justify-center gap-2 cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed mt-2"
             >
               {isLoading ? (
                 <span>Submitting application...</span>
               ) : (
                 <>
-                  <Store className="w-3.5 h-3.5" />
-                  <span>Submit Vendor Application</span>
+                  <Store className="w-3.5 h-3.5 text-[#C6A66B]" />
+                  <span>Submit Artisan Application</span>
                   <ArrowRight className="w-3.5 h-3.5" />
                 </>
               )}
             </button>
           </form>
 
-          <div className="text-center text-xs text-slate-400 pt-2 border-t border-white/5">
+          <div className="text-center text-xs text-[#77746D] dark:text-[#B5B5AA] pt-2 border-t border-[#E8E2D7] dark:border-[#344139]">
             <p>
               Already have an account?{" "}
-              <Link href="/signin" className="text-amber-400 hover:underline font-semibold">
+              <Link href="/signin" className="text-[#173F35] dark:text-[#A9C7B2] hover:underline font-semibold">
                 Sign in
               </Link>
             </p>
@@ -475,4 +477,3 @@ export default function VendorSignUpPage() {
     </div>
   );
 }
-

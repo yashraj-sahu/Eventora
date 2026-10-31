@@ -1,7 +1,7 @@
-﻿import { Navbar } from "@/components/layout/Navbar";
+import { Navbar } from "@/components/layout/Navbar";
 import { Footer } from "@/components/layout/Footer";
 import { HowItWorks as HowItWorksComponent } from "@/components/home/HowItWorks";
-import { Sparkles, CheckCircle2, XCircle, ArrowRight, ShieldCheck, HelpCircle } from "lucide-react";
+import { Sparkles, CheckCircle2, XCircle, ArrowRight, HelpCircle } from "lucide-react";
 import Link from "next/link";
 
 export default function HowItWorksPage() {
@@ -53,19 +53,20 @@ export default function HowItWorksPage() {
   ];
 
   return (
-    <div className="min-h-screen flex flex-col bg-[#08090d] text-slate-100">      <Navbar />
+    <div className="min-h-screen flex flex-col bg-[#FAF8F3] dark:bg-[#151B18] text-[#252522] dark:text-[#F4F0E7] transition-colors duration-200">
+      <Navbar />
 
       <main className="flex-1 py-12 space-y-20">
         {/* Header */}
         <section className="max-w-4xl mx-auto px-4 text-center space-y-4">
-          <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-slate-900 border border-amber-500/30 text-amber-300 text-xs font-semibold">
-            <Sparkles className="w-3.5 h-3.5" />
+          <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-[#E7EFEA] dark:bg-[#173F35]/50 border border-[#173F35]/20 text-[#173F35] dark:text-[#A9C7B2] text-xs font-semibold">
+            <Sparkles className="w-3.5 h-3.5 text-[#C6A66B]" />
             <span>The Evntora Methodology</span>
           </div>
-          <h1 className="text-4xl sm:text-6xl font-serif font-bold text-white tracking-tight">
+          <h1 className="text-4xl sm:text-6xl font-serif font-bold text-[#173F35] dark:text-[#F4F0E7] tracking-tight">
             How Evntora Powers Flawless Celebrations.
           </h1>
-          <p className="text-slate-300 text-base max-w-2xl mx-auto">
+          <p className="text-[#77746D] dark:text-[#B5B5AA] text-base max-w-2xl mx-auto">
             A comprehensive, technology-driven approach that replaces fragmentation with intelligent harmony.
           </p>
         </section>
@@ -76,27 +77,27 @@ export default function HowItWorksPage() {
         {/* Comparison Table */}
         <section className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 space-y-8">
           <div className="text-center max-w-2xl mx-auto space-y-3">
-            <h2 className="text-3xl font-serif font-bold text-white">Traditional Planning vs. Evntora</h2>
-            <p className="text-slate-400 text-sm">See how modern technology and transparent curation transform the experience.</p>
+            <h2 className="text-3xl font-serif font-bold text-[#173F35] dark:text-[#F4F0E7]">Traditional Planning vs. Evntora</h2>
+            <p className="text-[#77746D] dark:text-[#B5B5AA] text-sm">See how modern technology and transparent curation transform the experience.</p>
           </div>
 
-          <div className="rounded-3xl glass-panel border border-white/10 overflow-hidden shadow-2xl">
-            <div className="grid grid-cols-12 bg-slate-950/80 p-5 text-xs font-bold uppercase tracking-wider text-slate-400 border-b border-white/10">
+          <div className="rounded-3xl bg-white dark:bg-[#232F28] border border-[#E8E2D7] dark:border-[#344139] overflow-hidden shadow-sm">
+            <div className="grid grid-cols-12 bg-[#FAF8F3] dark:bg-[#1C2520] p-5 text-xs font-bold uppercase tracking-wider text-[#77746D] dark:text-[#B5B5AA] border-b border-[#E8E2D7] dark:border-[#344139]">
               <div className="col-span-4">Capability</div>
-              <div className="col-span-4 text-rose-400">Traditional Agency Model</div>
-              <div className="col-span-4 text-amber-400">Evntora AI + Concierge</div>
+              <div className="col-span-4 text-rose-600 dark:text-rose-400">Traditional Agency Model</div>
+              <div className="col-span-4 text-[#173F35] dark:text-[#A9C7B2]">Evntora AI + Concierge</div>
             </div>
 
-            <div className="divide-y divide-white/5">
+            <div className="divide-y divide-[#E8E2D7] dark:divide-[#344139]">
               {comparison.map((row, i) => (
-                <div key={i} className="grid grid-cols-12 p-5 text-xs sm:text-sm items-center hover:bg-white/[0.02] transition-colors">
-                  <div className="col-span-4 font-semibold text-white pr-4">{row.feature}</div>
-                  <div className="col-span-4 text-slate-400 flex items-start gap-2 pr-4">
+                <div key={i} className="grid grid-cols-12 p-5 text-xs sm:text-sm items-center hover:bg-[#FAF8F3]/60 dark:hover:bg-[#1C2520]/60 transition-colors">
+                  <div className="col-span-4 font-semibold text-[#252522] dark:text-[#F4F0E7] pr-4">{row.feature}</div>
+                  <div className="col-span-4 text-[#77746D] dark:text-[#B5B5AA] flex items-start gap-2 pr-4">
                     <XCircle className="w-4 h-4 text-rose-500 shrink-0 mt-0.5" />
                     <span>{row.traditional}</span>
                   </div>
-                  <div className="col-span-4 text-slate-200 flex items-start gap-2 font-medium">
-                    <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0 mt-0.5" />
+                  <div className="col-span-4 text-[#173F35] dark:text-[#A9C7B2] flex items-start gap-2 font-medium">
+                    <CheckCircle2 className="w-4 h-4 text-[#173F35] dark:text-[#A9C7B2] shrink-0 mt-0.5" />
                     <span>{row.evntora}</span>
                   </div>
                 </div>
@@ -108,18 +109,18 @@ export default function HowItWorksPage() {
         {/* FAQ Section */}
         <section className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 space-y-8">
           <div className="text-center space-y-2">
-            <div className="flex items-center justify-center gap-1.5 text-xs uppercase tracking-wider text-amber-400 font-bold">
+            <div className="flex items-center justify-center gap-1.5 text-xs uppercase tracking-wider text-[#C6A66B] dark:text-[#D4B77D] font-bold">
               <HelpCircle className="w-4 h-4" />
               <span>Frequently Asked Questions</span>
             </div>
-            <h2 className="text-3xl font-serif font-bold text-white">Everything You Need to Know</h2>
+            <h2 className="text-3xl font-serif font-bold text-[#173F35] dark:text-[#F4F0E7]">Everything You Need to Know</h2>
           </div>
 
           <div className="space-y-4">
             {faqs.map((faq, idx) => (
-              <div key={idx} className="p-6 rounded-2xl glass-card border border-white/10 space-y-2">
-                <h3 className="text-base font-bold text-white">{faq.q}</h3>
-                <p className="text-xs sm:text-sm text-slate-400 leading-relaxed">{faq.a}</p>
+              <div key={idx} className="p-6 rounded-2xl bg-white dark:bg-[#232F28] border border-[#E8E2D7] dark:border-[#344139] space-y-2 shadow-2xs">
+                <h3 className="text-base font-bold text-[#252522] dark:text-[#F4F0E7]">{faq.q}</h3>
+                <p className="text-xs sm:text-sm text-[#77746D] dark:text-[#B5B5AA] leading-relaxed">{faq.a}</p>
               </div>
             ))}
           </div>
@@ -127,10 +128,10 @@ export default function HowItWorksPage() {
 
         {/* Bottom CTA */}
         <section className="max-w-4xl mx-auto px-4 text-center space-y-6">
-          <h2 className="text-3xl font-serif font-bold text-white">Start Building Your Event Blueprint</h2>
+          <h2 className="text-3xl font-serif font-bold text-[#173F35] dark:text-[#F4F0E7]">Start Building Your Event Blueprint</h2>
           <Link
             href="/planner"
-            className="inline-flex items-center gap-2 px-8 py-4 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 text-slate-950 font-bold text-sm tracking-wide shadow-xl shadow-amber-500/20 hover:scale-105 transition-all"
+            className="inline-flex items-center gap-2 px-8 py-3.5 rounded-xl bg-[#173F35] hover:bg-[#0F2B24] text-[#FAF8F3] font-bold text-xs uppercase tracking-wider shadow-sm transition-all cursor-pointer"
           >
             <span>Launch AI Planner</span>
             <ArrowRight className="w-4 h-4" />
@@ -142,4 +143,3 @@ export default function HowItWorksPage() {
     </div>
   );
 }
-

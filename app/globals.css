@@ -1,79 +1,158 @@
 @import "tailwindcss";
 
+@custom-variant dark (&:where(.dark, .dark *));
+
+@theme {
+  --color-warm-ivory: #FAF8F3;
+  --color-soft-beige: #F0EDE5;
+  --color-emerald-deep: #173F35;
+  --color-emerald-light: #E7EFEA;
+  --color-emerald-dark: #0F2B24;
+  --color-champagne-gold: #C6A66B;
+  --color-champagne-light: #F4EBD9;
+  --color-charcoal: #252522;
+  --color-charcoal-muted: #4A4843;
+  --color-warm-grey: #77746D;
+  --color-border-warm: #E8E2D7;
+
+  /* Dark mode specific tokens */
+  --color-dark-bg: #151B18;
+  --color-dark-bg-subtle: #1C2520;
+  --color-dark-surface: #232F28;
+  --color-dark-emerald: #A9C7B2;
+  --color-dark-emerald-accent: #426B57;
+  --color-dark-champagne: #D4B77D;
+  --color-dark-text: #F4F0E7;
+  --color-dark-text-secondary: #B5B5AA;
+  --color-dark-text-muted: #898D84;
+  --color-dark-border: #344139;
+
+  --font-serif: "Cormorant Garamond", Garamond, Georgia, serif;
+  --font-sans: "Manrope", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+}
+
 @layer base {
   :root {
-    --background: #08090d;
-    --foreground: #f8fafc;
-    --gold: #d4af37;
-    --gold-light: #f3e5ab;
+    --background: #FAF8F3;
+    --foreground: #252522;
+    --card: #FFFFFF;
+    --card-foreground: #252522;
+    --primary: #173F35;
+    --primary-foreground: #FAF8F3;
+    --accent: #C6A66B;
+    --accent-foreground: #FFFFFF;
+    --muted: #F0EDE5;
+    --muted-foreground: #77746D;
+    --border: #E8E2D7;
+  }
+
+  .dark {
+    --background: #151B18;
+    --foreground: #F4F0E7;
+    --card: #232F28;
+    --card-foreground: #F4F0E7;
+    --primary: #A9C7B2;
+    --primary-foreground: #151B18;
+    --accent: #D4B77D;
+    --accent-foreground: #151B18;
+    --muted: #1C2520;
+    --muted-foreground: #B5B5AA;
+    --border: #344139;
   }
 
   body {
     background-color: var(--background);
     color: var(--foreground);
+    font-family: var(--font-sans);
     font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+  }
+
+  h1, h2, h3, .font-serif {
+    font-family: var(--font-serif);
   }
 }
 
-/* Luxury Glass & Surface Styling */
-.glass-panel {
-  background: rgba(15, 18, 28, 0.75);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
-  border: 1px solid rgba(255, 255, 255, 0.08);
+/* Modern Indian Luxury Design Surfaces */
+.luxury-card {
+  background: #FFFFFF;
+  border: 1px solid #E8E2D7;
+  border-radius: 16px;
+  box-shadow: 0 4px 20px -2px rgba(23, 63, 53, 0.04), 0 2px 6px -1px rgba(23, 63, 53, 0.02);
 }
 
-.glass-card {
-  background: rgba(20, 24, 38, 0.65);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  border: 1px solid rgba(255, 255, 255, 0.07);
+.dark .luxury-card {
+  background: #232F28;
+  border-color: #344139;
+  box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.3), 0 2px 6px -1px rgba(0, 0, 0, 0.2);
 }
 
-.glass-dropdown {
-  background: rgba(14, 17, 26, 0.95);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
-  border: 1px solid rgba(212, 175, 55, 0.2);
+.luxury-card-hover {
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.luxury-card-hover:hover {
+  transform: translateY(-2px);
+  border-color: #C6A66B;
+  box-shadow: 0 12px 30px -4px rgba(23, 63, 53, 0.08), 0 4px 10px -2px rgba(23, 63, 53, 0.04);
+}
+.dark .luxury-card-hover:hover {
+  border-color: #D4B77D;
+  box-shadow: 0 12px 30px -4px rgba(0, 0, 0, 0.5), 0 4px 10px -2px rgba(0, 0, 0, 0.3);
 }
 
-.gold-shimmer {
-  background: linear-gradient(
-    110deg,
-    rgba(212, 175, 55, 0.1) 0%,
-    rgba(245, 230, 163, 0.25) 50%,
-    rgba(212, 175, 55, 0.1) 100%
-  );
-  background-size: 200% 100%;
+.luxury-panel {
+  background: #FFFFFF;
+  border: 1px solid #E8E2D7;
+}
+.dark .luxury-panel {
+  background: #232F28;
+  border-color: #344139;
 }
 
-.gold-gradient-text {
-  background: linear-gradient(135deg, #fff7ed 0%, #fbbf24 50%, #d97706 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
+.champagne-border {
+  border-color: #C6A66B;
+}
+.dark .champagne-border {
+  border-color: #D4B77D;
 }
 
-.royal-gradient-text {
-  background: linear-gradient(135deg, #ffffff 0%, #fef08a 40%, #eab308 80%, #ca8a04 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
+.champagne-gradient-subtle {
+  background: linear-gradient(135deg, rgba(198, 166, 107, 0.08) 0%, rgba(240, 237, 229, 0.4) 100%);
+}
+.dark .champagne-gradient-subtle {
+  background: linear-gradient(135deg, rgba(212, 183, 125, 0.08) 0%, rgba(28, 37, 32, 0.5) 100%);
 }
 
-/* Custom Scrollbar */
+.emerald-gradient-subtle {
+  background: linear-gradient(135deg, rgba(23, 63, 53, 0.04) 0%, rgba(231, 239, 234, 0.5) 100%);
+}
+.dark .emerald-gradient-subtle {
+  background: linear-gradient(135deg, rgba(169, 199, 178, 0.05) 0%, rgba(35, 47, 40, 0.5) 100%);
+}
+
+/* Custom Scrollbar - Warm Ivory & Emerald */
 ::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
+  width: 7px;
+  height: 7px;
 }
 
 ::-webkit-scrollbar-track {
-  background: #090a0f;
+  background: #F0EDE5;
+}
+.dark ::-webkit-scrollbar-track {
+  background: #1C2520;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #1e2235;
+  background: #D8D2C5;
   border-radius: 4px;
+}
+.dark ::-webkit-scrollbar-thumb {
+  background: #344139;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #2d334d;
+  background: #173F35;
+}
+.dark ::-webkit-scrollbar-thumb:hover {
+  background: #A9C7B2;
 }

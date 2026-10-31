@@ -131,7 +131,6 @@ function SignInForm() {
         if (profile?.role) {
           userRole = profile.role;
         } else {
-          // Fallback to user_metadata if profile row is pending creation
           const metaRole = data.user.user_metadata?.role as UserRole;
           if (metaRole === "admin" || metaRole === "vendor" || metaRole === "customer") {
             userRole = metaRole;
@@ -170,12 +169,11 @@ function SignInForm() {
         } else if (targetingCustomer && (userRole === "customer" || userRole === "admin")) {
           redirectUrl = rawRedirectTo;
         } else if (!targetingAdmin && !targetingVendor && !targetingCustomer) {
-          // Public or planner page
           redirectUrl = rawRedirectTo;
         }
       }
 
-      // 6. Navigate to destination with full document request so cookies are active
+      // 6. Navigate to destination
       window.location.assign(redirectUrl);
     } catch (err: unknown) {
       console.error("Sign-in submission error:", err);
@@ -185,7 +183,6 @@ function SignInForm() {
           : "An unexpected error occurred during sign in. Please try again."
       );
     } finally {
-      // If navigation was not triggered (due to error/validation), reset loading state
       if (!redirectUrl) {
         setIsLoading(false);
       }
@@ -193,29 +190,31 @@ function SignInForm() {
   };
 
   return (
-    <div className="w-full max-w-md p-8 sm:p-10 rounded-3xl bg-[#0d0f18]/90 border border-amber-500/20 shadow-2xl backdrop-blur-md space-y-6">
+    <div className="w-full max-w-md p-8 sm:p-10 rounded-3xl bg-white dark:bg-[#232F28] border border-[#E8E2D7] dark:border-[#344139] shadow-xl space-y-6">
       {/* Header */}
       <div className="text-center space-y-2">
         <Link href="/" className="inline-flex items-center justify-center">
-          <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-amber-500 to-amber-600 flex items-center justify-center font-serif font-black text-slate-950 text-xl shadow-lg shadow-amber-500/20">
+          <div className="w-10 h-10 rounded-xl bg-[#173F35] flex items-center justify-center font-serif font-bold text-[#C6A66B] text-xl shadow-xs">
             E
           </div>
         </Link>
-        <h1 className="text-2xl font-serif font-bold text-white">Welcome Back</h1>
-        <p className="text-xs text-slate-400">
+        <h1 className="text-2xl font-serif font-bold text-[#173F35] dark:text-[#F4F0E7]">
+          Welcome Back
+        </h1>
+        <p className="text-xs text-[#77746D] dark:text-[#B5B5AA]">
           Sign in to your Evntora workspace to continue planning
         </p>
       </div>
 
       {/* Status Messages */}
       {successMessage && (
-        <div className="flex items-start gap-2 p-3 rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-xs text-emerald-300">
+        <div className="flex items-start gap-2 p-3 rounded-xl bg-[#E7EFEA] dark:bg-[#173F35]/50 border border-[#173F35]/20 dark:border-[#A9C7B2]/30 text-xs text-[#173F35] dark:text-[#A9C7B2]">
           <span className="shrink-0 mt-0.5">✓</span>
           <span>{successMessage}</span>
         </div>
       )}
       {error && (
-        <div className="flex items-start gap-2 p-3 rounded-xl bg-rose-500/10 border border-rose-500/30 text-xs text-rose-300">
+        <div className="flex items-start gap-2 p-3 rounded-xl bg-rose-50 dark:bg-rose-950/30 border border-rose-200 dark:border-rose-900/40 text-xs text-rose-700 dark:text-rose-300">
           <AlertCircle className="w-3.5 h-3.5 shrink-0 mt-0.5" />
           <span>{error}</span>
         </div>
@@ -224,11 +223,11 @@ function SignInForm() {
       {/* Sign In Form */}
       <form onSubmit={handleSignIn} className="space-y-4 text-xs">
         <div>
-          <label htmlFor="email" className="block text-slate-400 mb-1.5 font-medium">
+          <label htmlFor="email" className="block text-[#77746D] dark:text-[#B5B5AA] mb-1.5 font-medium">
             Email Address
           </label>
           <div className="relative">
-            <Mail className="w-4 h-4 text-slate-500 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
+            <Mail className="w-4 h-4 text-[#77746D] dark:text-[#B5B5AA] absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
             <input
               id="email"
               type="email"
@@ -238,25 +237,25 @@ function SignInForm() {
               onChange={(e) => setEmail(e.target.value)}
               placeholder="you@example.com"
               disabled={isLoading}
-              className="w-full pl-9 pr-3 py-2.5 rounded-xl bg-slate-950 border border-slate-800 text-white placeholder-slate-600 focus:outline-none focus:border-amber-400 transition-colors disabled:opacity-50"
+              className="w-full pl-9 pr-3 py-2.5 rounded-xl bg-[#FAF8F3] dark:bg-[#1C2520] border border-[#E8E2D7] dark:border-[#344139] text-[#252522] dark:text-[#F4F0E7] placeholder-[#77746D]/60 focus:outline-none focus:border-[#173F35] dark:focus:border-[#A9C7B2] transition-colors disabled:opacity-50"
             />
           </div>
         </div>
 
         <div>
           <div className="flex items-center justify-between mb-1.5">
-            <label htmlFor="password" className="text-slate-400 font-medium">
+            <label htmlFor="password" className="text-[#77746D] dark:text-[#B5B5AA] font-medium">
               Password
             </label>
             <Link
               href="/auth/forgot-password"
-              className="text-amber-400 hover:text-amber-300 transition-colors text-[11px]"
+              className="text-[#173F35] dark:text-[#A9C7B2] hover:underline transition-colors text-[11px] font-semibold"
             >
               Forgot password?
             </Link>
           </div>
           <div className="relative">
-            <Lock className="w-4 h-4 text-slate-500 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
+            <Lock className="w-4 h-4 text-[#77746D] dark:text-[#B5B5AA] absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
             <input
               id="password"
               type={showPassword ? "text" : "password"}
@@ -266,13 +265,13 @@ function SignInForm() {
               onChange={(e) => setPassword(e.target.value)}
               placeholder="••••••••••••"
               disabled={isLoading}
-              className="w-full pl-9 pr-9 py-2.5 rounded-xl bg-slate-950 border border-slate-800 text-white placeholder-slate-600 focus:outline-none focus:border-amber-400 transition-colors disabled:opacity-50"
+              className="w-full pl-9 pr-9 py-2.5 rounded-xl bg-[#FAF8F3] dark:bg-[#1C2520] border border-[#E8E2D7] dark:border-[#344139] text-[#252522] dark:text-[#F4F0E7] placeholder-[#77746D]/60 focus:outline-none focus:border-[#173F35] dark:focus:border-[#A9C7B2] transition-colors disabled:opacity-50"
             />
             <button
               type="button"
               onClick={() => setShowPassword(!showPassword)}
               disabled={isLoading}
-              className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-300 cursor-pointer"
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-[#77746D] dark:text-[#B5B5AA] hover:text-[#252522] dark:hover:text-[#F4F0E7] cursor-pointer"
               aria-label={showPassword ? "Hide password" : "Show password"}
             >
               {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
@@ -283,16 +282,16 @@ function SignInForm() {
         <button
           type="submit"
           disabled={isLoading}
-          className="w-full py-3 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 font-bold text-xs uppercase tracking-wider transition-all shadow-lg shadow-amber-500/20 flex items-center justify-center gap-2 cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed mt-2"
+          className="w-full py-3 rounded-xl bg-[#173F35] hover:bg-[#0F2B24] text-[#FAF8F3] font-bold text-xs uppercase tracking-wider transition-all shadow-sm hover:shadow-md flex items-center justify-center gap-2 cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed mt-2"
         >
           {isLoading ? (
             <span className="flex items-center gap-2">
-              <span className="w-3.5 h-3.5 border-2 border-slate-950 border-t-transparent rounded-full animate-spin" />
+              <span className="w-3.5 h-3.5 border-2 border-[#FAF8F3] border-t-transparent rounded-full animate-spin" />
               <span>Signing in...</span>
             </span>
           ) : (
             <>
-              <Sparkles className="w-3.5 h-3.5" />
+              <Sparkles className="w-3.5 h-3.5 text-[#C6A66B]" />
               <span>Sign In</span>
               <ArrowRight className="w-3.5 h-3.5" />
             </>
@@ -300,16 +299,16 @@ function SignInForm() {
         </button>
       </form>
 
-      <div className="text-center text-xs text-slate-400 pt-2 border-t border-white/5 space-y-3">
+      <div className="text-center text-xs text-[#77746D] dark:text-[#B5B5AA] pt-2 border-t border-[#E8E2D7] dark:border-[#344139] space-y-3">
         <p>
           Don&apos;t have an account?{" "}
-          <Link href="/signup" className="text-amber-400 hover:underline font-semibold">
+          <Link href="/signup" className="text-[#173F35] dark:text-[#A9C7B2] hover:underline font-semibold">
             Create your account
           </Link>
         </p>
         <p>
           Joining as a vendor?{" "}
-          <Link href="/signup/vendor" className="text-amber-400 hover:underline font-semibold">
+          <Link href="/signup/vendor" className="text-[#173F35] dark:text-[#A9C7B2] hover:underline font-semibold">
             Vendor registration
           </Link>
         </p>
@@ -320,10 +319,10 @@ function SignInForm() {
 
 export default function SignInPage() {
   return (
-    <div className="min-h-screen flex flex-col bg-[#08090d] text-slate-100">
+    <div className="min-h-screen flex flex-col bg-[#FAF8F3] dark:bg-[#151B18] text-[#252522] dark:text-[#F4F0E7] transition-colors duration-200">
       <Navbar />
       <main className="flex-1 flex items-center justify-center py-16 px-4 sm:px-6 lg:px-8">
-        <Suspense fallback={<div className="w-full max-w-md h-96 rounded-3xl bg-[#0d0f18]/90 animate-pulse" />}>
+        <Suspense fallback={<div className="w-full max-w-md h-96 rounded-3xl bg-white dark:bg-[#232F28] animate-pulse" />}>
           <SignInForm />
         </Suspense>
       </main>

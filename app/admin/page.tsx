@@ -17,7 +17,9 @@ import {
 } from "lucide-react";
 
 export default function AdminOverviewPage() {
-  const [activeTab, setActiveTab] = useState<"vendors" | "events" | "users">("vendors");
+  const [activeTab, setActiveTab] = useState<"vendors" | "events" | "users">(
+    "vendors"
+  );
 
   const [pendingVendors, setPendingVendors] = useState([
     {
@@ -66,22 +68,22 @@ export default function AdminOverviewPage() {
 
   return (
     <div className="space-y-8 animate-in fade-in duration-200">
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-white/10 pb-6">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-[#E8E2D7] dark:border-[#344139] pb-6">
         <div className="space-y-1">
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-rose-500/10 text-rose-300 text-xs font-semibold border border-rose-500/20">
-            <ShieldCheck className="w-3.5 h-3.5" />
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#E7EFEA] dark:bg-[#173F35]/50 text-[#173F35] dark:text-[#A9C7B2] text-xs font-semibold border border-[#173F35]/20 dark:border-[#A9C7B2]/30">
+            <ShieldCheck className="w-3.5 h-3.5 text-[#C6A66B] dark:text-[#D4B77D]" />
             <span>Evntora Platform Governance</span>
           </div>
-          <h1 className="text-2xl sm:text-4xl font-serif font-bold text-white">
+          <h1 className="text-2xl sm:text-4xl font-serif font-bold text-[#173F35] dark:text-[#F4F0E7]">
             Admin Master Console
           </h1>
-          <p className="text-xs text-slate-400">
+          <p className="text-xs text-[#77746D] dark:text-[#B5B5AA]">
             Nationwide operational telemetry, artisan compliance auditing, and celebration oversight
           </p>
         </div>
 
         <div className="flex items-center gap-2">
-          <span className="px-3 py-1.5 rounded-xl bg-slate-900 border border-slate-800 text-slate-300 text-xs font-mono">
+          <span className="px-3 py-1.5 rounded-xl bg-[#FAF8F3] dark:bg-[#232F28] border border-[#E8E2D7] dark:border-[#344139] text-[#173F35] dark:text-[#A9C7B2] text-xs font-mono font-semibold">
             System Status: 100% Operational
           </span>
         </div>
@@ -89,142 +91,189 @@ export default function AdminOverviewPage() {
 
       {/* 4 Core Metrics */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <div className="p-6 rounded-2xl glass-card border border-white/10 space-y-2">
-          <span className="text-slate-400 text-xs uppercase tracking-wider font-semibold">
+        <div className="p-5 sm:p-6 rounded-2xl bg-white dark:bg-[#232F28] border border-[#E8E2D7] dark:border-[#344139] space-y-2 shadow-xs">
+          <span className="text-[#77746D] dark:text-[#B5B5AA] text-xs uppercase tracking-wider font-semibold">
             Gross Merchandise Value (GMV)
           </span>
-          <div className="text-2xl sm:text-3xl font-serif font-bold text-amber-400">
+          <div className="text-2xl sm:text-3xl font-serif font-bold text-[#173F35] dark:text-[#D4B77D]">
             ₹152.4 Cr
           </div>
-          <div className="text-[11px] text-emerald-400 flex items-center gap-1">
-            <TrendingUp className="w-3 h-3" />
+          <div className="text-[11px] text-[#173F35] dark:text-[#A9C7B2] flex items-center gap-1 font-semibold">
+            <TrendingUp className="w-3.5 h-3.5" />
             <span>+38% Year-over-Year</span>
           </div>
         </div>
 
-        <div className="p-6 rounded-2xl glass-card border border-white/10 space-y-2">
-          <span className="text-slate-400 text-xs uppercase tracking-wider font-semibold">
-            Celebrations Orchestrated
+        <div className="p-5 sm:p-6 rounded-2xl bg-white dark:bg-[#232F28] border border-[#E8E2D7] dark:border-[#344139] space-y-2 shadow-xs">
+          <span className="text-[#77746D] dark:text-[#B5B5AA] text-xs uppercase tracking-wider font-semibold">
+            Active Celebrations
           </span>
-          <div className="text-2xl sm:text-3xl font-serif font-bold text-white">
-            542 Active
+          <div className="text-2xl sm:text-3xl font-serif font-bold text-[#173F35] dark:text-[#F4F0E7]">
+            1,240
           </div>
-          <div className="text-[11px] text-slate-400">Across 52 Indian Cities</div>
+          <span className="text-[11px] text-[#77746D] dark:text-[#B5B5AA] block">
+            Across 14 royal hubs
+          </span>
         </div>
 
-        <div className="p-6 rounded-2xl glass-card border border-white/10 space-y-2">
-          <span className="text-slate-400 text-xs uppercase tracking-wider font-semibold">
-            Verified Artisan Network
+        <div className="p-5 sm:p-6 rounded-2xl bg-white dark:bg-[#232F28] border border-[#E8E2D7] dark:border-[#344139] space-y-2 shadow-xs">
+          <span className="text-[#77746D] dark:text-[#B5B5AA] text-xs uppercase tracking-wider font-semibold">
+            Verified Artisans
           </span>
-          <div className="text-2xl sm:text-3xl font-serif font-bold text-white">
-            428 Partners
+          <div className="text-2xl sm:text-3xl font-serif font-bold text-[#173F35] dark:text-[#F4F0E7]">
+            840 Partners
           </div>
-          <div className="text-[11px] text-amber-400">Top 8% acceptance rate</div>
+          <span className="text-[11px] text-[#173F35] dark:text-[#A9C7B2] block font-semibold">
+            99.2% background checked
+          </span>
         </div>
 
-        <div className="p-6 rounded-2xl glass-card border border-white/10 space-y-2">
-          <span className="text-slate-400 text-xs uppercase tracking-wider font-semibold">
-            Registered Host Accounts
+        <div className="p-5 sm:p-6 rounded-2xl bg-white dark:bg-[#232F28] border border-[#E8E2D7] dark:border-[#344139] space-y-2 shadow-xs">
+          <span className="text-[#77746D] dark:text-[#B5B5AA] text-xs uppercase tracking-wider font-semibold">
+            Pending Verifications
           </span>
-          <div className="text-2xl sm:text-3xl font-serif font-bold text-white">
-            1,850+
+          <div className="text-2xl sm:text-3xl font-serif font-bold text-[#C6A66B] dark:text-[#D4B77D]">
+            {pendingVendors.filter((v) => v.status === "pending").length}
           </div>
-          <div className="text-[11px] text-slate-400">Couples & Enterprises</div>
+          <span className="text-[11px] text-[#77746D] dark:text-[#B5B5AA] block">
+            Requires compliance audit
+          </span>
         </div>
       </div>
 
       {/* Tabs */}
-      <div className="flex items-center gap-2 border-b border-white/10 pb-2">
-        <button
-          onClick={() => setActiveTab("vendors")}
-          className={`px-4 py-2 rounded-xl text-xs font-semibold transition-all ${
-            activeTab === "vendors"
-              ? "bg-amber-500 text-slate-950 font-bold"
-              : "text-slate-400 hover:text-white"
-          }`}
-        >
-          Artisan Verification Queue ({pendingVendors.length})
-        </button>
+      <div className="flex items-center gap-2 border-b border-[#E8E2D7] dark:border-[#344139] pb-3">
+        {(["vendors", "events", "users"] as const).map((tab) => (
+          <button
+            key={tab}
+            onClick={() => setActiveTab(tab)}
+            className={`px-4 py-2 rounded-xl text-xs font-semibold capitalize transition-all cursor-pointer ${
+              activeTab === tab
+                ? "bg-[#173F35] text-[#FAF8F3] dark:bg-[#232F28] dark:text-[#A9C7B2] shadow-xs"
+                : "text-[#77746D] dark:text-[#B5B5AA] hover:text-[#173F35] dark:hover:text-[#F4F0E7] hover:bg-[#E7EFEA]/50 dark:hover:bg-[#1C2520]"
+            }`}
+          >
+            {tab === "vendors"
+              ? "Vendor Approval Queue"
+              : tab === "events"
+              ? "Active Celebrations"
+              : "Registered Users"}
+          </button>
+        ))}
       </div>
 
-      {/* Tab Content */}
-      <div className="p-8 rounded-3xl glass-card border border-white/10 space-y-6">
-        <div className="flex items-center justify-between">
-          <h2 className="text-lg font-serif font-bold text-white">
-            Pending Vendor Applications & Compliance Audits
-          </h2>
-          <span className="text-xs text-slate-400">Audit checklist enforced</span>
-        </div>
+      {/* Pending Vendors Tab */}
+      {activeTab === "vendors" && (
+        <div className="space-y-4">
+          <div className="flex items-center justify-between">
+            <h2 className="text-lg font-serif font-bold text-[#173F35] dark:text-[#F4F0E7]">
+              Artisan Verification Desk
+            </h2>
+            <span className="text-xs text-[#77746D] dark:text-[#B5B5AA]">
+              {pendingVendors.length} applications logged
+            </span>
+          </div>
 
-        <div className="overflow-x-auto">
-          <table className="w-full text-left text-xs">
-            <thead className="bg-slate-950/80 text-slate-400 uppercase text-[10px] tracking-wider border-b border-white/10">
-              <tr>
-                <th className="py-3 px-4">Business / Estate</th>
-                <th className="py-3 px-4">Category</th>
-                <th className="py-3 px-4">City</th>
-                <th className="py-3 px-4">Insurance Audit</th>
-                <th className="py-3 px-4">Status</th>
-                <th className="py-3 px-4 text-right">Verification Action</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-white/5">
-              {pendingVendors.map((v) => (
-                <tr key={v.id} className="hover:bg-white/[0.02] transition-colors">
-                  <td className="py-4 px-4 font-semibold text-white">{v.business}</td>
-                  <td className="py-4 px-4 text-slate-300">{v.category}</td>
-                  <td className="py-4 px-4 text-slate-400">{v.city}</td>
-                  <td className="py-4 px-4">
-                    {v.insuranceVerified ? (
-                      <span className="text-emerald-400 flex items-center gap-1 text-[11px]">
-                        <Check className="w-3.5 h-3.5" />
-                        Verified
-                      </span>
-                    ) : (
-                      <span className="text-rose-400 flex items-center gap-1 text-[11px]">
-                        <X className="w-3.5 h-3.5" />
-                        Missing Docs
-                      </span>
-                    )}
-                  </td>
-                  <td className="py-4 px-4">
+          <div className="space-y-3">
+            {pendingVendors.map((vendor) => (
+              <div
+                key={vendor.id}
+                className="p-5 sm:p-6 rounded-2xl bg-white dark:bg-[#232F28] border border-[#E8E2D7] dark:border-[#344139] flex flex-col sm:flex-row sm:items-center justify-between gap-4 shadow-xs"
+              >
+                <div className="space-y-1">
+                  <div className="flex items-center gap-2">
+                    <h3 className="text-base font-serif font-bold text-[#173F35] dark:text-[#F4F0E7]">
+                      {vendor.business}
+                    </h3>
+                    <span className="text-[10px] px-2 py-0.5 rounded-full bg-[#E7EFEA] dark:bg-[#173F35]/50 text-[#173F35] dark:text-[#A9C7B2] font-semibold">
+                      {vendor.category}
+                    </span>
+                  </div>
+                  <div className="flex flex-wrap items-center gap-4 text-xs text-[#77746D] dark:text-[#B5B5AA]">
+                    <span>Location: {vendor.city}</span>
+                    <span>•</span>
+                    <span>Applied: {vendor.appliedDate}</span>
+                    <span>•</span>
                     <span
-                      className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider ${
-                        v.status === "approved"
-                          ? "bg-emerald-500/10 text-emerald-400 border border-emerald-500/20"
-                          : v.status === "rejected"
-                          ? "bg-rose-500/10 text-rose-400 border border-rose-500/20"
-                          : "bg-amber-500/10 text-amber-400 border border-amber-500/20"
+                      className={
+                        vendor.insuranceVerified
+                          ? "text-[#173F35] dark:text-[#A9C7B2] font-medium"
+                          : "text-amber-600"
+                      }
+                    >
+                      Insurance: {vendor.insuranceVerified ? "Verified ✓" : "Pending ⚠"}
+                    </span>
+                    <span>•</span>
+                    <span
+                      className={
+                        vendor.licenseVerified
+                          ? "text-[#173F35] dark:text-[#A9C7B2] font-medium"
+                          : "text-amber-600"
+                      }
+                    >
+                      GST & License: {vendor.licenseVerified ? "Verified ✓" : "Pending ⚠"}
+                    </span>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-2 shrink-0">
+                  {vendor.status === "pending" ? (
+                    <>
+                      <button
+                        onClick={() => handleApprove(vendor.id)}
+                        className="px-3.5 py-1.5 rounded-xl bg-[#173F35] hover:bg-[#0F2B24] text-[#FAF8F3] text-xs font-semibold transition-all flex items-center gap-1.5 cursor-pointer"
+                      >
+                        <Check className="w-3.5 h-3.5 text-[#C6A66B]" />
+                        <span>Approve Partner</span>
+                      </button>
+                      <button
+                        onClick={() => handleReject(vendor.id)}
+                        className="px-3.5 py-1.5 rounded-xl text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/20 text-xs font-medium transition-all cursor-pointer"
+                      >
+                        Reject
+                      </button>
+                    </>
+                  ) : (
+                    <span
+                      className={`text-xs font-semibold px-3 py-1 rounded-full uppercase ${
+                        vendor.status === "approved"
+                          ? "bg-[#E7EFEA] text-[#173F35] dark:bg-[#173F35]/50 dark:text-[#A9C7B2]"
+                          : "bg-rose-50 text-rose-600 dark:bg-rose-950/30 dark:text-rose-400"
                       }`}
                     >
-                      {v.status}
+                      {vendor.status}
                     </span>
-                  </td>
-                  <td className="py-4 px-4 text-right">
-                    {v.status === "pending" && (
-                      <div className="flex items-center justify-end gap-2">
-                        <button
-                          onClick={() => handleReject(v.id)}
-                          className="px-3 py-1 rounded-lg bg-slate-900 hover:bg-rose-500/20 text-rose-300 border border-slate-800 text-[11px]"
-                        >
-                          Reject
-                        </button>
-                        <button
-                          onClick={() => handleApprove(v.id)}
-                          className="px-3 py-1 rounded-lg bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold text-[11px]"
-                        >
-                          Approve
-                        </button>
-                      </div>
-                    )}
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+                  )}
+                </div>
+              </div>
+            ))}
+          </div>
         </div>
-      </div>
+      )}
+
+      {/* Events Tab */}
+      {activeTab === "events" && (
+        <div className="p-6 rounded-2xl bg-white dark:bg-[#232F28] border border-[#E8E2D7] dark:border-[#344139] space-y-4">
+          <h2 className="text-lg font-serif font-bold text-[#173F35] dark:text-[#F4F0E7]">
+            Nationwide Event Blueprint Telemetry
+          </h2>
+          <p className="text-xs text-[#77746D] dark:text-[#B5B5AA]">
+            Monitoring real-time milestones, venue locks, and culinary vendor contracts across India.
+          </p>
+        </div>
+      )}
+
+      {/* Users Tab */}
+      {activeTab === "users" && (
+        <div className="p-6 rounded-2xl bg-white dark:bg-[#232F28] border border-[#E8E2D7] dark:border-[#344139] space-y-4">
+          <h2 className="text-lg font-serif font-bold text-[#173F35] dark:text-[#F4F0E7]">
+            Platform Member Accounts
+          </h2>
+          <p className="text-xs text-[#77746D] dark:text-[#B5B5AA]">
+            Supabase Auth synchronized user records with role-based access control.
+          </p>
+        </div>
+      )}
     </div>
   );
 }
-

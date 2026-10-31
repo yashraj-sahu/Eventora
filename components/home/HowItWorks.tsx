@@ -9,7 +9,6 @@ import {
   Clock,
   ArrowRight,
   CheckCircle2,
-  ChevronRight,
 } from "lucide-react";
 
 export function HowItWorks() {
@@ -75,16 +74,16 @@ export function HowItWorks() {
   ];
 
   return (
-    <section className="py-24 bg-[#06070a] border-y border-white/5">
+    <section className="py-24 bg-[#F0EDE5] dark:bg-[#1C2520] border-y border-[#E8E2D7] dark:border-[#344139] transition-colors duration-200">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-16">
         <div className="text-center max-w-3xl mx-auto space-y-4">
-          <span className="text-xs uppercase tracking-widest text-amber-400 font-bold">
+          <span className="text-xs uppercase tracking-widest text-[#C6A66B] dark:text-[#D4B77D] font-bold">
             The Evntora Method
           </span>
-          <h2 className="text-3xl sm:text-5xl font-serif font-bold text-white tracking-tight">
+          <h2 className="text-3xl sm:text-5xl font-serif font-bold text-[#173F35] dark:text-[#F4F0E7] tracking-tight">
             How Evntora Transforms Chaos Into Sheer Celebration.
           </h2>
-          <p className="text-slate-400 text-sm sm:text-base leading-relaxed">
+          <p className="text-[#77746D] dark:text-[#B5B5AA] text-sm sm:text-base leading-relaxed">
             Planning a celebration in India used to mean endless phone calls, ambiguous pricing, and fragmented spreadsheets. 
             We replaced that with seamless AI intelligence.
           </p>
@@ -103,14 +102,14 @@ export function HowItWorks() {
                   onClick={() => setActiveStep(idx)}
                   className={`p-5 rounded-2xl cursor-pointer transition-all border ${
                     isActive
-                      ? "glass-panel border-amber-500/40 shadow-xl shadow-amber-500/10 scale-[1.01]"
-                      : "bg-slate-900/30 border-white/5 hover:border-white/10 opacity-70 hover:opacity-100"
+                      ? "bg-white dark:bg-[#232F28] border-[#173F35] dark:border-[#A9C7B2] shadow-md scale-[1.01]"
+                      : "bg-[#FAF8F3] dark:bg-[#151B18] border-[#E8E2D7] dark:border-[#344139] opacity-80 hover:opacity-100 hover:border-[#C6A66B]"
                   }`}
                 >
                   <div className="flex items-start gap-4">
                     <span
                       className={`font-serif text-2xl font-bold ${
-                        isActive ? "text-amber-400" : "text-slate-600"
+                        isActive ? "text-[#173F35] dark:text-[#A9C7B2]" : "text-[#77746D] dark:text-[#898D84]"
                       }`}
                     >
                       {step.num}
@@ -119,12 +118,12 @@ export function HowItWorks() {
                       <div className="flex items-center gap-2">
                         <Icon
                           className={`w-4 h-4 ${
-                            isActive ? "text-amber-400" : "text-slate-500"
+                            isActive ? "text-[#173F35] dark:text-[#A9C7B2]" : "text-[#77746D] dark:text-[#898D84]"
                           }`}
                         />
-                        <h3 className="text-base font-bold text-white">{step.title}</h3>
+                        <h3 className="text-base font-bold text-[#252522] dark:text-[#F4F0E7]">{step.title}</h3>
                       </div>
-                      <p className="text-xs text-slate-400">{step.tagline}</p>
+                      <p className="text-xs text-[#77746D] dark:text-[#B5B5AA]">{step.tagline}</p>
                     </div>
                   </div>
                 </div>
@@ -134,35 +133,33 @@ export function HowItWorks() {
 
           {/* Detailed Preview Card */}
           <div className="lg:col-span-7">
-            <div className="p-8 sm:p-10 rounded-3xl glass-panel border border-amber-500/30 shadow-2xl relative overflow-hidden space-y-6">
-              <div className="absolute top-0 right-0 w-72 h-72 bg-amber-500/10 rounded-full blur-3xl pointer-events-none"></div>
-
-              <div className="flex items-center justify-between border-b border-white/10 pb-4">
-                <span className="text-xs font-mono font-semibold uppercase tracking-wider text-amber-400">
+            <div className="p-8 sm:p-10 rounded-3xl bg-white dark:bg-[#232F28] border border-[#E8E2D7] dark:border-[#344139] shadow-lg relative overflow-hidden space-y-6">
+              <div className="flex items-center justify-between border-b border-[#E8E2D7] dark:border-[#344139] pb-4">
+                <span className="text-xs font-mono font-semibold uppercase tracking-wider text-[#C6A66B] dark:text-[#D4B77D]">
                   Step {steps[activeStep].num} Deep-Dive
                 </span>
-                <span className="px-3 py-1 rounded-full text-[11px] font-medium bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+                <span className="px-3 py-1 rounded-full text-[11px] font-semibold bg-[#E7EFEA] dark:bg-[#173F35]/50 text-[#173F35] dark:text-[#A9C7B2] border border-[#173F35]/20">
                   Interactive Preview
                 </span>
               </div>
 
               <div className="space-y-3">
-                <h3 className="text-2xl font-serif font-bold text-white">
+                <h3 className="text-2xl font-serif font-bold text-[#173F35] dark:text-[#F4F0E7]">
                   {steps[activeStep].title}
                 </h3>
-                <p className="text-sm text-slate-300 leading-relaxed">
+                <p className="text-sm text-[#77746D] dark:text-[#B5B5AA] leading-relaxed">
                   {steps[activeStep].desc}
                 </p>
               </div>
 
-              <div className="p-5 rounded-xl bg-slate-950/70 border border-slate-800 space-y-3">
-                <div className="text-xs font-semibold text-amber-300 uppercase tracking-wider">
+              <div className="p-5 rounded-2xl bg-[#FAF8F3] dark:bg-[#1C2520] border border-[#E8E2D7] dark:border-[#344139] space-y-3">
+                <div className="text-xs font-bold text-[#173F35] dark:text-[#A9C7B2] uppercase tracking-wider">
                   Key Capabilities
                 </div>
                 <div className="space-y-2">
                   {steps[activeStep].features.map((feat, i) => (
-                    <div key={i} className="flex items-start gap-2.5 text-xs text-slate-300">
-                      <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0 mt-0.5" />
+                    <div key={i} className="flex items-start gap-2.5 text-xs text-[#252522] dark:text-[#F4F0E7]">
+                      <CheckCircle2 className="w-4 h-4 text-[#173F35] dark:text-[#A9C7B2] shrink-0 mt-0.5" />
                       <span>{feat}</span>
                     </div>
                   ))}
@@ -172,13 +169,13 @@ export function HowItWorks() {
               <div className="pt-2 flex items-center justify-between">
                 <Link
                   href="/planner"
-                  className="px-6 py-3 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 font-bold text-xs tracking-wide transition-all shadow-lg shadow-amber-500/20 flex items-center gap-2"
+                  className="px-6 py-2.5 rounded-xl bg-[#173F35] hover:bg-[#0F2B24] text-[#FAF8F3] font-bold text-xs tracking-wide transition-all shadow-sm flex items-center gap-2 cursor-pointer"
                 >
                   <span>Experience AI Planner</span>
                   <ArrowRight className="w-3.5 h-3.5" />
                 </Link>
 
-                <div className="text-xs text-slate-500">
+                <div className="text-xs text-[#77746D] dark:text-[#B5B5AA]">
                   Step {activeStep + 1} of 4
                 </div>
               </div>
@@ -189,4 +186,3 @@ export function HowItWorks() {
     </section>
   );
 }
-

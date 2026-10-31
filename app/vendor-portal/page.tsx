@@ -19,7 +19,9 @@ import {
 } from "lucide-react";
 
 export default function VendorDashboardPage() {
-  const [activeTab, setActiveTab] = useState<"leads" | "packages" | "calendar" | "reviews">("leads");
+  const [activeTab, setActiveTab] = useState<
+    "leads" | "packages" | "calendar" | "reviews"
+  >("leads");
 
   const [leads, setLeads] = useState([
     {
@@ -31,7 +33,7 @@ export default function VendorDashboardPage() {
       budget: 8500000,
       status: "booked",
       city: "Mumbai",
-      message: "Requesting full property buyout of lakeside lawn and 40 suites.",
+      message: "Requesting full property buyout of lakeside lawn and 40 heritage suites.",
     },
     {
       id: "lead-02",
@@ -42,7 +44,7 @@ export default function VendorDashboardPage() {
       budget: 4500000,
       status: "new",
       city: "Delhi NCR",
-      message: "Inquiring about heritage courtyard availability and boat arrival rights.",
+      message: "Inquiring about heritage courtyard availability and royal boat arrival rights.",
     },
     {
       id: "lead-03",
@@ -53,7 +55,7 @@ export default function VendorDashboardPage() {
       budget: 3200000,
       status: "proposal_sent",
       city: "Bengaluru",
-      message: "Executive dining setup with technical staging on the outer lawn.",
+      message: "Executive dining setup with technical staging on the promenade lawn.",
     },
   ]);
 
@@ -66,251 +68,246 @@ export default function VendorDashboardPage() {
   return (
     <div className="space-y-8 animate-in fade-in duration-200">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-white/10 pb-6">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-[#E8E2D7] dark:border-[#344139] pb-6">
         <div className="space-y-1">
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-amber-500/10 text-amber-300 text-xs font-semibold border border-amber-500/20">
-            <Store className="w-3.5 h-3.5" />
-            <span>Artisan Portal • The Oberoi Udaivilas</span>
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#E7EFEA] dark:bg-[#173F35]/50 text-[#173F35] dark:text-[#A9C7B2] text-xs font-semibold border border-[#173F35]/20 dark:border-[#A9C7B2]/30">
+            <Store className="w-3.5 h-3.5 text-[#C6A66B] dark:text-[#D4B77D]" />
+            <span>Artisan Partner Desk • The Oberoi Udaivilas</span>
           </div>
-          <h1 className="text-2xl sm:text-4xl font-serif font-bold text-white">
+          <h1 className="text-2xl sm:text-4xl font-serif font-bold text-[#173F35] dark:text-[#F4F0E7]">
             Partner Operations Hub
           </h1>
-          <p className="text-xs text-slate-400">
-            Manage incoming celebration leads, booking contracts, and availability calendar
+          <p className="text-xs text-[#77746D] dark:text-[#B5B5AA]">
+            Manage incoming celebration enquiries, booking contracts, and calendar schedule
           </p>
         </div>
 
         <div className="flex items-center gap-2">
-          <span className="px-3 py-1.5 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-xs font-semibold flex items-center gap-1.5">
-            <CheckCircle2 className="w-4 h-4" />
-            <span>Profile Verified (Tier 1 Royal Estate)</span>
+          <span className="px-3.5 py-1.5 rounded-xl bg-[#E7EFEA] dark:bg-[#173F35]/50 border border-[#173F35]/20 dark:border-[#A9C7B2]/30 text-[#173F35] dark:text-[#A9C7B2] text-xs font-semibold flex items-center gap-1.5 shadow-2xs">
+            <CheckCircle2 className="w-4 h-4 text-[#173F35] dark:text-[#A9C7B2]" />
+            <span>Verified Artisan (Tier 1 Heritage Estate)</span>
           </span>
         </div>
       </div>
 
       {/* 4 Metrics */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <div className="p-6 rounded-2xl glass-card border border-white/10 space-y-2">
-          <span className="text-slate-400 text-xs uppercase tracking-wider font-semibold">
+        <div className="p-5 sm:p-6 rounded-2xl bg-white dark:bg-[#232F28] border border-[#E8E2D7] dark:border-[#344139] space-y-2 shadow-xs">
+          <span className="text-[#77746D] dark:text-[#B5B5AA] text-xs uppercase tracking-wider font-semibold">
             Gross Bookings Value
           </span>
-          <div className="text-2xl sm:text-3xl font-serif font-bold text-amber-400">
+          <div className="text-2xl sm:text-3xl font-serif font-bold text-[#173F35] dark:text-[#D4B77D]">
             ₹1.62 Cr
           </div>
-          <div className="text-[11px] text-emerald-400 flex items-center gap-1">
-            <TrendingUp className="w-3 h-3" />
-            <span>+24% vs last wedding season</span>
+          <div className="text-[11px] text-[#173F35] dark:text-[#A9C7B2] flex items-center gap-1 font-semibold">
+            <TrendingUp className="w-3.5 h-3.5" />
+            <span>+24% vs last quarter</span>
           </div>
         </div>
 
-        <div className="p-6 rounded-2xl glass-card border border-white/10 space-y-2">
-          <span className="text-slate-400 text-xs uppercase tracking-wider font-semibold">
-            High-Value Inquiries
+        <div className="p-5 sm:p-6 rounded-2xl bg-white dark:bg-[#232F28] border border-[#E8E2D7] dark:border-[#344139] space-y-2 shadow-xs">
+          <span className="text-[#77746D] dark:text-[#B5B5AA] text-xs uppercase tracking-wider font-semibold">
+            Active Client Leads
           </span>
-          <div className="text-2xl sm:text-3xl font-serif font-bold text-white">
+          <div className="text-2xl sm:text-3xl font-serif font-bold text-[#173F35] dark:text-[#F4F0E7]">
             {leads.length} Active
           </div>
-          <div className="text-[11px] text-slate-400">Avg Budget: ₹54 Lakhs</div>
-        </div>
-
-        <div className="p-6 rounded-2xl glass-card border border-white/10 space-y-2">
-          <span className="text-slate-400 text-xs uppercase tracking-wider font-semibold">
-            Profile Inquiries & Views
+          <span className="text-[11px] text-[#77746D] dark:text-[#B5B5AA] block">
+            1 requires direct response today
           </span>
-          <div className="text-2xl sm:text-3xl font-serif font-bold text-white">
-            3,420
-          </div>
-          <div className="text-[11px] text-slate-400">Past 30 days on Evntora</div>
         </div>
 
-        <div className="p-6 rounded-2xl glass-card border border-white/10 space-y-2">
-          <span className="text-slate-400 text-xs uppercase tracking-wider font-semibold">
+        <div className="p-5 sm:p-6 rounded-2xl bg-white dark:bg-[#232F28] border border-[#E8E2D7] dark:border-[#344139] space-y-2 shadow-xs">
+          <span className="text-[#77746D] dark:text-[#B5B5AA] text-xs uppercase tracking-wider font-semibold">
+            Confirmed Dates
+          </span>
+          <div className="text-2xl sm:text-3xl font-serif font-bold text-[#173F35] dark:text-[#F4F0E7]">
+            18 Dates
+          </div>
+          <span className="text-[11px] text-[#77746D] dark:text-[#B5B5AA] block">
+            Nov 2026 - Feb 2027 season
+          </span>
+        </div>
+
+        <div className="p-5 sm:p-6 rounded-2xl bg-white dark:bg-[#232F28] border border-[#E8E2D7] dark:border-[#344139] space-y-2 shadow-xs">
+          <span className="text-[#77746D] dark:text-[#B5B5AA] text-xs uppercase tracking-wider font-semibold">
             Artisan Rating
           </span>
-          <div className="text-2xl sm:text-3xl font-serif font-bold text-white flex items-center gap-1">
-            <Star className="w-5 h-5 fill-amber-400 text-amber-400" />
-            <span>4.9</span>
+          <div className="text-2xl sm:text-3xl font-serif font-bold text-[#173F35] dark:text-[#F4F0E7] flex items-center gap-1.5">
+            <span>4.95</span>
+            <Star className="w-5 h-5 text-[#C6A66B] dark:text-[#D4B77D] fill-[#C6A66B] dark:fill-[#D4B77D]" />
           </div>
-          <div className="text-[11px] text-slate-400">142 verified client reviews</div>
+          <span className="text-[11px] text-[#77746D] dark:text-[#B5B5AA] block">
+            Based on 148 verified royal events
+          </span>
         </div>
       </div>
 
-      {/* Navigation Tabs */}
-      <div className="flex items-center gap-2 border-b border-white/10 pb-2">
-        <button
-          onClick={() => setActiveTab("leads")}
-          className={`px-4 py-2 rounded-xl text-xs font-semibold transition-all ${
-            activeTab === "leads"
-              ? "bg-amber-500 text-slate-950 font-bold"
-              : "text-slate-400 hover:text-white"
-          }`}
-        >
-          Customer Inquiries ({leads.length})
-        </button>
-        <button
-          onClick={() => setActiveTab("packages")}
-          className={`px-4 py-2 rounded-xl text-xs font-semibold transition-all ${
-            activeTab === "packages"
-              ? "bg-amber-500 text-slate-950 font-bold"
-              : "text-slate-400 hover:text-white"
-          }`}
-        >
-          Published Packages
-        </button>
-        <button
-          onClick={() => setActiveTab("calendar")}
-          className={`px-4 py-2 rounded-xl text-xs font-semibold transition-all ${
-            activeTab === "calendar"
-              ? "bg-amber-500 text-slate-950 font-bold"
-              : "text-slate-400 hover:text-white"
-          }`}
-        >
-          Availability Calendar
-        </button>
+      {/* Tabs */}
+      <div className="flex items-center gap-2 border-b border-[#E8E2D7] dark:border-[#344139] pb-3">
+        {(["leads", "packages", "calendar", "reviews"] as const).map((tab) => (
+          <button
+            key={tab}
+            onClick={() => setActiveTab(tab)}
+            className={`px-4 py-2 rounded-xl text-xs font-semibold capitalize transition-all cursor-pointer ${
+              activeTab === tab
+                ? "bg-[#173F35] text-[#FAF8F3] dark:bg-[#232F28] dark:text-[#A9C7B2] shadow-xs"
+                : "text-[#77746D] dark:text-[#B5B5AA] hover:text-[#173F35] dark:hover:text-[#F4F0E7] hover:bg-[#E7EFEA]/50 dark:hover:bg-[#1C2520]"
+            }`}
+          >
+            {tab}
+          </button>
+        ))}
       </div>
 
-      {/* Tab 1: Leads */}
+      {/* Leads Table */}
       {activeTab === "leads" && (
         <div className="space-y-4">
-          {leads.map((lead) => (
-            <div
-              key={lead.id}
-              className="p-6 sm:p-8 rounded-3xl glass-card border border-white/10 space-y-4"
-            >
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-white/5 pb-3">
-                <div>
-                  <h3 className="text-lg font-serif font-bold text-white">{lead.client}</h3>
-                  <span className="text-xs text-amber-400 font-semibold">{lead.eventType}</span>
-                </div>
+          <div className="flex items-center justify-between">
+            <h2 className="text-lg font-serif font-bold text-[#173F35] dark:text-[#F4F0E7]">
+              Incoming Enquiries & High-Value Proposals
+            </h2>
+            <span className="text-xs text-[#77746D] dark:text-[#B5B5AA]">
+              Showing {leads.length} client requests
+            </span>
+          </div>
 
-                <span
-                  className={`px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider self-start sm:self-auto ${
-                    lead.status === "booked"
-                      ? "bg-emerald-500/10 text-emerald-400 border border-emerald-500/20"
-                      : lead.status === "proposal_sent"
-                      ? "bg-blue-500/10 text-blue-400 border border-blue-500/20"
-                      : "bg-amber-500/10 text-amber-400 border border-amber-500/20"
-                  }`}
-                >
-                  {lead.status === "booked" ? "Contract Booked" : lead.status === "proposal_sent" ? "Proposal Sent" : "New Lead"}
-                </span>
-              </div>
-
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs text-slate-300">
-                <div>
-                  <span className="text-slate-500 block text-[10px] uppercase font-bold">Target Dates</span>
-                  <span>{lead.dates}</span>
-                </div>
-                <div>
-                  <span className="text-slate-500 block text-[10px] uppercase font-bold">Attendees</span>
-                  <span>{lead.guests} Guests</span>
-                </div>
-                <div>
-                  <span className="text-slate-500 block text-[10px] uppercase font-bold">Budget (INR)</span>
-                  <span className="font-bold text-white">{formatINR(lead.budget)}</span>
-                </div>
-                <div>
-                  <span className="text-slate-500 block text-[10px] uppercase font-bold">Client City</span>
-                  <span>{lead.city}</span>
-                </div>
-              </div>
-
-              <p className="text-xs text-slate-300 bg-slate-950/70 p-3.5 rounded-xl border border-slate-800 leading-relaxed italic">
-                &ldquo;{lead.message}&rdquo;
-              </p>
-
-              <div className="flex items-center justify-end gap-3 pt-2">
-                {lead.status !== "booked" && (
-                  <>
-                    <button
-                      onClick={() => handleUpdateStatus(lead.id, "declined")}
-                      className="px-3.5 py-1.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-slate-400 text-xs font-semibold"
+          <div className="space-y-3">
+            {leads.map((lead) => (
+              <div
+                key={lead.id}
+                className="p-5 sm:p-6 rounded-2xl bg-white dark:bg-[#232F28] border border-[#E8E2D7] dark:border-[#344139] space-y-4 shadow-xs"
+              >
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-[#E8E2D7] dark:border-[#344139] pb-3">
+                  <div className="space-y-0.5">
+                    <h3 className="text-base font-serif font-bold text-[#173F35] dark:text-[#F4F0E7]">
+                      {lead.client}
+                    </h3>
+                    <p className="text-xs text-[#77746D] dark:text-[#B5B5AA]">
+                      {lead.eventType} • Origin: {lead.city}
+                    </p>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <span className="font-serif font-bold text-[#173F35] dark:text-[#F4F0E7] text-base">
+                      {formatINR(lead.budget)}
+                    </span>
+                    <span
+                      className={`text-[10px] font-semibold px-2.5 py-1 rounded-full uppercase ${
+                        lead.status === "booked"
+                          ? "bg-[#E7EFEA] text-[#173F35] dark:bg-[#173F35]/50 dark:text-[#A9C7B2]"
+                          : lead.status === "proposal_sent"
+                          ? "bg-[#F4EBD9] text-[#C6A66B] dark:bg-[#C6A66B]/20 dark:text-[#D4B77D]"
+                          : "bg-blue-50 text-blue-700 dark:bg-blue-950/40 dark:text-blue-300"
+                      }`}
                     >
-                      Decline
-                    </button>
+                      {lead.status.replace("_", " ")}
+                    </span>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs text-[#77746D] dark:text-[#B5B5AA]">
+                  <div className="flex items-center gap-2">
+                    <Calendar className="w-3.5 h-3.5 text-[#C6A66B]" />
+                    <span>Dates: {lead.dates}</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Users className="w-3.5 h-3.5 text-[#C6A66B]" />
+                    <span>Expected Guests: {lead.guests}</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <MessageSquare className="w-3.5 h-3.5 text-[#C6A66B]" />
+                    <span className="truncate">{lead.message}</span>
+                  </div>
+                </div>
+
+                <div className="flex items-center justify-end gap-2 pt-1">
+                  {lead.status === "new" && (
                     <button
                       onClick={() => handleUpdateStatus(lead.id, "proposal_sent")}
-                      className="px-4 py-1.5 rounded-xl bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 border border-amber-500/30 text-xs font-semibold"
+                      className="px-3 py-1.5 rounded-xl bg-[#173F35] hover:bg-[#0F2B24] text-[#FAF8F3] text-xs font-semibold transition-all flex items-center gap-1.5 cursor-pointer"
                     >
-                      Send Customized Proposal
+                      <Check className="w-3.5 h-3.5 text-[#C6A66B]" />
+                      <span>Send Quote Proposal</span>
                     </button>
+                  )}
+                  {lead.status === "proposal_sent" && (
                     <button
                       onClick={() => handleUpdateStatus(lead.id, "booked")}
-                      className="px-4 py-1.5 rounded-xl bg-emerald-500 text-slate-950 text-xs font-bold"
+                      className="px-3 py-1.5 rounded-xl bg-[#173F35] hover:bg-[#0F2B24] text-[#FAF8F3] text-xs font-semibold transition-all flex items-center gap-1.5 cursor-pointer"
                     >
-                      Confirm Booking
+                      <CheckCircle2 className="w-3.5 h-3.5 text-[#C6A66B]" />
+                      <span>Confirm Contract</span>
                     </button>
-                  </>
-                )}
+                  )}
+                  <button
+                    onClick={() => handleUpdateStatus(lead.id, "declined")}
+                    className="px-3 py-1.5 rounded-xl text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/20 text-xs font-medium transition-all cursor-pointer"
+                  >
+                    Decline
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Packages Tab */}
+      {activeTab === "packages" && (
+        <div className="p-6 rounded-2xl bg-white dark:bg-[#232F28] border border-[#E8E2D7] dark:border-[#344139] space-y-4">
+          <h2 className="text-lg font-serif font-bold text-[#173F35] dark:text-[#F4F0E7]">
+            Active Service Packages & Buyouts
+          </h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="p-4 rounded-xl bg-[#FAF8F3] dark:bg-[#1C2520] border border-[#E8E2D7] dark:border-[#344139] space-y-2">
+              <span className="text-xs font-bold text-[#173F35] dark:text-[#F4F0E7] block">
+                Full Palace Buyout (3 Nights)
+              </span>
+              <p className="text-xs text-[#77746D] dark:text-[#B5B5AA]">
+                Exclusive access to all 87 rooms, poolside lawns, courtyards and lakeside dining.
+              </p>
+              <div className="font-serif font-bold text-[#173F35] dark:text-[#D4B77D] text-lg pt-1">
+                ₹85,00,000 / event
               </div>
             </div>
-          ))}
-        </div>
-      )}
-
-      {/* Tab 2: Packages */}
-      {activeTab === "packages" && (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div className="p-8 rounded-3xl glass-card border border-white/10 space-y-4">
-            <div className="flex items-center justify-between">
-              <h3 className="text-lg font-serif font-bold text-white">Royal 3-Day Wedding Residency</h3>
-              <span className="text-lg font-bold text-amber-400">{formatINR(8500000)}</span>
+            <div className="p-4 rounded-xl bg-[#FAF8F3] dark:bg-[#1C2520] border border-[#E8E2D7] dark:border-[#344139] space-y-2">
+              <span className="text-xs font-bold text-[#173F35] dark:text-[#F4F0E7] block">
+                Heritage Courtyard & Sangeet Lawn
+              </span>
+              <p className="text-xs text-[#77746D] dark:text-[#B5B5AA]">
+                Single evening buyout with royal illumination and heritage entrance protocols.
+              </p>
+              <div className="font-serif font-bold text-[#173F35] dark:text-[#D4B77D] text-lg pt-1">
+                ₹25,00,000 / night
+              </div>
             </div>
-            <p className="text-xs text-slate-300 leading-relaxed">
-              Full buyout of lakeside gardens, heritage courtyard staging, and 40 luxury suites.
-            </p>
-            <ul className="space-y-1.5 text-xs text-slate-400">
-              <li>• Private royal boat transfer for baraat</li>
-              <li>• Exclusive 3-day residency setup</li>
-              <li>• Full banquet setup and sound staging rights</li>
-            </ul>
-          </div>
-
-          <div className="p-8 rounded-3xl glass-card border border-white/10 space-y-4">
-            <div className="flex items-center justify-between">
-              <h3 className="text-lg font-serif font-bold text-white">Palace Gala & Banquet Evening</h3>
-              <span className="text-lg font-bold text-amber-400">{formatINR(3500000)}</span>
-            </div>
-            <p className="text-xs text-slate-300 leading-relaxed">
-              Main heritage courtyard access with banquet seating for up to 300 guests.
-            </p>
-            <ul className="space-y-1.5 text-xs text-slate-400">
-              <li>• Silver-tier banquet setup</li>
-              <li>• Architectural wash lighting included</li>
-            </ul>
           </div>
         </div>
       )}
 
-      {/* Tab 3: Calendar */}
+      {/* Calendar Tab */}
       {activeTab === "calendar" && (
-        <div className="p-8 rounded-3xl glass-card border border-white/10 space-y-6">
-          <h3 className="text-lg font-serif font-bold text-white">Autumn & Winter Season Availability</h3>
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 text-xs">
-            <div className="p-4 rounded-xl bg-slate-950 border border-emerald-500/30 space-y-1">
-              <span className="text-slate-400 block text-[10px] uppercase">Nov 2026</span>
-              <span className="text-emerald-400 font-bold block">12 Dates Open</span>
-              <span className="text-slate-500 text-[10px]">Peak Wedding Season</span>
-            </div>
-            <div className="p-4 rounded-xl bg-slate-950 border border-amber-500/30 space-y-1">
-              <span className="text-slate-400 block text-[10px] uppercase">Dec 2026</span>
-              <span className="text-amber-400 font-bold block">6 Dates Open</span>
-              <span className="text-slate-500 text-[10px]">High Demand</span>
-            </div>
-            <div className="p-4 rounded-xl bg-slate-950 border border-emerald-500/30 space-y-1">
-              <span className="text-slate-400 block text-[10px] uppercase">Jan 2027</span>
-              <span className="text-emerald-400 font-bold block">18 Dates Open</span>
-              <span className="text-slate-500 text-[10px]">Winter Galas</span>
-            </div>
-            <div className="p-4 rounded-xl bg-slate-950 border border-emerald-500/30 space-y-1">
-              <span className="text-slate-400 block text-[10px] uppercase">Feb 2027</span>
-              <span className="text-emerald-400 font-bold block">14 Dates Open</span>
-              <span className="text-slate-500 text-[10px]">Spring Celebrations</span>
-            </div>
-          </div>
+        <div className="p-6 rounded-2xl bg-white dark:bg-[#232F28] border border-[#E8E2D7] dark:border-[#344139] space-y-3">
+          <h2 className="text-lg font-serif font-bold text-[#173F35] dark:text-[#F4F0E7]">
+            Season Availability (2026 - 2027)
+          </h2>
+          <p className="text-xs text-[#77746D] dark:text-[#B5B5AA]">
+            Peak auspicious wedding muhurat dates are currently 82% occupied.
+          </p>
+        </div>
+      )}
+
+      {/* Reviews Tab */}
+      {activeTab === "reviews" && (
+        <div className="p-6 rounded-2xl bg-white dark:bg-[#232F28] border border-[#E8E2D7] dark:border-[#344139] space-y-3">
+          <h2 className="text-lg font-serif font-bold text-[#173F35] dark:text-[#F4F0E7]">
+            Client Endorsements & Quality Metrics
+          </h2>
+          <p className="text-xs text-[#77746D] dark:text-[#B5B5AA]">
+            Verified reviews collected following post-event platform debriefs.
+          </p>
         </div>
       )}
     </div>
   );
 }
-

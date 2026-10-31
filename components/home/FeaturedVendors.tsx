@@ -5,15 +5,9 @@ import Link from "next/link";
 import {
   Star,
   MapPin,
-  CheckCircle2,
   Bookmark,
   ArrowRight,
   ShieldCheck,
-  Building2,
-  Camera,
-  Utensils,
-  Palette,
-  Disc,
 } from "lucide-react";
 import { SAMPLE_VENDORS } from "@/data/vendors";
 import { useEvntoraStore } from "@/lib/store";
@@ -34,13 +28,13 @@ export function FeaturedVendors() {
     <section className="py-20 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-12">
       <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
         <div className="space-y-3 max-w-2xl">
-          <div className="text-xs uppercase tracking-widest text-amber-400 font-bold">
+          <div className="text-xs uppercase tracking-widest text-[#C6A66B] dark:text-[#D4B77D] font-bold">
             Curated Artisans & Estates
           </div>
-          <h2 className="text-3xl sm:text-5xl font-serif font-bold text-white tracking-tight">
+          <h2 className="text-3xl sm:text-5xl font-serif font-bold text-[#173F35] dark:text-[#F4F0E7] tracking-tight">
             India&apos;s Top 1% Verified Vendors.
           </h2>
-          <p className="text-slate-400 text-sm sm:text-base leading-relaxed">
+          <p className="text-[#77746D] dark:text-[#B5B5AA] text-sm sm:text-base leading-relaxed">
             Every vendor on Evntora undergoes strict quality auditing, insurance checks, 
             and verified client reference verification. No unvetted third parties.
           </p>
@@ -48,7 +42,7 @@ export function FeaturedVendors() {
 
         <Link
           href="/vendors"
-          className="inline-flex items-center gap-2 text-sm font-semibold text-amber-400 hover:text-amber-300 transition-colors group shrink-0"
+          className="inline-flex items-center gap-2 text-sm font-semibold text-[#173F35] dark:text-[#A9C7B2] hover:text-[#0F2B24] dark:hover:text-[#F4F0E7] transition-colors group shrink-0"
         >
           <span>Explore All Vendors</span>
           <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
@@ -61,10 +55,10 @@ export function FeaturedVendors() {
           <button
             key={tab}
             onClick={() => setSelectedFilter(tab)}
-            className={`px-4 py-2 rounded-xl text-xs font-semibold whitespace-nowrap transition-all ${
+            className={`px-4 py-2 rounded-xl text-xs font-semibold whitespace-nowrap transition-all cursor-pointer ${
               selectedFilter === tab
-                ? "bg-amber-500 text-slate-950 shadow-md shadow-amber-500/20"
-                : "bg-slate-900/80 text-slate-400 hover:text-white border border-slate-800"
+                ? "bg-[#173F35] text-[#FAF8F3] dark:bg-[#A9C7B2] dark:text-[#151B18] shadow-xs"
+                : "bg-white dark:bg-[#232F28] text-[#77746D] dark:text-[#B5B5AA] hover:text-[#173F35] dark:hover:text-[#F4F0E7] border border-[#E8E2D7] dark:border-[#344139]"
             }`}
           >
             {tab}
@@ -79,7 +73,7 @@ export function FeaturedVendors() {
           return (
             <div
               key={vendor.id}
-              className="group rounded-2xl overflow-hidden glass-card border border-white/10 hover:border-amber-500/40 transition-all duration-300 flex flex-col justify-between"
+              className="group rounded-3xl overflow-hidden bg-white dark:bg-[#232F28] border border-[#E8E2D7] dark:border-[#344139] hover:border-[#C6A66B] dark:hover:border-[#D4B77D] hover:shadow-lg transition-all duration-300 flex flex-col justify-between"
             >
               <div className="relative h-56 w-full overflow-hidden">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -88,15 +82,15 @@ export function FeaturedVendors() {
                   alt={vendor.name}
                   className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                 />
-                <div className="absolute inset-0 bg-gradient-to-t from-[#090a0f] via-transparent to-black/40"></div>
+                <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-black/30"></div>
 
                 {/* Badges */}
                 <div className="absolute top-3 left-3 flex items-center gap-1.5">
-                  <span className="px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider bg-slate-950/80 backdrop-blur-md text-amber-400 border border-amber-500/30">
+                  <span className="px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider bg-white/90 dark:bg-[#151B18]/90 backdrop-blur-md text-[#173F35] dark:text-[#A9C7B2] border border-[#E8E2D7] dark:border-[#344139] shadow-xs">
                     {vendor.category}
                   </span>
                   {vendor.isVerified && (
-                    <span className="px-2 py-0.5 rounded-full text-[10px] font-medium bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 flex items-center gap-1">
+                    <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-[#E7EFEA] text-[#173F35] border border-[#173F35]/20 flex items-center gap-1 shadow-xs">
                       <ShieldCheck className="w-3 h-3" />
                       Verified
                     </span>
@@ -107,10 +101,10 @@ export function FeaturedVendors() {
                 <button
                   onClick={() => toggleSaveVendor(vendor.id)}
                   aria-label={isSaved ? "Remove from bookmarks" : "Save to bookmarks"}
-                  className={`absolute top-3 right-3 p-2 rounded-xl backdrop-blur-md transition-all ${
+                  className={`absolute top-3 right-3 p-2 rounded-xl backdrop-blur-md transition-all cursor-pointer ${
                     isSaved
-                      ? "bg-amber-500 text-slate-950"
-                      : "bg-slate-950/70 text-slate-300 hover:text-white hover:bg-slate-900"
+                      ? "bg-[#173F35] text-[#FAF8F3]"
+                      : "bg-white/80 dark:bg-[#151B18]/80 text-[#252522] dark:text-[#F4F0E7] hover:bg-white"
                   }`}
                 >
                   <Bookmark className="w-4 h-4 fill-current" />
@@ -119,12 +113,12 @@ export function FeaturedVendors() {
                 {/* Rating & Location Tag */}
                 <div className="absolute bottom-3 left-3 right-3 flex items-center justify-between text-xs text-white">
                   <div className="flex items-center gap-1 bg-black/60 backdrop-blur-md px-2.5 py-1 rounded-lg">
-                    <Star className="w-3.5 h-3.5 fill-amber-400 text-amber-400" />
+                    <Star className="w-3.5 h-3.5 fill-[#C6A66B] text-[#C6A66B]" />
                     <span className="font-bold">{vendor.rating}</span>
-                    <span className="text-slate-400">({vendor.reviewCount})</span>
+                    <span className="text-white/80">({vendor.reviewCount})</span>
                   </div>
-                  <div className="flex items-center gap-1 bg-black/60 backdrop-blur-md px-2.5 py-1 rounded-lg text-slate-300">
-                    <MapPin className="w-3.5 h-3.5 text-amber-400" />
+                  <div className="flex items-center gap-1 bg-black/60 backdrop-blur-md px-2.5 py-1 rounded-lg text-white">
+                    <MapPin className="w-3.5 h-3.5 text-[#C6A66B]" />
                     <span>{vendor.city}</span>
                   </div>
                 </div>
@@ -133,22 +127,22 @@ export function FeaturedVendors() {
               {/* Card Body */}
               <div className="p-6 space-y-4 flex-1 flex flex-col justify-between">
                 <div className="space-y-1.5">
-                  <h3 className="text-lg font-serif font-bold text-white group-hover:text-amber-300 transition-colors">
+                  <h3 className="text-lg font-serif font-bold text-[#173F35] dark:text-[#F4F0E7] group-hover:text-[#0F2B24] transition-colors">
                     {vendor.name}
                   </h3>
-                  <p className="text-xs text-slate-400 line-clamp-2 leading-relaxed">
+                  <p className="text-xs text-[#77746D] dark:text-[#B5B5AA] line-clamp-2 leading-relaxed">
                     {vendor.shortBio}
                   </p>
                 </div>
 
-                <div className="pt-4 border-t border-white/5 flex items-center justify-between">
+                <div className="pt-4 border-t border-[#E8E2D7] dark:border-[#344139] flex items-center justify-between">
                   <div>
-                    <span className="text-[10px] uppercase tracking-wider text-slate-500 block">
+                    <span className="text-[10px] uppercase font-bold tracking-wider text-[#77746D] dark:text-[#B5B5AA] block">
                       Starting From
                     </span>
-                    <span className="text-sm font-bold text-amber-400">
+                    <span className="text-sm font-serif font-bold text-[#173F35] dark:text-[#A9C7B2]">
                       {formatINR(vendor.startingPrice)}{" "}
-                      <span className="text-[10px] font-normal text-slate-400">
+                      <span className="text-[10px] font-sans font-normal text-[#77746D] dark:text-[#B5B5AA]">
                         /{vendor.priceUnit}
                       </span>
                     </span>
@@ -156,7 +150,7 @@ export function FeaturedVendors() {
 
                   <Link
                     href={`/vendors/${vendor.id}`}
-                    className="px-3.5 py-2 rounded-xl bg-slate-900 hover:bg-amber-500 hover:text-slate-950 text-slate-200 border border-slate-800 text-xs font-semibold transition-all flex items-center gap-1.5"
+                    className="px-3.5 py-2 rounded-xl bg-[#FAF8F3] dark:bg-[#1C2520] hover:bg-[#E7EFEA] dark:hover:bg-[#173F35]/40 text-[#173F35] dark:text-[#A9C7B2] border border-[#E8E2D7] dark:border-[#344139] text-xs font-semibold transition-all flex items-center gap-1.5 cursor-pointer shadow-2xs"
                   >
                     <span>View Profile</span>
                     <ArrowRight className="w-3 h-3" />
@@ -170,4 +164,3 @@ export function FeaturedVendors() {
     </section>
   );
 }
-
