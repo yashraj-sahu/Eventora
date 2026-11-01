@@ -25,7 +25,7 @@ export interface BookingModalProps {
     name: string;
     category: string;
     city: string;
-    startingPrice: number;
+    startingPrice: number | null;
     priceUnit: string;
     packages?: Array<{
       name: string;
@@ -45,12 +45,8 @@ export function BookingModal({
   const router = useRouter();
   const { isAuthenticated, profile } = useAuth();
 
-  const packages = vendor.packages || [
-    {
-      name: "Signature Artisan Package",
-      price: vendor.startingPrice,
-      features: ["Standard production engagement", "Dedicated site supervisor"],
-    },
+  const packages = vendor.packages?.length ? vendor.packages : vendor.startingPrice === null ? [] : [
+    { name: "Starting price", price: vendor.startingPrice, features: [] },
   ];
 
   const [selectedPkgName, setSelectedPkgName] = useState(
@@ -65,10 +61,11 @@ export function BookingModal({
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   if (!isOpen) return null;
+  if (packages.length === 0) return <div className="fixed inset-0 z-50 grid place-items-center bg-black/60 p-4"><div className="rounded-2xl bg-white p-6 text-center"><h2 className="font-semibold">Request a quote</h2><p className="mt-2 text-sm">This vendor has not published package pricing yet.</p><button className="mt-4 rounded-lg bg-[#173F35] px-4 py-2 text-white" onClick={onClose}>Close</button></div></div>;
 
   const currentPkg =
     packages.find((p) => p.name === selectedPkgName) || packages[0];
-  const totalPrice = currentPkg ? currentPkg.price : vendor.startingPrice;
+  const totalPrice = currentPkg ? currentPkg.price : (vendor.startingPrice ?? 0);
   const advanceAmount = Math.round(totalPrice * (advancePercent / 100));
   const remainingAmount = totalPrice - advanceAmount;
 

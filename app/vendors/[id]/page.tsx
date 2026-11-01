@@ -5,8 +5,8 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Navbar } from "@/components/layout/Navbar";
 import { Footer } from "@/components/layout/Footer";
-import { SAMPLE_VENDORS } from "@/data/vendors";
 import { useEvntoraStore } from "@/lib/store";
+import { useMarketplaceVendors } from "@/lib/use-marketplace";
 import { formatINR } from "@/lib/utils";
 import {
   Star,
@@ -26,8 +26,9 @@ import { BookingModal } from "@/components/booking/BookingModal";
 
 export default function VendorDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const resolvedParams = use(params);
-  const vendor = SAMPLE_VENDORS.find((v) => v.id === resolvedParams.id);
-  const { state, toggleSaveVendor, addEnquiry } = useEvntoraStore();
+  const { vendors, savedIds, loading, error, toggleSaved } = useMarketplaceVendors();
+  const vendor = vendors.find((v) => v.id === resolvedParams.id);
+  const { state, addEnquiry } = useEvntoraStore();
 
   const [clientName, setClientName] = useState(state.currentUser.name || "");
   const [clientEmail, setClientEmail] = useState(state.currentUser.email || "");
@@ -40,12 +41,21 @@ export default function VendorDetailPage({ params }: { params: Promise<{ id: str
   const [submitted, setSubmitted] = useState(false);
   const [bookingModalOpen, setBookingModalOpen] = useState(false);
   const [selectedPackageForModal, setSelectedPackageForModal] = useState<string | undefined>(undefined);
+  const [claimMessage, setClaimMessage] = useState("");
+  const [claiming, setClaiming] = useState(false);
 
-  if (!vendor) {
-    return notFound();
-  }
+  if (loading) return <main className="min-h-screen grid place-items-center">Loading vendor…</main>;
+  if (error) return <main className="min-h-screen grid place-items-center">Unable to load this vendor right now.</main>;
+  if (!vendor) return notFound();
 
-  const isSaved = state.savedVendorIds.includes(vendor.id);
+  const isSaved = savedIds.includes(vendor.id);
+  const claimListing = async () => {
+    setClaiming(true); setClaimMessage("");
+    const response = await fetch("/api/vendors/claim", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ vendorId: vendor.id }) });
+    if (response.status === 401) { window.location.assign(`/signin?redirectTo=${encodeURIComponent(`/vendors/${vendor.id}`)}`); return; }
+    setClaimMessage(response.ok ? "Listing claimed. Sign in again to open your vendor portal." : "This listing can only be claimed by an account with its verified business contact email.");
+    setClaiming(false);
+  };
 
   const handleSubmitEnquiry = (e: React.FormEvent) => {
     e.preventDefault();
@@ -78,15 +88,16 @@ export default function VendorDetailPage({ params }: { params: Promise<{ id: str
           <ArrowLeft className="w-3.5 h-3.5" />
           <span>Back to All Vendors</span>
         </Link>
+        {vendor.claimable && <div className="flex items-center gap-3"><button disabled={claiming} onClick={() => void claimListing()} className="rounded-xl border border-[#173F35] px-4 py-2 text-xs font-semibold text-[#173F35] disabled:opacity-50">{claiming ? "Checking ownership…" : "Claim this business"}</button>{claimMessage && <span role="status" className="text-xs">{claimMessage}</span>}</div>}
 
         {/* Hero Visual Header */}
         <div className="relative rounded-3xl overflow-hidden bg-white dark:bg-[#232F28] border border-[#E8E2D7] dark:border-[#344139] h-80 sm:h-96 shadow-md">
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img
+          {vendor.coverImage ? <img
             src={vendor.coverImage}
             alt={vendor.name}
             className="w-full h-full object-cover"
-          />
+          /> : <div className="h-full w-full bg-[#E7EFEA] dark:bg-[#1C2520]" aria-label="No portfolio image available" />}
           <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-black/20"></div>
 
           <div className="absolute top-6 left-6 flex items-center gap-2">
@@ -102,7 +113,7 @@ export default function VendorDetailPage({ params }: { params: Promise<{ id: str
           </div>
 
           <button
-            onClick={() => toggleSaveVendor(vendor.id)}
+            onClick={() => void toggleSaved(vendor.id)}
             className={`absolute top-6 right-6 p-3 rounded-2xl backdrop-blur-md transition-all cursor-pointer ${
               isSaved
                 ? "bg-[#173F35] text-[#FAF8F3] font-bold"
@@ -125,10 +136,10 @@ export default function VendorDetailPage({ params }: { params: Promise<{ id: str
                 <span>•</span>
                 <span className="flex items-center gap-1 font-semibold text-[#C6A66B]">
                   <Star className="w-4 h-4 fill-[#C6A66B] text-[#C6A66B]" />
-                  {vendor.rating} ({vendor.reviewCount} Reviews)
+                  {vendor.rating !== null ? `${vendor.rating}${vendor.reviewCount !== null ? ` (${vendor.reviewCount} Reviews)` : ""}` : "No reviews yet"}
                 </span>
                 <span>•</span>
-                <span>{vendor.pastEventsCount}+ Celebrations Completed</span>
+                {vendor.pastEventsCount > 0 && <span>{vendor.pastEventsCount} Celebrations Completed</span>}
               </div>
             </div>
 
@@ -137,8 +148,8 @@ export default function VendorDetailPage({ params }: { params: Promise<{ id: str
                 Starting Rate
               </span>
               <span className="text-xl font-serif font-bold text-white">
-                {formatINR(vendor.startingPrice)}{" "}
-                <span className="text-xs text-white/70 font-sans font-normal">/{vendor.priceUnit}</span>
+                {vendor.startingPrice === null ? "Contact for pricing" : formatINR(vendor.startingPrice)}{" "}
+                {vendor.startingPrice !== null && <span className="text-xs text-white/70 font-sans font-normal">/{vendor.priceUnit}</span>}
               </span>
             </div>
           </div>

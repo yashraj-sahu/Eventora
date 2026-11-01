@@ -5,7 +5,6 @@ import Link from "next/link";
 import { useEvntoraStore } from "@/lib/store";
 import { useAuth } from "@/lib/auth-context";
 import { getSupabaseStatus } from "@/lib/supabase";
-import { SAMPLE_VENDORS } from "@/data/vendors";
 import { ThemeToggle } from "@/components/ui/ThemeToggle";
 import {
   ShieldCheck,
@@ -54,7 +53,7 @@ function AdminDevPanel() {
             {supabaseStatus.mode}
           </span>
           <span className="text-[10px] text-[#77746D] dark:text-[#B5B5AA]">
-            {state.events.length} celebrations · {SAMPLE_VENDORS.length} verified artisans
+            {state.events.length} celebrations · Vendor records are managed from Supabase
           </span>
         </div>
 

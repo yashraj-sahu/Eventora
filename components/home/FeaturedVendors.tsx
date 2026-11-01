@@ -10,24 +10,20 @@ import {
   ShieldCheck,
   Sparkles,
 } from "lucide-react";
-import { SAMPLE_VENDORS } from "@/data/vendors";
-import { useEvntoraStore } from "@/lib/store";
+import { useMarketplaceVendors } from "@/lib/use-marketplace";
 import { formatINR } from "@/lib/utils";
 import { BookingModal } from "@/components/booking/BookingModal";
 import type { VendorItem } from "@/types";
 
 export function FeaturedVendors() {
-  const { state, toggleSaveVendor } = useEvntoraStore();
+  const { vendors, savedIds, loading, error, toggleSaved } = useMarketplaceVendors();
   const [selectedFilter, setSelectedFilter] = useState("All");
   const [bookingModalOpen, setBookingModalOpen] = useState(false);
   const [selectedVendorForBooking, setSelectedVendorForBooking] = useState<VendorItem | null>(null);
 
   const filterTabs = ["All", "Venues", "Photographers", "Caterers", "Decorators", "DJs"];
 
-  const filteredVendors =
-    selectedFilter === "All"
-      ? SAMPLE_VENDORS.slice(0, 6)
-      : SAMPLE_VENDORS.filter((v) => v.category === selectedFilter).slice(0, 6);
+  const filteredVendors = vendors.filter((v) => v.isFeatured && (selectedFilter === "All" || v.category === selectedFilter)).slice(0, 6);
 
   return (
     <section className="py-20 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-12">
@@ -37,11 +33,10 @@ export function FeaturedVendors() {
             Curated Artisans & Estates
           </div>
           <h2 className="text-3xl sm:text-5xl font-serif font-bold text-[#173F35] dark:text-[#F4F0E7] tracking-tight">
-            India&apos;s Top 1% Verified Vendors.
+            Find the right vendors for your event.
           </h2>
           <p className="text-[#77746D] dark:text-[#B5B5AA] text-sm sm:text-base leading-relaxed">
-            Every vendor on Evntora undergoes strict quality auditing, insurance checks, 
-            and verified client reference verification. No unvetted third parties.
+            Browse vendor listings approved by the Evntora team. Service details, portfolio images, and package pricing come from each vendor profile.
           </p>
         </div>
 
@@ -73,8 +68,11 @@ export function FeaturedVendors() {
 
       {/* Vendors Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {!loading && error && <p role="alert" className="col-span-full py-10 text-center text-sm text-rose-600">{error}</p>}
+        {!loading && !error && filteredVendors.length === 0 && <p className="col-span-full py-10 text-center text-sm text-[#77746D]">No approved vendors are available in this category yet.</p>}
+        {loading && <p className="col-span-full py-10 text-center text-sm text-[#77746D]">Loading vendors…</p>}
         {filteredVendors.map((vendor) => {
-          const isSaved = state.savedVendorIds.includes(vendor.id);
+          const isSaved = savedIds.includes(vendor.id);
           return (
             <div
               key={vendor.id}
@@ -82,11 +80,11 @@ export function FeaturedVendors() {
             >
               <div className="relative h-56 w-full overflow-hidden">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img
+                {vendor.coverImage ? <img
                   src={vendor.coverImage}
                   alt={vendor.name}
                   className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                />
+                /> : <div className="w-full h-full bg-[#E7EFEA] dark:bg-[#1C2520]" aria-label="No portfolio image available" />}
                 <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-black/30"></div>
 
                 {/* Badges */}
@@ -104,7 +102,7 @@ export function FeaturedVendors() {
 
                 {/* Bookmark Toggle */}
                 <button
-                  onClick={() => toggleSaveVendor(vendor.id)}
+                  onClick={() => void toggleSaved(vendor.id)}
                   aria-label={isSaved ? "Remove from bookmarks" : "Save to bookmarks"}
                   className={`absolute top-3 right-3 p-2 rounded-xl backdrop-blur-md transition-all cursor-pointer ${
                     isSaved
@@ -117,11 +115,11 @@ export function FeaturedVendors() {
 
                 {/* Rating & Location Tag */}
                 <div className="absolute bottom-3 left-3 right-3 flex items-center justify-between text-xs text-white">
-                  <div className="flex items-center gap-1 bg-black/60 backdrop-blur-md px-2.5 py-1 rounded-lg">
+                  {vendor.rating !== null && <div className="flex items-center gap-1 bg-black/60 backdrop-blur-md px-2.5 py-1 rounded-lg">
                     <Star className="w-3.5 h-3.5 fill-[#C6A66B] text-[#C6A66B]" />
                     <span className="font-bold">{vendor.rating}</span>
                     <span className="text-white/80">({vendor.reviewCount})</span>
-                  </div>
+                  </div>}
                   <div className="flex items-center gap-1 bg-black/60 backdrop-blur-md px-2.5 py-1 rounded-lg text-white">
                     <MapPin className="w-3.5 h-3.5 text-[#C6A66B]" />
                     <span>{vendor.city}</span>
@@ -146,10 +144,10 @@ export function FeaturedVendors() {
                       Starting From
                     </span>
                     <span className="text-sm font-serif font-bold text-[#173F35] dark:text-[#A9C7B2]">
-                      {formatINR(vendor.startingPrice)}{" "}
-                      <span className="text-[10px] font-sans font-normal text-[#77746D] dark:text-[#B5B5AA]">
+                      {vendor.startingPrice === null ? "Contact for pricing" : formatINR(vendor.startingPrice)}{" "}
+                      {vendor.startingPrice !== null && <span className="text-[10px] font-sans font-normal text-[#77746D] dark:text-[#B5B5AA]">
                         /{vendor.priceUnit}
-                      </span>
+                      </span>}
                     </span>
                   </div>
 

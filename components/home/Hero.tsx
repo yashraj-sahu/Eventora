@@ -11,7 +11,6 @@ import {
   Users,
   Coins,
   ChevronRight,
-  Star,
 } from "lucide-react";
 import { CITIES } from "@/data/cities";
 import { EVENT_CATEGORIES } from "@/data/categories";
@@ -59,7 +58,7 @@ export function Hero() {
 
           <p className="text-base sm:text-lg text-[#77746D] dark:text-[#B5B5AA] max-w-2xl mx-auto font-sans leading-relaxed">
             From heritage palace weddings in Rajasthan to modern corporate galas in Bengaluru.
-            Evntora pairs intelligent AI blueprints with India&apos;s verified top 1% event artisans.
+            Evntora pairs AI assisted planning tools with an approved vendor marketplace.
           </p>
 
           {/* Primary Action Buttons */}
@@ -175,28 +174,6 @@ export function Hero() {
           </div>
         </div>
 
-        {/* Social Proof & Metrics */}
-        <div className="pt-6 border-t border-[#E8E2D7] dark:border-[#344139] max-w-4xl mx-auto grid grid-cols-2 sm:grid-cols-4 gap-6 text-center">
-          <div>
-            <div className="text-2xl sm:text-3xl font-serif font-bold text-[#173F35] dark:text-[#A9C7B2]">₹150+ Cr</div>
-            <div className="text-xs text-[#77746D] dark:text-[#B5B5AA] mt-0.5">Event Budgets Managed</div>
-          </div>
-          <div>
-            <div className="text-2xl sm:text-3xl font-serif font-bold text-[#173F35] dark:text-[#A9C7B2]">500+</div>
-            <div className="text-xs text-[#77746D] dark:text-[#B5B5AA] mt-0.5">Luxury Celebrations</div>
-          </div>
-          <div>
-            <div className="text-2xl sm:text-3xl font-serif font-bold text-[#173F35] dark:text-[#A9C7B2]">50+</div>
-            <div className="text-xs text-[#77746D] dark:text-[#B5B5AA] mt-0.5">Indian Cities & Hubs</div>
-          </div>
-          <div>
-            <div className="flex items-center justify-center gap-1 text-2xl sm:text-3xl font-serif font-bold text-[#C6A66B] dark:text-[#D4B77D]">
-              <Star className="w-5 h-5 fill-[#C6A66B] dark:fill-[#D4B77D] text-[#C6A66B] dark:text-[#D4B77D] inline" />
-              <span>4.95</span>
-            </div>
-            <div className="text-xs text-[#77746D] dark:text-[#B5B5AA] mt-0.5">Artisan Rating Score</div>
-          </div>
-        </div>
       </div>
     </section>
   );

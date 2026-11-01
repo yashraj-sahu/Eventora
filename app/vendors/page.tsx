@@ -4,10 +4,9 @@ import { useState, useMemo } from "react";
 import Link from "next/link";
 import { Navbar } from "@/components/layout/Navbar";
 import { Footer } from "@/components/layout/Footer";
-import { SAMPLE_VENDORS } from "@/data/vendors";
 import { CITIES } from "@/data/cities";
 import { VENDOR_CATEGORIES } from "@/data/categories";
-import { useEvntoraStore } from "@/lib/store";
+import { useMarketplaceVendors } from "@/lib/use-marketplace";
 import { formatINR } from "@/lib/utils";
 import {
   Search,
@@ -24,7 +23,7 @@ import { BookingModal } from "@/components/booking/BookingModal";
 import type { VendorItem } from "@/types";
 
 export default function VendorsPage() {
-  const { state, toggleSaveVendor } = useEvntoraStore();
+  const { vendors, savedIds, loading, error, toggleSaved } = useMarketplaceVendors();
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCity, setSelectedCity] = useState("All");
   const [selectedCategory, setSelectedCategory] = useState("All");
@@ -34,7 +33,7 @@ export default function VendorsPage() {
   const [selectedVendorForBooking, setSelectedVendorForBooking] = useState<VendorItem | null>(null);
 
   const filteredVendors = useMemo(() => {
-    return SAMPLE_VENDORS.filter((v) => {
+    return vendors.filter((v) => {
       const matchesSearch =
         v.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
         v.city.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -43,11 +42,11 @@ export default function VendorsPage() {
       const matchesCity = selectedCity === "All" || v.city === selectedCity;
       const matchesCategory = selectedCategory === "All" || v.category === selectedCategory;
       const matchesPrice = selectedPriceRange === "All" || v.priceRange === selectedPriceRange;
-      const matchesRating = v.rating >= minRating;
+      const matchesRating = minRating === 0 || (v.rating !== null && v.rating >= minRating);
 
       return matchesSearch && matchesCity && matchesCategory && matchesPrice && matchesRating;
     });
-  }, [searchQuery, selectedCity, selectedCategory, selectedPriceRange, minRating]);
+  }, [vendors, searchQuery, selectedCity, selectedCategory, selectedPriceRange, minRating]);
 
   const handleResetFilters = () => {
     setSearchQuery("");
@@ -66,13 +65,13 @@ export default function VendorsPage() {
         <div className="space-y-4">
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#E7EFEA] dark:bg-[#173F35]/50 border border-[#173F35]/20 text-xs text-[#173F35] dark:text-[#A9C7B2] font-semibold">
             <ShieldCheck className="w-3.5 h-3.5 text-[#C6A66B]" />
-            <span>Strictly Verified Top 1% Event Artisans & Palaces</span>
+            <span>Approved event vendors</span>
           </div>
           <h1 className="text-3xl sm:text-5xl font-serif font-bold text-[#173F35] dark:text-[#F4F0E7] tracking-tight">
             Explore Vendor Marketplace.
           </h1>
           <p className="text-[#77746D] dark:text-[#B5B5AA] text-sm max-w-2xl leading-relaxed">
-            Search verified palace estates, award-winning cinematographers, master royal caterers, and lighting architects across 50+ Indian destinations.
+            Search published vendor profiles by business, service, category, and location.
           </p>
         </div>
 
@@ -199,8 +198,11 @@ export default function VendorsPage() {
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {filteredVendors.map((vendor) => {
-              const isSaved = state.savedVendorIds.includes(vendor.id);
+        {loading && <p className="col-span-full py-12 text-center">Loading vendors…</p>}
+        {error && <p className="col-span-full py-12 text-center text-rose-600">{error}</p>}
+        {!loading && !error && filteredVendors.length === 0 && <p className="col-span-full py-12 text-center">No approved vendors match these filters yet.</p>}
+        {filteredVendors.map((vendor) => {
+          const isSaved = savedIds.includes(vendor.id);
               return (
                 <div
                   key={vendor.id}
@@ -208,11 +210,11 @@ export default function VendorsPage() {
                 >
                   <div className="relative h-56 w-full overflow-hidden">
                     {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img
-                      src={vendor.coverImage}
+                  {vendor.coverImage ? <img
+                  src={vendor.coverImage}
                       alt={vendor.name}
                       className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                    />
+                /> : <div className="h-full w-full bg-[#E7EFEA] dark:bg-[#1C2520]" aria-label="No portfolio image available" />}
                     <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-black/30"></div>
 
                     <div className="absolute top-3 left-3 flex items-center gap-1.5">
@@ -228,7 +230,7 @@ export default function VendorsPage() {
                     </div>
 
                     <button
-                      onClick={() => toggleSaveVendor(vendor.id)}
+                  onClick={() => void toggleSaved(vendor.id)}
                       className={`absolute top-3 right-3 p-2 rounded-xl backdrop-blur-md transition-all cursor-pointer ${
                         isSaved
                           ? "bg-[#173F35] text-[#FAF8F3]"
@@ -241,8 +243,7 @@ export default function VendorsPage() {
                     <div className="absolute bottom-3 left-3 right-3 flex items-center justify-between text-xs text-white">
                       <div className="flex items-center gap-1 bg-black/60 backdrop-blur-md px-2.5 py-1 rounded-lg">
                         <Star className="w-3.5 h-3.5 fill-[#C6A66B] text-[#C6A66B]" />
-                        <span className="font-bold">{vendor.rating}</span>
-                        <span className="text-white/80">({vendor.reviewCount})</span>
+                        {vendor.rating !== null && <><span className="font-bold">{vendor.rating}</span>{vendor.reviewCount !== null && <span className="text-white/80">({vendor.reviewCount})</span>}</>}
                       </div>
                       <div className="flex items-center gap-1 bg-black/60 backdrop-blur-md px-2.5 py-1 rounded-lg text-white">
                         <MapPin className="w-3.5 h-3.5 text-[#C6A66B]" />
@@ -278,10 +279,10 @@ export default function VendorsPage() {
                           Starting From
                         </span>
                         <span className="text-sm font-serif font-bold text-[#173F35] dark:text-[#A9C7B2]">
-                          {formatINR(vendor.startingPrice)}{" "}
-                          <span className="text-[10px] font-sans font-normal text-[#77746D] dark:text-[#B5B5AA]">
+                          {vendor.startingPrice === null ? "Contact for pricing" : formatINR(vendor.startingPrice)}{" "}
+                          {vendor.startingPrice !== null && <span className="text-[10px] font-sans font-normal text-[#77746D] dark:text-[#B5B5AA]">
                             /{vendor.priceUnit}
-                          </span>
+                          </span>}
                         </span>
                       </div>
 

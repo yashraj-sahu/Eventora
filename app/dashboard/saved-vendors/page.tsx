@@ -2,14 +2,15 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { useEvntoraStore } from "@/lib/store";
+import { useMarketplaceVendors } from "@/lib/use-marketplace";
 import { formatINR } from "@/lib/utils";
 import { Bookmark, Star, MapPin, ShieldCheck, ArrowRight, Trash2, Sparkles } from "lucide-react";
 import { BookingModal } from "@/components/booking/BookingModal";
 import type { VendorItem } from "@/types";
 
 export default function SavedVendorsPage() {
-  const { savedVendors, toggleSaveVendor } = useEvntoraStore();
+  const { vendors, savedIds, loading, error, toggleSaved } = useMarketplaceVendors();
+  const savedVendors = vendors.filter((vendor) => savedIds.includes(vendor.id));
   const [bookingModalOpen, setBookingModalOpen] = useState(false);
   const [selectedVendorForBooking, setSelectedVendorForBooking] = useState<VendorItem | null>(null);
 
@@ -38,7 +39,7 @@ export default function SavedVendorsPage() {
         </Link>
       </div>
 
-      {savedVendors.length === 0 ? (
+      {loading ? <p className="p-12 text-center">Loading saved vendors…</p> : error ? <p className="p-12 text-center text-rose-400">{error}</p> : savedVendors.length === 0 ? (
         <div className="p-16 text-center glass-card rounded-3xl space-y-4">
           <Bookmark className="w-8 h-8 text-slate-600 mx-auto" />
           <h3 className="text-xl font-bold text-white">No Saved Vendors Yet</h3>
@@ -62,9 +63,9 @@ export default function SavedVendorsPage() {
               <div className="space-y-3">
                 <div className="relative h-44 rounded-2xl overflow-hidden">
                   {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img src={vendor.coverImage} alt={vendor.name} className="w-full h-full object-cover" />
+                  {vendor.coverImage ? <img src={vendor.coverImage} alt={vendor.name} className="w-full h-full object-cover" /> : <div className="w-full h-full bg-slate-800" aria-label="No portfolio image" />}
                   <button
-                    onClick={() => toggleSaveVendor(vendor.id)}
+                    onClick={() => void toggleSaved(vendor.id)}
                     className="absolute top-3 right-3 p-2 rounded-xl bg-black/60 text-amber-400 hover:text-white backdrop-blur-md"
                     title="Remove from saved"
                   >
@@ -85,7 +86,7 @@ export default function SavedVendorsPage() {
                     <span>•</span>
                     <span className="flex items-center gap-1 text-amber-400 font-semibold">
                       <Star className="w-3 h-3 fill-amber-400" />
-                      {vendor.rating}
+                      {vendor.rating === null ? "No reviews" : vendor.rating}
                     </span>
                   </div>
                 </div>
@@ -93,8 +94,8 @@ export default function SavedVendorsPage() {
                 <div className="text-xs text-slate-300">
                   <span className="text-slate-500 block text-[10px] uppercase font-bold">Starting Rate</span>
                   <span className="font-serif font-bold text-amber-400 text-sm">
-                    {formatINR(vendor.startingPrice)}{" "}
-                    <span className="text-[10px] font-normal text-slate-400">/{vendor.priceUnit}</span>
+                    {vendor.startingPrice === null ? "Contact for pricing" : formatINR(vendor.startingPrice)}{" "}
+                    {vendor.startingPrice !== null && <span className="text-[10px] font-normal text-slate-400">/{vendor.priceUnit}</span>}
                   </span>
                 </div>
               </div>

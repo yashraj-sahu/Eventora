@@ -10,7 +10,6 @@ import {
   UserProfile,
 } from "@/types";
 import { generateAIBlueprint } from "@/data/sampleBlueprints";
-import { SAMPLE_VENDORS } from "@/data/vendors";
 
 const DEMO_STORAGE_KEY = "evntora_demo_store_v1";
 
@@ -148,7 +147,7 @@ const INITIAL_STATE: DemoStoreState = {
   guests: INITIAL_GUESTS,
   checklist: INITIAL_CHECKLIST,
   enquiries: INITIAL_ENQUIRIES,
-  savedVendorIds: ["v-01", "v-02", "v-04"],
+  savedVendorIds: [],
 };
 
 export function getInitialStoreState(): DemoStoreState {
@@ -346,7 +345,7 @@ export function useEvntoraStore() {
     activeExpenses,
     activeGuests,
     activeChecklist,
-    savedVendors: SAMPLE_VENDORS.filter((v) => state.savedVendorIds.includes(v.id)),
+    savedVendors: [],
     addEvent,
     setActiveEventId,
     addExpense,

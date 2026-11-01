@@ -2,7 +2,7 @@
  * Database type definitions matching the Supabase schema.
  */
 export type UserRole = "customer" | "vendor" | "admin";
-export type ApprovalStatus = "pending" | "approved" | "rejected";
+export type ApprovalStatus = "pending" | "approved" | "rejected" | "suspended";
 export type BookingStatus =
   | "draft"
   | "pending_vendor_confirmation"
@@ -52,25 +52,55 @@ export interface Database {
       vendor_profiles: {
         Row: {
           id: string;
-          user_id: string;
+          user_id: string | null;
           business_name: string;
           business_category: string;
           city: string;
           business_description: string | null;
-          approval_status: ApprovalStatus;
+          short_bio: string | null;
+          address: string | null;
           contact_phone: string | null;
+          contact_email: string | null;
+          cover_image_url: string | null;
+          starting_price: number;
+          price_unit: string;
+          price_range: string | null;
+          experience_years: number;
+          past_events_count: number;
+          is_verified: boolean;
+          is_featured: boolean;
+          is_published: boolean;
+          approval_status: ApprovalStatus;
+          claimed_by: string | null;
+          claim_requested_at: string | null;
+          claim_verified_at: string | null;
           created_at: string;
           updated_at: string;
         };
         Insert: {
           id?: string;
-          user_id: string;
+          user_id?: string | null;
           business_name: string;
           business_category: string;
           city: string;
           business_description?: string | null;
-          approval_status?: ApprovalStatus;
+          short_bio?: string | null;
+          address?: string | null;
           contact_phone?: string | null;
+          contact_email?: string | null;
+          cover_image_url?: string | null;
+          starting_price?: number;
+          price_unit?: string;
+          price_range?: string | null;
+          experience_years?: number;
+          past_events_count?: number;
+          is_verified?: boolean;
+          is_featured?: boolean;
+          is_published?: boolean;
+          approval_status?: ApprovalStatus;
+          claimed_by?: string | null;
+          claim_requested_at?: string | null;
+          claim_verified_at?: string | null;
           created_at?: string;
           updated_at?: string;
         };
@@ -79,19 +109,159 @@ export interface Database {
           business_category?: string;
           city?: string;
           business_description?: string | null;
-          approval_status?: ApprovalStatus;
+          short_bio?: string | null;
+          address?: string | null;
           contact_phone?: string | null;
+          contact_email?: string | null;
+          cover_image_url?: string | null;
+          starting_price?: number;
+          price_unit?: string;
+          price_range?: string | null;
+          experience_years?: number;
+          past_events_count?: number;
+          is_verified?: boolean;
+          is_featured?: boolean;
+          is_published?: boolean;
+          approval_status?: ApprovalStatus;
+          claimed_by?: string | null;
+          user_id?: string | null;
           updated_at?: string;
         };
         Relationships: [
           {
             foreignKeyName: "vendor_profiles_user_id_fkey";
             columns: ["user_id"];
-            isOneToOne: true;
+            isOneToOne: false;
             referencedRelation: "profiles";
             referencedColumns: ["id"];
           }
         ];
+      };
+      vendor_services: {
+        Row: {
+          id: string;
+          vendor_profile_id: string;
+          name: string;
+          description: string | null;
+          is_active: boolean;
+          sort_order: number;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          vendor_profile_id: string;
+          name: string;
+          description?: string | null;
+          is_active?: boolean;
+          sort_order?: number;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          name?: string;
+          description?: string | null;
+          is_active?: boolean;
+          sort_order?: number;
+          updated_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "vendor_services_vendor_profile_id_fkey";
+            columns: ["vendor_profile_id"];
+            isOneToOne: false;
+            referencedRelation: "vendor_profiles";
+            referencedColumns: ["id"];
+          }
+        ];
+      };
+      vendor_packages: {
+        Row: {
+          id: string;
+          vendor_profile_id: string;
+          name: string;
+          description: string | null;
+          price: number;
+          price_display: string | null;
+          features: string[];
+          is_active: boolean;
+          sort_order: number;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          vendor_profile_id: string;
+          name: string;
+          description?: string | null;
+          price?: number;
+          price_display?: string | null;
+          features?: string[];
+          is_active?: boolean;
+          sort_order?: number;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          name?: string;
+          description?: string | null;
+          price?: number;
+          price_display?: string | null;
+          features?: string[];
+          is_active?: boolean;
+          sort_order?: number;
+          updated_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "vendor_packages_vendor_profile_id_fkey";
+            columns: ["vendor_profile_id"];
+            isOneToOne: false;
+            referencedRelation: "vendor_profiles";
+            referencedColumns: ["id"];
+          }
+        ];
+      };
+      vendor_portfolio: {
+        Row: {
+          id: string;
+          vendor_profile_id: string;
+          storage_path: string;
+          public_url: string | null;
+          caption: string | null;
+          sort_order: number;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          vendor_profile_id: string;
+          storage_path: string;
+          public_url?: string | null;
+          caption?: string | null;
+          sort_order?: number;
+          created_at?: string;
+        };
+        Update: {
+          storage_path?: string;
+          public_url?: string | null;
+          caption?: string | null;
+          sort_order?: number;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "vendor_portfolio_vendor_profile_id_fkey";
+            columns: ["vendor_profile_id"];
+            isOneToOne: false;
+            referencedRelation: "vendor_profiles";
+            referencedColumns: ["id"];
+          }
+        ];
+      };
+      vendor_saves: {
+        Row: { user_id: string; vendor_profile_id: string; created_at: string };
+        Insert: { user_id: string; vendor_profile_id: string; created_at?: string };
+        Update: { user_id?: string; vendor_profile_id?: string };
+        Relationships: [];
       };
       events: {
         Row: {
@@ -364,7 +534,7 @@ export interface Database {
       };
     };
     Views: Record<string, never>;
-    Functions: Record<string, never>;
+    Functions: { claim_vendor_listing: { Args: { p_vendor_id: string }; Returns: string } };
     Enums: {
       user_role: UserRole;
       approval_status: ApprovalStatus;

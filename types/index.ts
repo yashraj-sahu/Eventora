@@ -144,15 +144,16 @@ export interface AIEventBlueprint {
 
 export interface Vendor {
   id: string;
+  claimable?: boolean;
   name: string;
   category: VendorCategory;
   city: string;
-  rating: number;
-  reviewCount: number;
-  priceRange: "₹₹" | "₹₹₹" | "₹₹₹₹" | "₹₹₹₹₹";
-  startingPrice: number;
+  rating: number | null;
+  reviewCount: number | null;
+  priceRange: string | null;
+  startingPrice: number | null;
   priceUnit: "per day" | "per plate" | "per event" | "package";
-  coverImage: string;
+  coverImage: string | null;
   galleryImages: string[];
   isVerified: boolean;
   isFeatured?: boolean;
@@ -172,6 +173,105 @@ export interface Vendor {
 }
 
 export type VendorItem = Vendor;
+
+/**
+ * Vendor profile as returned from the real Supabase marketplace API.
+ * Maps directly to the `vendor_profiles` table with joined relations.
+ */
+export interface MarketplaceVendor {
+  id: string;
+  user_id: string | null;
+  business_name: string;
+  business_category: string;
+  city: string;
+  business_description: string | null;
+  short_bio: string | null;
+  address: string | null;
+  contact_phone: string | null;
+  contact_email: string | null;
+  cover_image_url: string | null;
+  starting_price: number;
+  price_unit: string;
+  price_range: string;
+  experience_years: number;
+  past_events_count: number;
+  is_verified: boolean;
+  is_featured: boolean;
+  is_published: boolean;
+  approval_status: "pending" | "approved" | "rejected" | "suspended";
+  created_at: string;
+  updated_at: string;
+  vendor_services?: MarketplaceVendorService[];
+  vendor_packages?: MarketplaceVendorPackage[];
+  vendor_portfolio?: MarketplaceVendorPortfolio[];
+}
+
+export interface MarketplaceVendorService {
+  id: string;
+  vendor_profile_id: string;
+  name: string;
+  description: string | null;
+  is_active: boolean;
+  sort_order: number;
+}
+
+export interface MarketplaceVendorPackage {
+  id: string;
+  vendor_profile_id: string;
+  name: string;
+  description: string | null;
+  price: number;
+  price_display: string | null;
+  features: string[];
+  is_active: boolean;
+  sort_order: number;
+}
+
+export interface MarketplaceVendorPortfolio {
+  id: string;
+  vendor_profile_id: string;
+  storage_path: string;
+  public_url: string | null;
+  caption: string | null;
+  sort_order: number;
+}
+
+/**
+ * Converts a MarketplaceVendor (from DB) to the legacy Vendor shape
+ * used by existing UI components like BookingModal and vendor cards.
+ */
+export function marketplaceVendorToLegacy(mv: MarketplaceVendor): VendorItem {
+  return {
+    id: mv.id,
+    claimable: mv.user_id === null,
+    name: mv.business_name,
+    category: mv.business_category as VendorCategory,
+    city: mv.city,
+    rating: null,
+    reviewCount: null,
+    priceRange: mv.price_range,
+    startingPrice: mv.starting_price > 0 ? mv.starting_price : null,
+    priceUnit: (mv.price_unit || "per event") as Vendor["priceUnit"],
+    coverImage: mv.cover_image_url || mv.vendor_portfolio?.[0]?.public_url || null,
+    galleryImages: mv.vendor_portfolio?.map((p) => p.public_url || "").filter(Boolean) || [],
+    isVerified: mv.is_verified,
+    isFeatured: mv.is_featured,
+    shortBio: mv.short_bio || mv.business_description?.slice(0, 120) || "",
+    description: mv.business_description || "",
+    services: mv.vendor_services?.map((s) => s.name) || [],
+    experienceYears: mv.experience_years,
+    pastEventsCount: mv.past_events_count,
+    contactPhone: mv.contact_phone || "",
+    contactEmail: mv.contact_email || "",
+    address: mv.address || mv.city,
+    packages:
+      mv.vendor_packages?.map((p) => ({
+        name: p.name,
+        price: p.price / 100,
+        features: Array.isArray(p.features) ? p.features : [],
+      })) || [],
+  };
+}
 
 export interface VendorEnquiry {
   id: string;

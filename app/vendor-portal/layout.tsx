@@ -26,9 +26,9 @@ export default function VendorPortalLayout({
   };
 
   const businessName =
-    vendorProfile?.business_name || profile?.full_name || "The Oberoi Udaivilas";
-  const city = vendorProfile?.city || "Udaipur, Rajasthan";
-  const category = vendorProfile?.business_category || "Venues & Royal Estates";
+    vendorProfile?.business_name || profile?.full_name || "Vendor account";
+  const city = vendorProfile?.city || "";
+  const category = vendorProfile?.business_category || "Vendor";
 
   return (
     <div className="min-h-screen flex flex-col bg-[#FAF8F3] dark:bg-[#151B18] text-[#252522] dark:text-[#F4F0E7] selection:bg-[#173F35] dark:selection:bg-[#A9C7B2] selection:text-white dark:selection:text-[#151B18] font-sans transition-colors duration-200">

@@ -58,8 +58,11 @@ export default function VendorSignUpPage() {
   const [confirmPassword, setConfirmPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [category, setCategory] = useState("");
+  const [customCategory, setCustomCategory] = useState("");
   const [city, setCity] = useState("");
+  const [customCity, setCustomCity] = useState("");
   const [description, setDescription] = useState("");
+  const [address, setAddress] = useState("");
   const [agreedToTerms, setAgreedToTerms] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -72,8 +75,8 @@ export default function VendorSignUpPage() {
     if (!phone.trim()) return "Phone number is required for vendor accounts.";
     if (password.length < 8) return "Password must be at least 8 characters.";
     if (password !== confirmPassword) return "Passwords do not match.";
-    if (!category) return "Please select a business category.";
-    if (!city) return "Please select your city.";
+    if (!(category === "Other" ? customCategory.trim() : category)) return "Please enter a business category.";
+    if (!(city === "Other" ? customCity.trim() : city)) return "Please enter your city.";
     if (!agreedToTerms) return "Please accept the Terms & Privacy Policy.";
     return null;
   };
@@ -100,6 +103,15 @@ export default function VendorSignUpPage() {
           data: {
             full_name: contactName.trim(),
             role: "vendor",
+            vendor_registration: {
+              business_name: businessName.trim(),
+              business_category: (category === "Other" ? customCategory : category).trim(),
+              city: (city === "Other" ? customCity : city).trim(),
+              business_description: description.trim(),
+              address: address.trim(),
+              contact_phone: phone.trim(),
+              contact_email: email.trim().toLowerCase(),
+            },
           },
         },
       });
@@ -115,34 +127,19 @@ export default function VendorSignUpPage() {
 
       const userId = data.user?.id;
 
-      if (userId) {
-        // 2. Create profile row
-        try {
-          await supabase.from("profiles").upsert({
-            id: userId,
-            full_name: contactName.trim(),
-            email: email.trim(),
-            phone: phone.trim(),
-            role: "vendor",
-          });
-        } catch (profileErr) {
-          console.warn("Profile table upsert warning:", profileErr);
-        }
-
-        // 3. Create vendor_profile row with pending approval
-        try {
-          await supabase.from("vendor_profiles").insert({
-            user_id: userId,
-            business_name: businessName.trim(),
-            business_category: category,
-            city,
-            business_description: description.trim() || null,
-            contact_phone: phone.trim(),
-            approval_status: "pending",
-          });
-        } catch (vpErr) {
-          console.warn("Vendor profile insertion warning:", vpErr);
-        }
+      if (userId && data.session) {
+        const { error: registrationError } = await supabase.from("vendor_profiles").insert({
+          user_id: userId,
+          business_name: businessName.trim(),
+          business_category: (category === "Other" ? customCategory : category).trim(),
+          city: (city === "Other" ? customCity : city).trim(),
+          business_description: description.trim() || null,
+          address: address.trim() || null,
+          contact_phone: phone.trim(),
+          contact_email: email.trim().toLowerCase(),
+          approval_status: "pending",
+        });
+        if (registrationError) throw registrationError;
       }
 
       setSuccess(true);
@@ -332,6 +329,7 @@ export default function VendorSignUpPage() {
                     </option>
                   ))}
                 </select>
+                {category === "Other" && <input required value={customCategory} onChange={(e) => setCustomCategory(e.target.value)} placeholder="Enter category" className="mt-2 w-full py-2.5 px-3 rounded-xl bg-[#FAF8F3] dark:bg-[#1C2520] border border-[#E8E2D7] dark:border-[#344139]" />}
               </div>
 
               {/* City */}
@@ -354,8 +352,14 @@ export default function VendorSignUpPage() {
                       </option>
                     ))}
                   </select>
+                  {city === "Other" && <input required value={customCity} onChange={(e) => setCustomCity(e.target.value)} placeholder="Enter city or region" className="mt-2 w-full py-2.5 px-3 rounded-xl bg-[#FAF8F3] dark:bg-[#1C2520] border border-[#E8E2D7] dark:border-[#344139]" />}
                 </div>
               </div>
+            </div>
+
+            <div>
+              <label htmlFor="address" className="block text-[#77746D] dark:text-[#B5B5AA] mb-1.5 font-medium">Business address <span className="text-[#77746D]/60 font-normal">(optional)</span></label>
+              <input id="address" value={address} onChange={(e) => setAddress(e.target.value)} placeholder="Street address, area, region" className="w-full px-3 py-2.5 rounded-xl bg-[#FAF8F3] dark:bg-[#1C2520] border border-[#E8E2D7] dark:border-[#344139]" />
             </div>
 
             {/* Description */}

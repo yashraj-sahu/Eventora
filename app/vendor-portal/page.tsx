@@ -3,6 +3,8 @@
 import { useState, useEffect } from "react";
 import { useAuth } from "@/lib/auth-context";
 import { supabase } from "@/lib/supabase";
+import { VendorCatalogManager } from "@/components/vendors/VendorCatalogManager";
+import { VendorProfileEditor } from "@/components/vendors/VendorProfileEditor";
 import { formatINR } from "@/lib/utils";
 import {
   Store,
@@ -47,14 +49,14 @@ interface RealBooking {
 }
 
 export default function VendorDashboardPage() {
-  const { user, profile, vendorProfile } = useAuth();
+  const { user, profile, vendorProfile, refreshProfile } = useAuth();
   const [activeTab, setActiveTab] = useState<"bookings" | "packages" | "payments" | "reviews">("bookings");
   const [bookings, setBookings] = useState<RealBooking[]>([]);
   const [loading, setLoading] = useState(true);
   const [actionInProgress, setActionInProgress] = useState<string | null>(null);
 
-  const businessName = vendorProfile?.business_name || "The Oberoi Udaivilas";
-  const city = vendorProfile?.city || "Udaipur, Rajasthan";
+  const businessName = vendorProfile?.business_name || "Your business";
+  const city = vendorProfile?.city || "";
 
   const fetchBookings = async () => {
     try {
@@ -129,7 +131,7 @@ export default function VendorDashboardPage() {
         <div className="flex items-center gap-2">
           <span className="px-3.5 py-1.5 rounded-xl bg-[#E7EFEA] dark:bg-[#173F35]/50 border border-[#173F35]/20 dark:border-[#A9C7B2]/30 text-[#173F35] dark:text-[#A9C7B2] text-xs font-semibold flex items-center gap-1.5 shadow-2xs">
             <CheckCircle2 className="w-4 h-4 text-[#173F35] dark:text-[#A9C7B2]" />
-            <span>Verified Artisan Desk</span>
+            <span>{vendorProfile?.approval_status === "approved" ? "Approved Vendor Desk" : "Application Pending Review"}</span>
           </span>
         </div>
       </div>
@@ -349,37 +351,9 @@ export default function VendorDashboardPage() {
 
       {/* Packages Tab */}
       {activeTab === "packages" && (
-        <div className="p-8 rounded-3xl bg-white dark:bg-[#232F28] border border-[#E8E2D7] dark:border-[#344139] space-y-4 shadow-xs">
-          <h2 className="text-lg font-serif font-bold text-[#173F35] dark:text-[#F4F0E7]">
-            Active Catalog Packages
-          </h2>
-          <p className="text-xs text-[#77746D] dark:text-[#B5B5AA]">
-            These packages are featured on your public artisan profile and are bookable via Razorpay Checkout.
-          </p>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2">
-            <div className="p-5 rounded-2xl bg-[#FAF8F3] dark:bg-[#1C2520] border border-[#E8E2D7] dark:border-[#344139] space-y-2">
-              <h3 className="font-bold text-sm text-[#252522] dark:text-[#F4F0E7]">
-                Royal Mewari Heritage Package
-              </h3>
-              <div className="font-serif font-bold text-[#173F35] dark:text-[#A9C7B2]">
-                ₹18,50,000
-              </div>
-              <p className="text-[11px] text-[#77746D] dark:text-[#B5B5AA]">
-                Full estate access, 40 heritage rooms, royal boat procession rights.
-              </p>
-            </div>
-            <div className="p-5 rounded-2xl bg-[#FAF8F3] dark:bg-[#1C2520] border border-[#E8E2D7] dark:border-[#344139] space-y-2">
-              <h3 className="font-bold text-sm text-[#252522] dark:text-[#F4F0E7]">
-                Grand Courtyard Sangeet Setup
-              </h3>
-              <div className="font-serif font-bold text-[#173F35] dark:text-[#A9C7B2]">
-                ₹9,50,000
-              </div>
-              <p className="text-[11px] text-[#77746D] dark:text-[#B5B5AA]">
-                Lakeside amphitheater stage, sound rig, traditional Marwari floral decor.
-              </p>
-            </div>
-          </div>
+        <div className="p-6 rounded-3xl bg-white dark:bg-[#232F28] border border-[#E8E2D7] dark:border-[#344139] space-y-4 shadow-xs">
+          <h2 className="text-lg font-serif font-bold text-[#173F35] dark:text-[#F4F0E7]">Services, packages and portfolio</h2>
+          {vendorProfile ? <><VendorProfileEditor profile={vendorProfile} onSaved={() => void refreshProfile()} /><VendorCatalogManager vendorId={vendorProfile.id} /></> : <p className="text-sm text-[#77746D]">Your business profile will appear here after registration is saved.</p>}
         </div>
       )}
 
@@ -387,19 +361,14 @@ export default function VendorDashboardPage() {
       {activeTab === "reviews" && (
         <div className="p-8 rounded-3xl bg-white dark:bg-[#232F28] border border-[#E8E2D7] dark:border-[#344139] space-y-4 shadow-xs">
           <h2 className="text-lg font-serif font-bold text-[#173F35] dark:text-[#F4F0E7]">
-            Client Reviews & Verified Trust
+            Client Reviews
           </h2>
           <div className="flex items-center gap-2">
             <span className="text-3xl font-serif font-bold text-[#173F35] dark:text-[#F4F0E7]">
-              4.95
+              —
             </span>
-            <div className="flex text-[#C6A66B]">
-              {[...Array(5)].map((_, i) => (
-                <Star key={i} className="w-5 h-5 fill-current" />
-              ))}
-            </div>
             <span className="text-xs text-[#77746D] dark:text-[#B5B5AA]">
-              (148 Verified Royal Celebrations)
+              Reviews are not connected yet.
             </span>
           </div>
         </div>
