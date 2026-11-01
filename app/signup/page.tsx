@@ -162,7 +162,7 @@ export default function SignUpPage() {
               </p>
               <div className="pt-2">
                 <Link
-                  href="/signin"
+                  href="/signin?portal=customer"
                   className="inline-block px-4 py-2 rounded-xl bg-[#173F35] text-[#FAF8F3] text-xs font-bold"
                 >
                   Return to Sign In
@@ -333,7 +333,7 @@ export default function SignUpPage() {
           <div className="text-center text-xs text-[#77746D] dark:text-[#B5B5AA] pt-2 border-t border-[#E8E2D7] dark:border-[#344139] space-y-2">
             <p>
               Already have an account?{" "}
-              <Link href="/signin" className="text-[#173F35] dark:text-[#A9C7B2] hover:underline font-semibold">
+              <Link href="/signin?portal=customer" className="text-[#173F35] dark:text-[#A9C7B2] hover:underline font-semibold">
                 Sign in
               </Link>
             </p>

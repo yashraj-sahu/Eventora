@@ -7,11 +7,14 @@ import { Navbar } from "@/components/layout/Navbar";
 import { Footer } from "@/components/layout/Footer";
 import { supabase } from "@/lib/supabase";
 import type { UserRole } from "@/types/database";
+import { portalHome, type PortalIntent } from "@/lib/portal-routing";
 import { Sparkles, Lock, Mail, ArrowRight, Eye, EyeOff, AlertCircle } from "lucide-react";
 
-function SignInForm() {
+function SignInForm({ forcedPortal }: { forcedPortal?: PortalIntent }) {
   const searchParams = useSearchParams();
-  const rawRedirectTo = searchParams.get("redirectTo") ?? "";
+  const rawRedirectTo = searchParams.get("redirectTo") ?? searchParams.get("redirect") ?? "";
+  const requestedPortalValue = forcedPortal ?? searchParams.get("portal");
+  const requestedPortal: PortalIntent | null = requestedPortalValue === "customer" || requestedPortalValue === "vendor" || requestedPortalValue === "admin" ? requestedPortalValue : null;
   const errorParam = searchParams.get("error");
   const messageParam = searchParams.get("message");
 
@@ -45,32 +48,21 @@ function SignInForm() {
         const { data: { session } } = await supabase.auth.getSession();
         if (!isMounted || !session?.user) return;
 
-        let role: UserRole = "customer";
-        try {
-          const { data: profile } = await supabase
-            .from("profiles")
-            .select("role")
-            .eq("id", session.user.id)
-            .maybeSingle();
-
-          if (profile?.role) {
-            role = profile.role;
-          } else {
-            const metaRole = session.user.user_metadata?.role as UserRole;
-            if (metaRole === "admin" || metaRole === "vendor" || metaRole === "customer") {
-              role = metaRole;
-            }
-          }
-        } catch {
-          const metaRole = session.user.user_metadata?.role as UserRole;
-          if (metaRole === "admin" || metaRole === "vendor" || metaRole === "customer") {
-            role = metaRole;
-          }
+        const { data: profile, error: profileError } = await supabase.from("profiles").select("role").eq("id", session.user.id).maybeSingle();
+        if (profileError || !profile?.role) {
+          if (isMounted) setError("We couldn’t verify your Evntora account role. Please try again later.");
+          return;
+        }
+        const role = profile.role;
+        let vendorApproved = false;
+        if (role === "vendor") {
+          const { data: vp, error: vendorError } = await supabase.from("vendor_profiles").select("approval_status").eq("user_id", session.user.id).maybeSingle();
+          if (vendorError) { if (isMounted) setError("We couldn’t verify your vendor application status."); return; }
+          vendorApproved = vp?.approval_status === "approved";
         }
 
         if (!isMounted) return;
-        const destination = role === "admin" ? "/admin" : role === "vendor" ? "/vendor-portal" : "/dashboard";
-        window.location.assign(destination);
+        window.location.assign(portalHome(role, vendorApproved));
       } catch (err) {
         console.warn("Session check error:", err);
       }
@@ -81,7 +73,7 @@ function SignInForm() {
     return () => {
       isMounted = false;
     };
-  }, []);
+  }, [requestedPortal]);
 
   const handleSignIn = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -115,62 +107,43 @@ function SignInForm() {
         return;
       }
 
-      // 3. Retrieve user profile role with graceful fallback
-      let userRole: UserRole = "customer";
-      try {
-        const { data: profile, error: profileError } = await supabase
-          .from("profiles")
-          .select("role")
-          .eq("id", data.user.id)
-          .maybeSingle();
-
-        if (profileError) {
-          console.warn("Profile retrieval warning:", profileError.message);
+      // The database profile is the sole authority for a portal role.
+      const { data: profile, error: profileError } = await supabase.from("profiles").select("role").eq("id", data.user.id).maybeSingle();
+      if (profileError || !profile?.role) {
+        await supabase.auth.signOut();
+        setError("We couldn’t verify your Evntora account role. Please try again later.");
+        return;
+      }
+      const userRole: UserRole = profile.role;
+      let vendorApproved = false;
+      if (userRole === "vendor") {
+        const { data: vp, error: vendorError } = await supabase.from("vendor_profiles").select("approval_status").eq("user_id", data.user.id).maybeSingle();
+        if (vendorError) {
+          await supabase.auth.signOut();
+          setError("We couldn’t verify your vendor application status.");
+          return;
         }
-
-        if (profile?.role) {
-          userRole = profile.role;
-        } else {
-          const metaRole = data.user.user_metadata?.role as UserRole;
-          if (metaRole === "admin" || metaRole === "vendor" || metaRole === "customer") {
-            userRole = metaRole;
-          }
-        }
-      } catch (err) {
-        console.warn("Exception during profile lookup:", err);
+        vendorApproved = vp?.approval_status === "approved";
+      }
+      if (requestedPortal && userRole !== requestedPortal) {
+        await supabase.auth.signOut();
+        setError(requestedPortal === "admin"
+          ? "This account does not have an authorized administrator role."
+          : `This account is registered as ${userRole}. Please use the ${userRole} sign-in.`);
+        return;
       }
 
-      // 4. Determine authorized destination
-      let defaultDestination = "/dashboard";
-      if (userRole === "admin") {
-        defaultDestination = "/admin";
-      } else if (userRole === "vendor") {
-        defaultDestination = "/vendor-portal";
-      } else {
-        defaultDestination = "/dashboard";
-      }
-
-      // 5. Evaluate requested redirect (prevent open redirects & redirect loops)
+      const defaultDestination = portalHome(userRole, vendorApproved);
       redirectUrl = defaultDestination;
-      if (
-        rawRedirectTo &&
-        rawRedirectTo.startsWith("/") &&
-        !rawRedirectTo.startsWith("//") &&
-        !rawRedirectTo.startsWith("/signin")
-      ) {
-        const targetingAdmin = rawRedirectTo.startsWith("/admin");
-        const targetingVendor = rawRedirectTo.startsWith("/vendor-portal");
-        const targetingCustomer = rawRedirectTo.startsWith("/dashboard");
-
-        if (targetingAdmin && userRole === "admin") {
-          redirectUrl = rawRedirectTo;
-        } else if (targetingVendor && (userRole === "vendor" || userRole === "admin")) {
-          redirectUrl = rawRedirectTo;
-        } else if (targetingCustomer && (userRole === "customer" || userRole === "admin")) {
-          redirectUrl = rawRedirectTo;
-        } else if (!targetingAdmin && !targetingVendor && !targetingCustomer) {
-          redirectUrl = rawRedirectTo;
-        }
+      if (rawRedirectTo.startsWith("/") && !rawRedirectTo.startsWith("//")) {
+        const path = rawRedirectTo.split(/[?#]/, 1)[0];
+        const targetsAdmin = path === "/admin" || path.startsWith("/admin/");
+        const targetsVendor = path === "/vendor-portal" || path.startsWith("/vendor-portal/");
+        const targetsCustomer = path === "/dashboard" || path.startsWith("/dashboard/");
+        const sameRoleTarget = (targetsAdmin && userRole === "admin") || (targetsVendor && userRole === "vendor") || (targetsCustomer && userRole === "customer");
+        const safePublicTarget = !targetsAdmin && !targetsVendor && !targetsCustomer && !path.startsWith("/signin") && !path.startsWith("/signup") && path !== "/admin/signin";
+        const customerOnlyTarget = path === "/checkout";
+        if (sameRoleTarget || (safePublicTarget && (!customerOnlyTarget || userRole === "customer"))) redirectUrl = rawRedirectTo;
       }
 
       // 6. Navigate to destination
@@ -189,6 +162,9 @@ function SignInForm() {
     }
   };
 
+  const title = requestedPortal === "admin" ? "Administrator Sign In" : requestedPortal === "vendor" ? "Vendor Sign In" : requestedPortal === "customer" ? "Customer Sign In" : "Welcome Back";
+  const description = requestedPortal === "admin" ? "Authorized administrators only. Access is checked against your Evntora account role." : requestedPortal === "vendor" ? "Sign in to manage your vendor profile and business." : requestedPortal === "customer" ? "Sign in to plan and manage your events." : "Sign in to your Evntora workspace to continue planning";
+
   return (
     <div className="w-full max-w-md p-8 sm:p-10 rounded-3xl bg-white dark:bg-[#232F28] border border-[#E8E2D7] dark:border-[#344139] shadow-xl space-y-6">
       {/* Header */}
@@ -199,10 +175,10 @@ function SignInForm() {
           </div>
         </Link>
         <h1 className="text-2xl font-serif font-bold text-[#173F35] dark:text-[#F4F0E7]">
-          Welcome Back
+          {title}
         </h1>
         <p className="text-xs text-[#77746D] dark:text-[#B5B5AA]">
-          Sign in to your Evntora workspace to continue planning
+          {description}
         </p>
       </div>
 
@@ -300,33 +276,27 @@ function SignInForm() {
       </form>
 
       <div className="text-center text-xs text-[#77746D] dark:text-[#B5B5AA] pt-2 border-t border-[#E8E2D7] dark:border-[#344139] space-y-3">
-        <p>
-          Don&apos;t have an account?{" "}
-          <Link href="/signup" className="text-[#173F35] dark:text-[#A9C7B2] hover:underline font-semibold">
-            Create your account
-          </Link>
-        </p>
-        <p>
-          Joining as a vendor?{" "}
-          <Link href="/signup/vendor" className="text-[#173F35] dark:text-[#A9C7B2] hover:underline font-semibold">
-            Vendor registration
-          </Link>
-        </p>
+        {requestedPortal === "admin" ? <p>Administrator access is assigned by Evntora. <Link href="/signin?portal=customer" className="text-[#173F35] dark:text-[#A9C7B2] hover:underline font-semibold">Customer sign in</Link></p> : <>
+          <p>{requestedPortal === "vendor" ? "New vendor?" : "Don’t have an account?"}{" "}<Link href={requestedPortal === "vendor" ? "/signup/vendor" : "/signup?portal=customer"} className="text-[#173F35] dark:text-[#A9C7B2] hover:underline font-semibold">{requestedPortal === "vendor" ? "Register your business" : "Create a customer account"}</Link></p>
+          {requestedPortal !== "vendor" && <p>Are you a vendor? <Link href="/signin?portal=vendor" className="text-[#173F35] dark:text-[#A9C7B2] hover:underline font-semibold">Vendor sign in</Link></p>}
+        </>}
       </div>
     </div>
   );
 }
 
-export default function SignInPage() {
+export function PortalSignInPage({ portal }: { portal?: PortalIntent }) {
   return (
     <div className="min-h-screen flex flex-col bg-[#FAF8F3] dark:bg-[#151B18] text-[#252522] dark:text-[#F4F0E7] transition-colors duration-200">
       <Navbar />
       <main className="flex-1 flex items-center justify-center py-16 px-4 sm:px-6 lg:px-8">
         <Suspense fallback={<div className="w-full max-w-md h-96 rounded-3xl bg-white dark:bg-[#232F28] animate-pulse" />}>
-          <SignInForm />
+          <SignInForm forcedPortal={portal} />
         </Suspense>
       </main>
       <Footer />
     </div>
   );
 }
+
+export default function SignInPage() { return <PortalSignInPage />; }

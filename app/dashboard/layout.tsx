@@ -5,6 +5,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEvntoraStore } from "@/lib/store";
 import { useAuth } from "@/lib/auth-context";
+import { RequireRole } from "@/components/auth/RequireRole";
 import { ThemeToggle } from "@/components/ui/ThemeToggle";
 import {
   LayoutDashboard,
@@ -63,7 +64,7 @@ export default function DashboardLayout({
   ];
 
   return (
-    <div className="min-h-screen flex flex-col bg-[#FAF8F3] dark:bg-[#151B18] text-[#252522] dark:text-[#F4F0E7] selection:bg-[#173F35] dark:selection:bg-[#A9C7B2] selection:text-white dark:selection:text-[#151B18] font-sans transition-colors duration-200">
+    <RequireRole role="customer"><div className="min-h-screen flex flex-col bg-[#FAF8F3] dark:bg-[#151B18] text-[#252522] dark:text-[#F4F0E7] selection:bg-[#173F35] dark:selection:bg-[#A9C7B2] selection:text-white dark:selection:text-[#151B18] font-sans transition-colors duration-200">
       <div className="flex-1 flex">
         {/* Desktop Sidebar */}
         <aside className="hidden lg:flex flex-col w-64 bg-white dark:bg-[#1C2520] border-r border-[#E8E2D7] dark:border-[#344139] shrink-0 select-none">
@@ -299,6 +300,6 @@ export default function DashboardLayout({
           </main>
         </div>
       </div>
-    </div>
+    </div></RequireRole>
   );
 }

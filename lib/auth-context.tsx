@@ -67,33 +67,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           setVendorProfile(null);
         }
       } else {
-        // Fallback to user metadata if profile row has not yet synced
-        const metaRole = (activeUser.user_metadata?.role as UserRole) || "customer";
-        setProfile({
-          id: activeUser.id,
-          full_name: (activeUser.user_metadata?.full_name as string) || activeUser.email?.split("@")[0] || "User",
-          email: activeUser.email || null,
-          phone: null,
-          role: metaRole,
-          avatar_url: null,
-          created_at: new Date().toISOString(),
-          updated_at: new Date().toISOString(),
-        });
+        setProfile(null);
         setVendorProfile(null);
       }
     } catch (err) {
       console.warn("Error fetching profile:", err);
-      const metaRole = (activeUser.user_metadata?.role as UserRole) || "customer";
-      setProfile({
-        id: activeUser.id,
-        full_name: (activeUser.user_metadata?.full_name as string) || activeUser.email?.split("@")[0] || "User",
-        email: activeUser.email || null,
-        phone: null,
-        role: metaRole,
-        avatar_url: null,
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString(),
-      });
+      setProfile(null);
       setVendorProfile(null);
     }
   }, []);

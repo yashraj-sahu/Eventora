@@ -534,7 +534,7 @@ export interface Database {
       };
     };
     Views: Record<string, never>;
-    Functions: { claim_vendor_listing: { Args: { p_vendor_id: string }; Returns: string } };
+    Functions: { claim_vendor_listing: { Args: { p_vendor_id: string; p_confirm_role_change: boolean }; Returns: string } };
     Enums: {
       user_role: UserRole;
       approval_status: ApprovalStatus;

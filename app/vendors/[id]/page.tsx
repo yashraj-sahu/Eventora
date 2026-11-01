@@ -7,6 +7,7 @@ import { Navbar } from "@/components/layout/Navbar";
 import { Footer } from "@/components/layout/Footer";
 import { useEvntoraStore } from "@/lib/store";
 import { useMarketplaceVendors } from "@/lib/use-marketplace";
+import { useAuth } from "@/lib/auth-context";
 import { formatINR } from "@/lib/utils";
 import {
   Star,
@@ -29,6 +30,7 @@ export default function VendorDetailPage({ params }: { params: Promise<{ id: str
   const { vendors, savedIds, loading, error, toggleSaved } = useMarketplaceVendors();
   const vendor = vendors.find((v) => v.id === resolvedParams.id);
   const { state, addEnquiry } = useEvntoraStore();
+  const { profile: signedInProfile } = useAuth();
 
   const [clientName, setClientName] = useState(state.currentUser.name || "");
   const [clientEmail, setClientEmail] = useState(state.currentUser.email || "");
@@ -43,6 +45,7 @@ export default function VendorDetailPage({ params }: { params: Promise<{ id: str
   const [selectedPackageForModal, setSelectedPackageForModal] = useState<string | undefined>(undefined);
   const [claimMessage, setClaimMessage] = useState("");
   const [claiming, setClaiming] = useState(false);
+  const [confirmClaim, setConfirmClaim] = useState(false);
 
   if (loading) return <main className="min-h-screen grid place-items-center">Loading vendor…</main>;
   if (error) return <main className="min-h-screen grid place-items-center">Unable to load this vendor right now.</main>;
@@ -51,9 +54,10 @@ export default function VendorDetailPage({ params }: { params: Promise<{ id: str
   const isSaved = savedIds.includes(vendor.id);
   const claimListing = async () => {
     setClaiming(true); setClaimMessage("");
-    const response = await fetch("/api/vendors/claim", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ vendorId: vendor.id }) });
+    const response = await fetch("/api/vendors/claim", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ vendorId: vendor.id, confirmRoleChange: true }) });
     if (response.status === 401) { window.location.assign(`/signin?redirectTo=${encodeURIComponent(`/vendors/${vendor.id}`)}`); return; }
-    setClaimMessage(response.ok ? "Listing claimed. Sign in again to open your vendor portal." : "This listing can only be claimed by an account with its verified business contact email.");
+    if (response.ok) { window.location.assign("/vendor-portal"); return; }
+    setClaimMessage("This listing can only be claimed by an account with its verified business contact email.");
     setClaiming(false);
   };
 
@@ -88,7 +92,7 @@ export default function VendorDetailPage({ params }: { params: Promise<{ id: str
           <ArrowLeft className="w-3.5 h-3.5" />
           <span>Back to All Vendors</span>
         </Link>
-        {vendor.claimable && <div className="flex items-center gap-3"><button disabled={claiming} onClick={() => void claimListing()} className="rounded-xl border border-[#173F35] px-4 py-2 text-xs font-semibold text-[#173F35] disabled:opacity-50">{claiming ? "Checking ownership…" : "Claim this business"}</button>{claimMessage && <span role="status" className="text-xs">{claimMessage}</span>}</div>}
+        {vendor.claimable && signedInProfile?.role !== "admin" && <div className="flex flex-col items-start gap-2"><button disabled={claiming} onClick={() => setConfirmClaim(true)} className="rounded-xl border border-[#173F35] px-4 py-2 text-xs font-semibold text-[#173F35] disabled:opacity-50">Claim this business</button>{confirmClaim && <div className="max-w-xl rounded-2xl border border-amber-300 bg-amber-50 p-4 text-sm text-[#252522]"><p>Claiming this listing will associate it with your verified business email. If your current role is Customer, this account’s portal role will change to Vendor. Continue only if this email belongs to the business.</p><div className="mt-3 flex gap-2"><button disabled={claiming} onClick={() => void claimListing()} className="rounded-lg bg-[#173F35] px-3 py-2 text-xs font-semibold text-white">{claiming ? "Verifying ownership…" : "Confirm claim and role change"}</button><button disabled={claiming} onClick={() => setConfirmClaim(false)} className="rounded-lg border border-[#E8E2D7] px-3 py-2 text-xs">Cancel</button></div></div>}{claimMessage && <span role="status" className="text-xs">{claimMessage}</span>}</div>}
 
         {/* Hero Visual Header */}
         <div className="relative rounded-3xl overflow-hidden bg-white dark:bg-[#232F28] border border-[#E8E2D7] dark:border-[#344139] h-80 sm:h-96 shadow-md">

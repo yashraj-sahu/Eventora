@@ -30,19 +30,22 @@ const navLinks = [
 
 const portalLinks = [
   {
-    href: "/dashboard",
+    href: "/signin?portal=customer",
+    path: "/dashboard",
     label: "Customer Workspace",
     desc: "Personal celebration planner",
     icon: CalendarCheck,
   },
   {
-    href: "/vendor-portal",
+    href: "/signin?portal=vendor",
+    path: "/vendor-portal",
     label: "Vendor Hub",
     desc: "B2B client management & leads",
     icon: Building2,
   },
   {
-    href: "/admin",
+    href: "/admin/signin",
+    path: "/admin",
     label: "Admin Desk",
     desc: "Verification & platform control",
     icon: ShieldCheck,
@@ -122,7 +125,7 @@ function PortalsDropdown({ onClose }: { onClose: () => void }) {
       </div>
       {portalLinks.map((portal) => {
         const Icon = portal.icon;
-        const isActive = pathname.startsWith(portal.href);
+        const isActive = pathname.startsWith(portal.path);
         return (
           <Link
             key={portal.href}

@@ -2,214 +2,114 @@ import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 import type { Database, UserRole } from "@/types/database";
+import { portalForPath, portalHome } from "@/lib/portal-routing";
 
 const AUTH_STORAGE_KEY = "sb-evntora-auth-token";
 
-// Routes that require authentication
-const PROTECTED_CUSTOMER_ROUTES = ["/dashboard"];
-const PROTECTED_VENDOR_ROUTES = ["/vendor-portal"];
-const PROTECTED_ADMIN_ROUTES = ["/admin"];
-
-function extractSessionFromCookie(request: NextRequest): {
-  accessToken: string | null;
-  refreshToken: string | null;
-} {
-  // 1. Try our configured storage key
-  const primaryCookie = request.cookies.get(AUTH_STORAGE_KEY)?.value;
-  if (primaryCookie) {
-    try {
-      const parsed = JSON.parse(primaryCookie);
-      return {
-        accessToken: parsed.access_token ?? null,
-        refreshToken: parsed.refresh_token ?? null,
-      };
-    } catch {
-      // In case cookie stores raw token string
-      return { accessToken: primaryCookie, refreshToken: null };
-    }
+function extractSession(request: NextRequest) {
+  const cookies = request.cookies.getAll();
+  const cookie = cookies.find((item) => item.name === AUTH_STORAGE_KEY)
+    ?? cookies.find((item) => item.name.startsWith("sb-") && item.name.endsWith("-auth-token"));
+  if (!cookie) return { accessToken: null, refreshToken: null };
+  try {
+    const session = JSON.parse(cookie.value);
+    return { accessToken: session.access_token ?? null, refreshToken: session.refresh_token ?? null };
+  } catch {
+    return { accessToken: cookie.value, refreshToken: null };
   }
+}
 
-  // 2. Check for any supabase default cookie naming sb-*-auth-token
-  for (const cookie of request.cookies.getAll()) {
-    if (cookie.name.startsWith("sb-") && cookie.name.endsWith("-auth-token")) {
-      try {
-        const parsed = JSON.parse(cookie.value);
-        return {
-          accessToken: parsed.access_token ?? null,
-          refreshToken: parsed.refresh_token ?? null,
-        };
-      } catch {
-        return { accessToken: cookie.value, refreshToken: null };
-      }
-    }
-  }
+function signInRedirect(request: NextRequest, pathname: string, error?: string) {
+  const portal = portalForPath(pathname);
+  const target = portal === "admin" ? "/admin/signin" : "/signin";
+  const url = new URL(target, request.url);
+  if (portal !== "admin") url.searchParams.set("portal", portal);
+  url.searchParams.set("redirectTo", pathname);
+  if (error) url.searchParams.set("error", error);
+  return NextResponse.redirect(url);
+}
 
-  return { accessToken: null, refreshToken: null };
+function redirectToRoleHome(request: NextRequest, role: UserRole, vendorApproved: boolean, error?: string) {
+  const url = new URL(portalHome(role, vendorApproved), request.url);
+  if (error) url.searchParams.set("error", error);
+  return NextResponse.redirect(url);
 }
 
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
+  // The dedicated admin login is public. Every admin workspace route remains protected.
+  if (pathname === "/admin/signin") return NextResponse.next();
 
-  const isCustomerRoute = PROTECTED_CUSTOMER_ROUTES.some((r) =>
-    pathname.startsWith(r)
-  );
-  const isVendorRoute = PROTECTED_VENDOR_ROUTES.some((r) =>
-    pathname.startsWith(r)
-  );
-  const isAdminRoute = PROTECTED_ADMIN_ROUTES.some((r) =>
-    pathname.startsWith(r)
-  );
+  const isCustomerRoute = pathname === "/dashboard" || pathname.startsWith("/dashboard/") || pathname === "/checkout" || pathname.startsWith("/checkout/");
+  const isVendorRoute = pathname === "/vendor-portal" || pathname.startsWith("/vendor-portal/");
+  const isAdminRoute = pathname === "/admin" || pathname.startsWith("/admin/");
+  if (!isCustomerRoute && !isVendorRoute && !isAdminRoute) return NextResponse.next();
 
-  // If not a protected route, let it pass through immediately
-  if (!isCustomerRoute && !isVendorRoute && !isAdminRoute) {
-    return NextResponse.next();
-  }
+  const { accessToken, refreshToken } = extractSession(request);
+  if (!accessToken && !refreshToken) return signInRedirect(request, pathname);
 
-  const { accessToken, refreshToken } = extractSessionFromCookie(request);
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+  if (!supabaseUrl || !supabaseAnonKey) return signInRedirect(request, pathname, "auth_unavailable");
 
-  // If no session token at all, redirect to sign in with return path
-  if (!accessToken && !refreshToken) {
-    const signInUrl = new URL("/signin", request.url);
-    signInUrl.searchParams.set("redirectTo", pathname);
-    return NextResponse.redirect(signInUrl);
-  }
-
-  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-  const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
+  let activeToken = accessToken;
+  let refreshedSession: string | null = null;
+  const finish = (response: NextResponse) => {
+    if (refreshedSession) response.cookies.set({ name: AUTH_STORAGE_KEY, value: refreshedSession, path: "/", maxAge: 60 * 60 * 24 * 7, sameSite: "lax", secure: request.nextUrl.protocol === "https:" });
+    return response;
+  };
+  const makeClient = (token?: string | null) => createClient<Database>(supabaseUrl, supabaseAnonKey, {
+    auth: { persistSession: false, autoRefreshToken: false },
+    global: { headers: token ? { Authorization: `Bearer ${token}` } : {} },
+  });
 
   try {
-    let activeToken = accessToken;
-    let refreshedSessionCookie: string | null = null;
-    let verifiedUser: { id: string; user_metadata?: Record<string, unknown> } | null = null;
-
-    // 1. Verify access token if present
+    let userId: string | null = null;
     if (activeToken) {
-      const supabaseServer = createClient<Database>(supabaseUrl, supabaseAnonKey, {
-        auth: { persistSession: false, autoRefreshToken: false },
-        global: {
-          headers: {
-            Authorization: `Bearer ${activeToken}`,
-          },
-        },
-      });
-
-      const { data, error } = await supabaseServer.auth.getUser(activeToken);
-      if (!error && data.user) {
-        verifiedUser = data.user;
+      const { data, error } = await makeClient(activeToken).auth.getUser(activeToken);
+      if (!error && data.user) userId = data.user.id;
+    }
+    if (!userId && refreshToken) {
+      const { data, error } = await makeClient().auth.refreshSession({ refresh_token: refreshToken });
+      if (!error && data.session && data.user) {
+        userId = data.user.id;
+        activeToken = data.session.access_token;
+        refreshedSession = JSON.stringify(data.session);
       }
     }
-
-    // 2. If access token was missing or expired, attempt refresh
-    if (!verifiedUser && refreshToken) {
-      const supabaseAuthServer = createClient<Database>(supabaseUrl, supabaseAnonKey, {
-        auth: { persistSession: false, autoRefreshToken: false },
-      });
-
-      const { data: refreshData, error: refreshError } =
-        await supabaseAuthServer.auth.refreshSession({
-          refresh_token: refreshToken,
-        });
-
-      if (!refreshError && refreshData.session && refreshData.user) {
-        verifiedUser = refreshData.user;
-        activeToken = refreshData.session.access_token;
-        refreshedSessionCookie = JSON.stringify(refreshData.session);
-      }
+    if (!userId || !activeToken) {
+      const response = signInRedirect(request, pathname, "session_expired");
+      response.cookies.delete(AUTH_STORAGE_KEY);
+      return response;
     }
 
-    // If still not verified, session is invalid -> clear and redirect to sign in
-    if (!verifiedUser || !activeToken) {
-      const signInUrl = new URL("/signin", request.url);
-      signInUrl.searchParams.set("redirectTo", pathname);
-      const res = NextResponse.redirect(signInUrl);
-      res.cookies.delete(AUTH_STORAGE_KEY);
-      return res;
+    const client = makeClient(activeToken);
+    // Database profile is authoritative. Auth user_metadata is user-editable and is never a role source.
+    const { data: profile, error: profileError } = await client.from("profiles").select("role").eq("id", userId).maybeSingle();
+    if (profileError || !profile?.role) return finish(signInRedirect(request, pathname, "profile_unavailable"));
+    const role = profile.role;
+    let vendorApproved = false;
+    if (role === "vendor") {
+      const { data: vendorProfile } = await client.from("vendor_profiles").select("approval_status").eq("user_id", userId).maybeSingle();
+      vendorApproved = vendorProfile?.approval_status === "approved";
     }
 
-    // 3. Fetch user's actual database profile role with authenticated client
-    const authenticatedClient = createClient<Database>(supabaseUrl, supabaseAnonKey, {
-      auth: { persistSession: false, autoRefreshToken: false },
-      global: {
-        headers: {
-          Authorization: `Bearer ${activeToken}`,
-        },
-      },
-    });
+    if (isAdminRoute && role !== "admin") return finish(redirectToRoleHome(request, role, vendorApproved, "unauthorized"));
+    if (isVendorRoute && role !== "vendor") return finish(redirectToRoleHome(request, role, vendorApproved, "unauthorized"));
+    if (isCustomerRoute && role !== "customer") return finish(redirectToRoleHome(request, role, vendorApproved, "unauthorized"));
 
-    let role: UserRole = "customer";
-    try {
-      const { data: profile } = await authenticatedClient
-        .from("profiles")
-        .select("role")
-        .eq("id", verifiedUser.id)
-        .maybeSingle();
-
-      if (profile?.role) {
-        role = profile.role;
-      } else {
-        // Fallback to metadata role if profile row not yet created
-        const metaRole = verifiedUser.user_metadata?.role as UserRole;
-        if (metaRole === "admin" || metaRole === "vendor" || metaRole === "customer") {
-          role = metaRole;
-        }
-      }
-    } catch {
-      // In case of DB connectivity hiccup, use metadata role
-      const metaRole = verifiedUser.user_metadata?.role as UserRole;
-      if (metaRole === "admin" || metaRole === "vendor" || metaRole === "customer") {
-        role = metaRole;
-      }
+    if (role === "vendor" && isVendorRoute) {
+      const isPendingPage = pathname === "/vendor-portal/pending";
+      if (!vendorApproved && !isPendingPage) return finish(redirectToRoleHome(request, role, false));
+      if (vendorApproved && isPendingPage) return finish(redirectToRoleHome(request, role, true));
     }
 
-    // 4. Role-based route authorization & redirect loop prevention
-    // Instead of sending authenticated users to /signin (which causes loops),
-    // redirect them to their own authorized portal with error notification.
-
-    if (isAdminRoute && role !== "admin") {
-      const target =
-        role === "vendor"
-          ? new URL("/vendor-portal?error=unauthorized", request.url)
-          : new URL("/dashboard?error=unauthorized", request.url);
-      return NextResponse.redirect(target);
-    }
-
-    if (isVendorRoute && role !== "vendor" && role !== "admin") {
-      return NextResponse.redirect(
-        new URL("/dashboard?error=unauthorized", request.url)
-      );
-    }
-
-    if (isCustomerRoute && role === "vendor") {
-      // Vendors have their own portal
-      return NextResponse.redirect(new URL("/vendor-portal", request.url));
-    }
-
-    // 5. Authorized — return response and update cookie if refreshed
     const response = NextResponse.next();
-    if (refreshedSessionCookie) {
-      response.cookies.set({
-        name: AUTH_STORAGE_KEY,
-        value: refreshedSessionCookie,
-        path: "/",
-        maxAge: 60 * 60 * 24 * 7,
-        sameSite: "lax",
-        secure: request.nextUrl.protocol === "https:",
-      });
-    }
-
-    return response;
-  } catch (err) {
-    console.error("Middleware auth verification error:", err);
-    const signInUrl = new URL("/signin", request.url);
-    signInUrl.searchParams.set("redirectTo", pathname);
-    return NextResponse.redirect(signInUrl);
+    return finish(response);
+  } catch (error) {
+    console.error("Middleware role verification error:", error);
+    return finish(signInRedirect(request, pathname, "auth_unavailable"));
   }
 }
 
-export const config = {
-  matcher: [
-    "/dashboard/:path*",
-    "/vendor-portal/:path*",
-    "/admin/:path*",
-  ],
-};
+export const config = { matcher: ["/dashboard/:path*", "/checkout/:path*", "/vendor-portal/:path*", "/admin/:path*"] };
