@@ -10,6 +10,7 @@ import { useAuth } from "@/lib/auth-context";
 import { formatINR } from "@/lib/utils";
 import { AIEventBlueprint, EventCategory } from "@/types";
 import { SearchableMultiSelect, SearchableSelect, type SelectOption } from "@/components/ui/SearchableSelect";
+import { PlannerDatePicker } from "@/components/planner/PlannerDatePicker";
 import {
   Sparkles,
   MapPin,
@@ -27,6 +28,19 @@ import {
   ShieldCheck,
 } from "lucide-react";
 
+function integerFieldError(value: string, label: string, minimum: number, maximum: number) {
+  if (!value.trim()) return `Enter ${label}.`;
+  const number = Number(value);
+  if (!Number.isSafeInteger(number) || number <= 0) return `${label[0].toUpperCase()}${label.slice(1)} must be a positive whole number.`;
+  if (number < minimum || number > maximum) return `Enter ${label} from ${minimum.toLocaleString("en-IN")} to ${maximum.toLocaleString("en-IN")}.`;
+  return "";
+}
+
+function localTodayIso() {
+  const now = new Date();
+  return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")}`;
+}
+
 function PlannerContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
@@ -35,8 +49,8 @@ function PlannerContent() {
   // Initial params from URL query if available
   const initialType = (searchParams.get("type") as EventCategory) || "Weddings";
   const initialCity = searchParams.get("city") || "";
-  const initialGuests = Number(searchParams.get("guests")) || 0;
-  const initialBudget = Number(searchParams.get("budget")) || 0;
+  const initialGuests = searchParams.get("guests") ?? "";
+  const initialBudget = searchParams.get("budget") ?? "";
 
   // Wizard state
   const [step, setStep] = useState(1);
@@ -45,6 +59,9 @@ function PlannerContent() {
   const [date, setDate] = useState("");
   const [guestCount, setGuestCount] = useState(initialGuests);
   const [budgetINR, setBudgetINR] = useState(initialBudget);
+  const [guestCountTouched, setGuestCountTouched] = useState(false);
+  const [budgetTouched, setBudgetTouched] = useState(false);
+  const [dateRequiredAttempted, setDateRequiredAttempted] = useState(false);
   const [venuePreference, setVenuePreference] = useState("");
   const [styleTheme, setStyleTheme] = useState("");
   const [requirements, setRequirements] = useState("");
@@ -62,8 +79,8 @@ function PlannerContent() {
     try {
       const raw = sessionStorage.getItem("evntora-planner-auth-draft");
       if (!raw) return;
-      const draft = JSON.parse(raw) as { eventType: EventCategory; city: string; date: string; guestCount: number; budgetINR: number; venuePreference: string; styleTheme: string; requirements: string; preferences?: string[]; blueprint: AIEventBlueprint | null };
-      setEventType(draft.eventType); setCity(draft.city); setDate(draft.date); setGuestCount(draft.guestCount); setBudgetINR(draft.budgetINR);
+      const draft = JSON.parse(raw) as { eventType: EventCategory; city: string; date: string; guestCount: number | string; budgetINR: number | string; venuePreference: string; styleTheme: string; requirements: string; preferences?: string[]; blueprint: AIEventBlueprint | null };
+      setEventType(draft.eventType); setCity(draft.city); setDate(draft.date); setGuestCount(String(draft.guestCount ?? "")); setBudgetINR(String(draft.budgetINR ?? ""));
       setVenuePreference(draft.venuePreference); setStyleTheme(draft.styleTheme); setRequirements(draft.requirements); setPreferences(draft.preferences ?? []); setBlueprint(draft.blueprint);
       setStep(draft.blueprint ? 3 : 1); sessionStorage.removeItem("evntora-planner-auth-draft");
     } catch { sessionStorage.removeItem("evntora-planner-auth-draft"); }
@@ -110,13 +127,33 @@ function PlannerContent() {
     : ["Accessibility support", "Jain arrangements", "Vegetarian menu", "Elder-friendly schedule", "Children's activities", "Regional rituals", "Sustainability"])
     .map((value) => ({ value, label: value }));
 
+  const guestCountError = integerFieldError(guestCount, "expected guest count", 10, 5000);
+  const budgetError = integerFieldError(budgetINR, "budget", 500000, 100000000);
+  const budgetPreviewValue = Number(budgetINR);
+  const budgetPreview = budgetINR.trim() && Number.isSafeInteger(budgetPreviewValue) && budgetPreviewValue > 0 ? budgetPreviewValue : 0;
+
+  const handleNextStep = () => {
+    setPlannerError("");
+    setDateRequiredAttempted(true);
+    setGuestCountTouched(true);
+    setBudgetTouched(true);
+    if (!date || date < localTodayIso() || !city.trim() || guestCountError || budgetError) {
+      if (!city.trim()) setPlannerError("Enter a destination city to continue.");
+      return;
+    }
+    setStep(2);
+  };
+
   const handleGenerateBlueprint = async (refinement?: string) => {
     setPlannerError("");
-    if (!date || date < new Date().toISOString().slice(0, 10) || !city.trim() || guestCount < 10 || guestCount > 5000 || budgetINR < 500000 || budgetINR > 100000000) { setPlannerError("Choose a future date, city, 10–5,000 guests, and a budget from ₹5 lakh to ₹10 crore."); return; }
+    setDateRequiredAttempted(true); setGuestCountTouched(true); setBudgetTouched(true);
+    if (!date || date < localTodayIso() || !city.trim() || guestCountError || budgetError) { setPlannerError("Review the highlighted date, guest count, budget, and destination fields."); return; }
+    const guestCountNumber = Number(guestCount);
+    const budgetNumber = Number(budgetINR);
     if (!requireCustomerForSave()) return;
     setIsGenerating(true);
     try {
-      const response = await fetch("/api/ai/blueprint", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ category: eventType, city, date, guestCount, totalBudget: budgetINR, venuePreference, styleTheme, requirements, preferences, ...(refinement ? { refinement, previousBlueprint: blueprint } : {}) }) });
+      const response = await fetch("/api/ai/blueprint", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ category: eventType, city, date, guestCount: guestCountNumber, totalBudget: budgetNumber, venuePreference, styleTheme, requirements, preferences, ...(refinement ? { refinement, previousBlueprint: blueprint } : {}) }) });
       const data = await response.json();
       if (!response.ok) throw new Error(data.error || "The plan could not be generated.");
       setBlueprint(data.blueprint as AIEventBlueprint);
@@ -131,7 +168,7 @@ function PlannerContent() {
     if (!requireCustomerForSave()) return null;
     setPlannerError("");
     try {
-      const response = await fetch("/api/ai/events", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ eventId: savedEventId ?? undefined, title: `${eventType} in ${city} for ${guestCount} Guests`, category: eventType, city, date, guestCount, totalBudget: budgetINR, venuePreference, styleTheme, requirements: [requirements, preferences.length ? `Additional preferences: ${preferences.join(", ")}` : ""].filter(Boolean).join("\n"), blueprint }) });
+      const response = await fetch("/api/ai/events", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ eventId: savedEventId ?? undefined, title: `${eventType} in ${city} for ${Number(guestCount)} Guests`, category: eventType, city, date, guestCount: Number(guestCount), totalBudget: Number(budgetINR), venuePreference, styleTheme, requirements: [requirements, preferences.length ? `Additional preferences: ${preferences.join(", ")}` : ""].filter(Boolean).join("\n"), blueprint }) });
       const data = await response.json();
       if (!response.ok) throw new Error(data.error || "The event plan could not be saved.");
       setSavedEventId(data.eventId); setSavedToDashboard(true); return data.eventId as string;
@@ -155,7 +192,7 @@ function PlannerContent() {
     setChatInput("");
     setChatBusy(true); setChatError("");
     try {
-      const response = await fetch("/api/ai/chat", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ message: userQuery, eventId: savedEventId ?? undefined, conversationId: conversationId ?? undefined, ...(blueprint ? { plannerContext: { category: eventType, city, date, guestCount, totalBudget: budgetINR, venuePreference, styleTheme, requirements: [requirements, preferences.length ? `Additional preferences: ${preferences.join(", ")}` : ""].filter(Boolean).join("\n"), blueprint } } : {}) }) });
+      const response = await fetch("/api/ai/chat", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ message: userQuery, eventId: savedEventId ?? undefined, conversationId: conversationId ?? undefined, ...(blueprint ? { plannerContext: { category: eventType, city, date, guestCount: Number(guestCount), totalBudget: Number(budgetINR), venuePreference, styleTheme, requirements: [requirements, preferences.length ? `Additional preferences: ${preferences.join(", ")}` : ""].filter(Boolean).join("\n"), blueprint } } : {}) }) });
       const data = await response.json();
       if (!response.ok) throw new Error(data.error || "The assistant could not respond.");
       setConversationId(data.conversationId); sessionStorage.setItem("evntora-planner-ai-conversation", data.conversationId); if (data.blueprint) { setBlueprint(data.blueprint as AIEventBlueprint); setSavedToDashboard(false); }
@@ -223,17 +260,7 @@ function PlannerContent() {
 
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                   {/* Date */}
-                  <div>
-                    <label className="block text-[#77746D] dark:text-[#B5B5AA] mb-1.5 font-bold uppercase tracking-wider">
-                      Target Date
-                    </label>
-                    <input
-                      type="date"
-                      value={date}
-                      onChange={(e) => setDate(e.target.value)}
-                      className="w-full px-4 py-3 rounded-xl bg-[#FAF8F3] dark:bg-[#1C2520] border border-[#E8E2D7] dark:border-[#344139] text-[#252522] dark:text-[#F4F0E7] font-medium text-xs focus:outline-none focus:border-[#173F35] dark:focus:border-[#A9C7B2]"
-                    />
-                  </div>
+                  <PlannerDatePicker value={date} onChange={setDate} requiredAttempted={dateRequiredAttempted} />
 
                   {/* Guests */}
                   <div>
@@ -244,11 +271,15 @@ function PlannerContent() {
                       type="number"
                       min="10"
                       max="5000"
-                      step="25"
+                      step="1"
                       value={guestCount}
-                      onChange={(e) => setGuestCount(Number(e.target.value))}
+                      placeholder="Enter expected guest count"
+                      onChange={(e) => { setGuestCount(e.target.value); setGuestCountTouched(true); }}
+                      onBlur={() => setGuestCountTouched(true)}
+                      aria-invalid={guestCountTouched && Boolean(guestCountError)}
                       className="w-full px-4 py-3 rounded-xl bg-[#FAF8F3] dark:bg-[#1C2520] border border-[#E8E2D7] dark:border-[#344139] text-[#252522] dark:text-[#F4F0E7] font-medium text-xs focus:outline-none focus:border-[#173F35] dark:focus:border-[#A9C7B2]"
                     />
+                    {guestCountTouched && guestCountError && <p role="alert" className="mt-1.5 text-[11px] text-red-700 dark:text-red-300">{guestCountError}</p>}
                   </div>
 
                   {/* Budget */}
@@ -260,25 +291,29 @@ function PlannerContent() {
                       type="number"
                       min="500000"
                       max="100000000"
-                      step="500000"
+                      step="1"
                       value={budgetINR}
-                      onChange={(e) => setBudgetINR(Number(e.target.value))}
+                      placeholder="Enter your budget in INR"
+                      onChange={(e) => { setBudgetINR(e.target.value); setBudgetTouched(true); }}
+                      onBlur={() => setBudgetTouched(true)}
+                      aria-invalid={budgetTouched && Boolean(budgetError)}
                       className="w-full px-4 py-3 rounded-xl bg-[#FAF8F3] dark:bg-[#1C2520] border border-[#E8E2D7] dark:border-[#344139] text-[#252522] dark:text-[#F4F0E7] font-medium text-xs focus:outline-none focus:border-[#173F35] dark:focus:border-[#A9C7B2]"
                     />
+                    {budgetTouched && budgetError && <p role="alert" className="mt-1.5 text-[11px] text-red-700 dark:text-red-300">{budgetError}</p>}
                   </div>
                 </div>
 
                 <div className="p-4 rounded-2xl bg-[#FAF8F3] dark:bg-[#1C2520] border border-[#E8E2D7] dark:border-[#344139] flex items-center justify-between">
                   <span className="text-[#77746D] dark:text-[#B5B5AA]">Selected Budget:</span>
                   <span className="text-lg font-serif font-bold text-[#173F35] dark:text-[#A9C7B2]">
-                    {formatINR(budgetINR)}
+                    {formatINR(budgetPreview)}
                   </span>
                 </div>
 
                 <div className="flex justify-end pt-4">
                   <button
                     type="button"
-                    onClick={() => setStep(2)}
+                    onClick={handleNextStep}
                     className="px-6 py-3 rounded-xl bg-[#173F35] hover:bg-[#0F2B24] text-[#FAF8F3] font-bold text-xs uppercase tracking-wider transition-all flex items-center gap-2 cursor-pointer shadow-xs"
                   >
                     <span>Next: Themes & Preferences</span>
@@ -291,16 +326,16 @@ function PlannerContent() {
             {step === 2 && (
               <div className="space-y-6 text-xs animate-in fade-in duration-200">
                 <div>
-                  <label className="block text-[#77746D] dark:text-[#B5B5AA] mb-1.5 font-bold uppercase tracking-wider">
+                  {/* <label className="block text-[#77746D] dark:text-[#B5B5AA] mb-1.5 font-bold uppercase tracking-wider">
                     Venue Style & Setting
-                  </label>
+                  </label> */}
                   <SearchableSelect label="Venue Style & Setting" value={venuePreference} options={["Heritage palace or lakeside lawn", "Luxury hotel ballroom", "Beachfront venue", "Farmhouse estate", "Botanical conservatory", "Community or cultural venue"].map((value) => ({ value, label: value }))} onChange={setVenuePreference} allowCustom customLabel="Use setting" placeholder="Choose or describe a setting" />
                 </div>
 
                 <div>
-                  <label className="block text-[#77746D] dark:text-[#B5B5AA] mb-1.5 font-bold uppercase tracking-wider">
+                  {/* <label className="block text-[#77746D] dark:text-[#B5B5AA] mb-1.5 font-bold uppercase tracking-wider">
                     Aesthetic Style & Theme
-                  </label>
+                  </label> */}
                   <SearchableSelect label="Aesthetic Style & Theme" value={styleTheme} options={["Royal heritage", "Coastal sunset", "Botanical garden", "Minimalist modern", "Bollywood inspired", "Traditional regional"].map((value) => ({ value, label: value }))} onChange={setStyleTheme} allowCustom customLabel="Use theme" placeholder="Choose or enter your theme" />
                 </div>
 
