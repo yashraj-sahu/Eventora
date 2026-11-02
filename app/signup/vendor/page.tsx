@@ -69,6 +69,7 @@ export default function VendorSignUpPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
+  const [awaitingEmailVerification, setAwaitingEmailVerification] = useState(false);
 
   useEffect(() => { if (user?.email) setEmail(user.email); if (user?.user_metadata?.full_name) setContactName(String(user.user_metadata.full_name)); }, [user]);
 
@@ -98,19 +99,26 @@ export default function VendorSignUpPage() {
     setIsLoading(true);
 
     try {
-      if (user) {
-        if (!user.email_confirmed_at) { setError("Verify your email before submitting a vendor application."); return; }
-        const { data: existing, error: existingError } = await supabase.from("vendor_profiles").select("id").eq("user_id", user.id).maybeSingle();
-        if (existingError) throw new Error("We couldn’t check your existing vendor application.");
-        if (existing) { window.location.assign("/vendor-portal/pending"); return; }
-        const { error: registrationError } = await supabase.from("vendor_profiles").insert({
-          user_id: user.id, business_name: businessName.trim(), business_category: (category === "Other" ? customCategory : category).trim(),
-          city: (city === "Other" ? customCity : city).trim(), business_description: description.trim() || null,
-          address: address.trim() || null, contact_phone: phone.trim(), contact_email: user.email,
-          approval_status: "pending", is_published: false,
+      const submitApplication = async () => {
+        const response = await fetch("/api/vendors/register", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            businessName: businessName.trim(),
+            category: (category === "Other" ? customCategory : category).trim(),
+            city: (city === "Other" ? customCity : city).trim(),
+            description: description.trim(),
+            address: address.trim(),
+            phone: phone.trim(),
+          }),
         });
-        if (registrationError) throw new Error("Your vendor application could not be submitted. Please try again.");
-        window.location.assign("/vendor-portal/pending");
+        const result = await response.json();
+        if (!response.ok) throw new Error(result.error || "Your business application could not be saved. Please try again.");
+        window.location.assign(result.vendorProfile?.approval_status === "approved" ? "/vendor-portal" : "/vendor-portal/pending");
+      };
+
+      if (user) {
+        await submitApplication();
         return;
       }
       // 1. Create Supabase Auth user
@@ -144,25 +152,13 @@ export default function VendorSignUpPage() {
         return;
       }
 
-      const userId = data.user?.id;
-
-      if (userId && data.session) {
-        const { error: registrationError } = await supabase.from("vendor_profiles").insert({
-          user_id: userId,
-          business_name: businessName.trim(),
-          business_category: (category === "Other" ? customCategory : category).trim(),
-          city: (city === "Other" ? customCity : city).trim(),
-          business_description: description.trim() || null,
-          address: address.trim() || null,
-          contact_phone: phone.trim(),
-          contact_email: email.trim().toLowerCase(),
-          approval_status: "pending",
-        });
-        if (registrationError) throw registrationError;
+      if (!data.user) {
+        setError("We couldn’t confirm the account was created. If you already have an account, sign in before submitting a vendor application.");
+        return;
       }
 
-      if (data.session) window.location.assign("/vendor-portal/pending");
-      else setSuccess(true);
+      if (data.session) await submitApplication();
+      else { setAwaitingEmailVerification(true); setSuccess(true); }
     } catch (err: unknown) {
       console.error("Vendor sign-up exception:", err);
       setError("An unexpected error occurred during registration. Please try again.");
@@ -182,11 +178,11 @@ export default function VendorSignUpPage() {
             </div>
             <div>
               <h2 className="text-2xl font-serif font-bold text-[#173F35] dark:text-[#F4F0E7]">
-                Application Submitted
+                {awaitingEmailVerification ? "Verify Your Email to Finish" : "Application Submitted"}
               </h2>
               <p className="text-xs text-[#77746D] dark:text-[#B5B5AA] mt-2">
                 Thank you, <span className="text-[#173F35] dark:text-[#A9C7B2] font-semibold">{contactName}</span>.
-                We&apos;ve received your artisan partner application for{" "}
+                {awaitingEmailVerification ? "Your account was created. Your business application will be saved after you verify the email address, for " : "We&apos;ve received your artisan partner application for "}{" "}
                 <span className="text-[#252522] dark:text-[#F4F0E7] font-semibold">{businessName}</span>.
               </p>
             </div>
@@ -196,7 +192,7 @@ export default function VendorSignUpPage() {
               </p>
               <ol className="text-xs text-[#77746D] dark:text-[#B5B5AA] space-y-1.5 list-decimal list-inside">
                 <li>Check your email ({email}) and verify your account.</li>
-                <li>Our verification team reviews your portfolio and GST credentials.</li>
+                <li>After the application is saved, our verification team reviews it.</li>
                 <li>You&apos;ll receive an approval notification once verified.</li>
                 <li>After approval, access your full partner operations hub.</li>
               </ol>

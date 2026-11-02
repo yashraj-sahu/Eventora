@@ -10,9 +10,11 @@ import { AlertCircle } from "lucide-react";
 function AuthErrorContent() {
   const searchParams = useSearchParams();
   const error = searchParams.get("error") ?? "unknown_error";
-  const description =
-    searchParams.get("description") ??
-    "An authentication error occurred. The link may have expired or already been used.";
+  const description = error === "vendor_registration_failed"
+    ? "Your email was verified, but your business application could not be saved. Sign in, open Vendor Registration, and retry. Your account remains available."
+    : error === "invalid_vendor_registration"
+    ? "Your email was verified, but the business details were incomplete or invalid. Sign in and resubmit the vendor application."
+    : searchParams.get("description") ?? "An authentication error occurred. The link may have expired or already been used.";
 
   return (
     <div className="w-full max-w-md p-10 rounded-3xl bg-[#0d0f18]/90 border border-rose-500/20 shadow-2xl text-center space-y-6">
@@ -28,10 +30,10 @@ function AuthErrorContent() {
       </div>
       <div className="space-y-2">
         <Link
-          href="/auth/forgot-password"
+          href={error === "vendor_registration_failed" || error === "invalid_vendor_registration" ? "/signup/vendor" : "/auth/forgot-password"}
           className="block w-full py-3 rounded-xl bg-amber-500 text-slate-950 font-bold text-sm text-center"
         >
-          Request New Link
+          {error === "vendor_registration_failed" || error === "invalid_vendor_registration" ? "Retry Vendor Application" : "Request New Link"}
         </Link>
         <Link
           href="/signin"

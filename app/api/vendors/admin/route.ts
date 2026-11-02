@@ -30,7 +30,8 @@ export async function PATCH(request: Request) {
     : action === "suspend" ? { approval_status: "suspended" as const, is_published: false }
     : action === "publish" ? { is_published: true }
     : { is_published: false };
-  const { error } = await client.from("vendor_profiles").update(update).eq("id", id);
+  const { data, error } = await client.from("vendor_profiles").update(update).eq("id", id).select("id").maybeSingle();
   if (error) return NextResponse.json({ error: "Unable to update listing" }, { status: 400 });
+  if (!data) return NextResponse.json({ error: "Vendor listing not found or unavailable." }, { status: 404 });
   return NextResponse.json({ ok: true });
 }
