@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, Suspense } from "react";
+import { useState, useEffect, Suspense, useRef } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { Navbar } from "@/components/layout/Navbar";
 import { Footer } from "@/components/layout/Footer";
@@ -45,6 +45,7 @@ function PlannerContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const { user, hasRole, isLoading: authLoading, rolesError } = useAuth();
+  const customerSession = Boolean(user && hasRole("customer"));
 
   // Initial params from URL query if available
   const initialType = (searchParams.get("type") as EventCategory) || "Weddings";
@@ -73,27 +74,37 @@ function PlannerContent() {
   const [savedToDashboard, setSavedToDashboard] = useState(false);
   const [savedEventId, setSavedEventId] = useState<string | null>(null);
   const [plannerError, setPlannerError] = useState("");
+  const [saveAuthModalOpen, setSaveAuthModalOpen] = useState(false);
+  const [saveAfterResume, setSaveAfterResume] = useState(false);
+  const resumeSaveStarted = useRef(false);
 
   useEffect(() => {
     if (searchParams.get("resume") !== "1") return;
     try {
       const raw = sessionStorage.getItem("evntora-planner-auth-draft");
       if (!raw) return;
-      const draft = JSON.parse(raw) as { eventType: EventCategory; city: string; date: string; guestCount: number | string; budgetINR: number | string; venuePreference: string; styleTheme: string; requirements: string; preferences?: string[]; blueprint: AIEventBlueprint | null };
+      const draft = JSON.parse(raw) as { eventType: EventCategory; city: string; date: string; guestCount: number | string; budgetINR: number | string; venuePreference: string; styleTheme: string; requirements: string; preferences?: string[]; blueprint: AIEventBlueprint | null; savedEventId?: string | null };
       setEventType(draft.eventType); setCity(draft.city); setDate(draft.date); setGuestCount(String(draft.guestCount ?? "")); setBudgetINR(String(draft.budgetINR ?? ""));
       setVenuePreference(draft.venuePreference); setStyleTheme(draft.styleTheme); setRequirements(draft.requirements); setPreferences(draft.preferences ?? []); setBlueprint(draft.blueprint);
-      setStep(draft.blueprint ? 3 : 1); sessionStorage.removeItem("evntora-planner-auth-draft");
+      setSavedEventId(draft.savedEventId ?? null);
+      setStep(draft.blueprint ? 3 : 1);
+      if (searchParams.get("save") === "1" && draft.blueprint) setSaveAfterResume(true);
+      else sessionStorage.removeItem("evntora-planner-auth-draft");
     } catch { sessionStorage.removeItem("evntora-planner-auth-draft"); }
   }, [searchParams]);
 
-  const requireCustomerForSave = () => {
+  const isCustomerReadyForSave = () => {
     if (authLoading) { setPlannerError("Checking your account access. Please try again in a moment."); return false; }
     if (rolesError) { setPlannerError("We could not verify your account access. Refresh the page or try again shortly."); return false; }
     if (user && hasRole("customer")) return true;
     if (user) { setPlannerError("This account does not have Customer access. Use an account with Customer access to plan and save events."); return false; }
-    sessionStorage.setItem("evntora-planner-auth-draft", JSON.stringify({ eventType, city, date, guestCount, budgetINR, venuePreference, styleTheme, requirements, preferences, blueprint }));
-    router.push(`/signin?portal=customer&redirectTo=${encodeURIComponent("/planner?resume=1")}`);
     return false;
+  };
+
+  const saveDraftForAuthentication = () => {
+    sessionStorage.setItem("evntora-planner-auth-draft", JSON.stringify({ eventType, city, date, guestCount, budgetINR, venuePreference, styleTheme, requirements, preferences, blueprint, savedEventId }));
+    const destination = "/planner?resume=1&save=1";
+    return `/signin?portal=customer&redirectTo=${encodeURIComponent(destination)}`;
   };
 
   // AI Assistant Chat Drawer State
@@ -110,15 +121,26 @@ function PlannerContent() {
   const [conversationId, setConversationId] = useState<string | null>(null);
 
   useEffect(() => {
-    const id = sessionStorage.getItem("evntora-planner-ai-conversation");
-    if (!id) return;
-    setConversationId(id);
-    void fetch(`/api/ai/chat?conversationId=${encodeURIComponent(id)}`, { cache: "no-store" }).then(async (response) => {
-      if (!response.ok) return;
-      const data = await response.json();
-      setChatMessages((data.messages ?? []).map((message: { role: "user" | "assistant"; content: string }) => ({ role: message.role === "assistant" ? "ai" : "user", text: message.content })));
-    }).catch(() => {});
-  }, []);
+    if (authLoading) return;
+    if (customerSession) {
+      setChatMessages([{ role: "ai", text: "Namaste! I am your Evntora AI Event Architect. Once your blueprint is ready, ask me anything about vendor negotiations, menu tastings, cultural protocols, or budget adjustments." }]);
+      const id = sessionStorage.getItem("evntora-planner-ai-conversation");
+      if (!id) return;
+      setConversationId(id);
+      void fetch(`/api/ai/chat?conversationId=${encodeURIComponent(id)}`, { cache: "no-store" }).then(async (response) => {
+        if (!response.ok) return;
+        const data = await response.json();
+        setChatMessages((data.messages ?? []).map((message: { role: "user" | "assistant"; content: string }) => ({ role: message.role === "assistant" ? "ai" : "user", text: message.content })));
+      }).catch(() => {});
+      return;
+    }
+    setConversationId(null);
+    sessionStorage.removeItem("evntora-planner-ai-conversation");
+    try {
+      const history = JSON.parse(sessionStorage.getItem("evntora-planner-ai-guest-history") || "[]") as Array<{ role: "user" | "assistant"; content: string }>;
+      setChatMessages([{ role: "ai", text: "Namaste! I am your Evntora AI Event Architect. Ask me anything about event planning." }, ...history.map((item) => ({ role: item.role === "assistant" ? "ai" as const : "user" as const, text: item.content }))]);
+    } catch { sessionStorage.removeItem("evntora-planner-ai-guest-history"); setChatMessages([{ role: "ai", text: "Namaste! I am your Evntora AI Event Architect. Ask me anything about event planning." }]); }
+  }, [authLoading, customerSession]);
 
   const categoryOptions: SelectOption[] = EVENT_CATEGORIES.map((category) => ({ value: category.id, label: category.name }));
   const cityOptions: SelectOption[] = CITIES.map((item) => ({ value: item.name, label: item.name, description: item.state }));
@@ -150,7 +172,6 @@ function PlannerContent() {
     if (!date || date < localTodayIso() || !city.trim() || guestCountError || budgetError) { setPlannerError("Review the highlighted date, guest count, budget, and destination fields."); return; }
     const guestCountNumber = Number(guestCount);
     const budgetNumber = Number(budgetINR);
-    if (!requireCustomerForSave()) return;
     setIsGenerating(true);
     try {
       const response = await fetch("/api/ai/blueprint", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ category: eventType, city, date, guestCount: guestCountNumber, totalBudget: budgetNumber, venuePreference, styleTheme, requirements, preferences, ...(refinement ? { refinement, previousBlueprint: blueprint } : {}) }) });
@@ -165,7 +186,7 @@ function PlannerContent() {
 
   const persistBlueprint = async () => {
     if (!blueprint) return;
-    if (!requireCustomerForSave()) return null;
+    if (!isCustomerReadyForSave()) return null;
     setPlannerError("");
     try {
       const response = await fetch("/api/ai/events", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ eventId: savedEventId ?? undefined, title: `${eventType} in ${city} for ${Number(guestCount)} Guests`, category: eventType, city, date, guestCount: Number(guestCount), totalBudget: Number(budgetINR), venuePreference, styleTheme, requirements: [requirements, preferences.length ? `Additional preferences: ${preferences.join(", ")}` : ""].filter(Boolean).join("\n"), blueprint }) });
@@ -175,31 +196,57 @@ function PlannerContent() {
     } catch (error) { setPlannerError(error instanceof Error ? error.message : "The event plan could not be saved."); return null; }
   };
 
-  const handleSaveToDashboard = async () => { const eventId = await persistBlueprint(); if (eventId) router.push(`/dashboard/workspace?eventId=${encodeURIComponent(eventId)}`); };
+  const handleSaveToDashboard = async () => {
+    if (!user && !authLoading) { setSaveAuthModalOpen(true); return; }
+    if (!isCustomerReadyForSave()) return;
+    const eventId = await persistBlueprint(); if (eventId) router.push(`/dashboard/workspace?eventId=${encodeURIComponent(eventId)}`);
+  };
 
   const handleProceedToMarketplace = async () => {
     if (!blueprint) return;
-    if (!requireCustomerForSave()) return;
-    if (await persistBlueprint()) router.push("/vendors?city=" + encodeURIComponent(city));
+    if (customerSession && !(await persistBlueprint())) return;
+    router.push("/vendors?city=" + encodeURIComponent(city));
   };
 
   const handleSendChatMessage = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!chatInput.trim() || chatBusy) return;
-    if (!requireCustomerForSave()) return;
     const userQuery = chatInput.trim();
     setChatMessages((prev) => [...prev, { role: "user", text: userQuery }]);
     setChatInput("");
     setChatBusy(true); setChatError("");
     try {
-      const response = await fetch("/api/ai/chat", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ message: userQuery, eventId: savedEventId ?? undefined, conversationId: conversationId ?? undefined, ...(blueprint ? { plannerContext: { category: eventType, city, date, guestCount: Number(guestCount), totalBudget: Number(budgetINR), venuePreference, styleTheme, requirements: [requirements, preferences.length ? `Additional preferences: ${preferences.join(", ")}` : ""].filter(Boolean).join("\n"), blueprint } } : {}) }) });
+      const previousGuestHistory = (() => { try { return JSON.parse(sessionStorage.getItem("evntora-planner-ai-guest-history") || "[]") as Array<{ role: "user" | "assistant"; content: string }>; } catch { return []; } })();
+      const guestHistory = !customerSession ? [...previousGuestHistory, { role: "user" as const, content: userQuery }].slice(-12) : undefined;
+      const response = await fetch("/api/ai/chat", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ message: userQuery, ...(customerSession ? { eventId: savedEventId ?? undefined, conversationId: conversationId ?? undefined } : { guestHistory }), ...(blueprint ? { plannerContext: { category: eventType, city, date, guestCount: Number(guestCount), totalBudget: Number(budgetINR), venuePreference, styleTheme, requirements: [requirements, preferences.length ? `Additional preferences: ${preferences.join(", ")}` : ""].filter(Boolean).join("\n"), blueprint } } : {}) }) });
       const data = await response.json();
       if (!response.ok) throw new Error(data.error || "The assistant could not respond.");
-      setConversationId(data.conversationId); sessionStorage.setItem("evntora-planner-ai-conversation", data.conversationId); if (data.blueprint) { setBlueprint(data.blueprint as AIEventBlueprint); setSavedToDashboard(false); }
+      if (data.conversationId) { setConversationId(data.conversationId); sessionStorage.setItem("evntora-planner-ai-conversation", data.conversationId); }
+      else { setConversationId(null); sessionStorage.removeItem("evntora-planner-ai-conversation"); sessionStorage.setItem("evntora-planner-ai-guest-history", JSON.stringify([...previousGuestHistory, { role: "user", content: userQuery }, { role: "assistant", content: data.answer }].slice(-12))); }
+      if (data.blueprint) { setBlueprint(data.blueprint as AIEventBlueprint); setSavedToDashboard(false); }
       setChatMessages((prev) => [...prev, { role: "ai", text: data.answer }]);
     } catch (error) { setChatError(error instanceof Error ? error.message : "The assistant is temporarily unavailable."); }
     finally { setChatBusy(false); }
   };
+
+  useEffect(() => {
+    if (!saveAfterResume || authLoading || resumeSaveStarted.current) return;
+    if (!user) { setSaveAfterResume(false); setSaveAuthModalOpen(true); return; }
+    if (rolesError) { setPlannerError("We could not verify your account access. Your generated plan is still preserved; please refresh and try again."); setSaveAfterResume(false); return; }
+    if (!hasRole("customer")) { setPlannerError("This account does not have Customer access. Your generated plan is preserved; sign in with Customer access to save it."); setSaveAfterResume(false); return; }
+    resumeSaveStarted.current = true;
+    void (async () => {
+      const eventId = await persistBlueprint();
+      if (eventId) {
+        sessionStorage.removeItem("evntora-planner-auth-draft");
+        setSaveAfterResume(false);
+        router.replace(`/dashboard/workspace?eventId=${encodeURIComponent(eventId)}`);
+      } else {
+        resumeSaveStarted.current = false;
+        setSaveAfterResume(false);
+      }
+    })();
+  }, [saveAfterResume, authLoading, user, rolesError, hasRole, blueprint, router]);
 
   return (
     <div className="min-h-screen flex flex-col bg-[#FAF8F3] dark:bg-[#151B18] text-[#252522] dark:text-[#F4F0E7] transition-colors duration-200">
@@ -680,6 +727,21 @@ function PlannerContent() {
       </main>
 
       <Footer />
+      {saveAuthModalOpen && (
+        <div className="fixed inset-0 z-[70] flex items-center justify-center bg-[#101713]/65 backdrop-blur-sm p-4" role="presentation" onMouseDown={(event) => { if (event.target === event.currentTarget) setSaveAuthModalOpen(false); }}>
+          <section role="dialog" aria-modal="true" aria-labelledby="save-auth-title" className="w-full max-w-md rounded-3xl bg-white dark:bg-[#232F28] border border-[#D4B77D]/50 shadow-2xl p-7 sm:p-8">
+            <div className="w-12 h-12 rounded-2xl bg-[#E7EFEA] dark:bg-[#173F35]/50 text-[#173F35] dark:text-[#D4B77D] grid place-items-center mb-5"><Save className="w-5 h-5" /></div>
+            <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-[#C6A66B]">Your plan is ready</p>
+            <h2 id="save-auth-title" className="mt-2 text-2xl font-serif font-bold text-[#173F35] dark:text-[#F4F0E7]">Save it to your workspace</h2>
+            <p className="mt-3 text-sm leading-6 text-[#77746D] dark:text-[#B5B5AA]">Sign in or create a customer account. We’ll keep this exact blueprint and save it automatically when you return.</p>
+            <div className="mt-7 grid gap-3">
+              <button type="button" onClick={() => { const href = saveDraftForAuthentication(); router.push(href); }} className="w-full rounded-xl bg-[#173F35] hover:bg-[#0F2B24] text-[#FAF8F3] px-5 py-3 font-semibold text-sm">Sign in to save</button>
+              <button type="button" onClick={() => { const destination = "/planner?resume=1&save=1"; sessionStorage.setItem("evntora-planner-auth-draft", JSON.stringify({ eventType, city, date, guestCount, budgetINR, venuePreference, styleTheme, requirements, preferences, blueprint, savedEventId })); router.push(`/signup?portal=customer&redirectTo=${encodeURIComponent(destination)}`); }} className="w-full rounded-xl border border-[#D4B77D] text-[#173F35] dark:text-[#F4F0E7] px-5 py-3 font-semibold text-sm hover:bg-[#FAF8F3] dark:hover:bg-[#1C2520]">Create a customer account</button>
+              <button type="button" onClick={() => setSaveAuthModalOpen(false)} className="w-full px-5 py-2.5 text-sm font-medium text-[#77746D] dark:text-[#B5B5AA] hover:text-[#173F35] dark:hover:text-[#F4F0E7]">Continue planning</button>
+            </div>
+          </section>
+        </div>
+      )}
     </div>
   );
 }

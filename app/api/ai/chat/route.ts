@@ -2,11 +2,11 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 import { getAuthenticatedUser } from "@/lib/supabase-server";
 import { generateText, getAiErrorResponse } from "@/lib/gemini";
-import { consumeAiRequest } from "@/lib/ai-rate-limit";
+import { consumeAiRequest, consumeGuestAiRequest } from "@/lib/ai-rate-limit";
 import { blueprintSchema } from "@/lib/ai-schemas";
 
 export const runtime = "nodejs";
-const schema = z.object({ message: z.string().trim().min(1).max(2000), conversationId: z.string().uuid().optional(), eventId: z.string().uuid().optional(), plannerContext: z.object({ category: z.string().max(80), city: z.string().max(100), date: z.string().date(), guestCount: z.number().int().min(1).max(10000), totalBudget: z.number().int().min(0).max(1_000_000_000), venuePreference: z.string().max(300), styleTheme: z.string().max(300), requirements: z.string().max(4000), blueprint: z.record(z.string(), z.unknown()) }).optional() });
+const schema = z.object({ message: z.string().trim().min(1).max(2000), conversationId: z.string().uuid().optional(), eventId: z.string().uuid().optional(), guestHistory: z.array(z.object({ role: z.enum(["user", "assistant"]), content: z.string().trim().min(1).max(2000) })).max(12).optional(), plannerContext: z.object({ category: z.string().max(80), city: z.string().max(100), date: z.string().date(), guestCount: z.number().int().min(1).max(10000), totalBudget: z.number().int().min(0).max(1_000_000_000), venuePreference: z.string().max(300), styleTheme: z.string().max(300), requirements: z.string().max(4000), blueprint: z.record(z.string(), z.unknown()) }).optional() });
 
 export async function GET(request: Request) {
   const { user, supabase } = await getAuthenticatedUser(request);
@@ -29,14 +29,42 @@ export async function GET(request: Request) {
 }
 
 export async function POST(request: Request) {
-  const { user, supabase } = await getAuthenticatedUser(request);
-  if (!user) return NextResponse.json({ error: "Sign in with Customer access to use the assistant." }, { status: 401 });
-  const { data: roles, error: roleError } = await supabase.from("user_roles").select("role").eq("user_id", user.id).eq("is_active", true);
-  if (roleError) return NextResponse.json({ error: "We could not verify your account access. Please try again." }, { status: 503 });
-  if (!roles?.some((role) => role.role === "customer")) return NextResponse.json({ error: "Enable Customer access to use event planning assistance." }, { status: 403 });
+  const { user: authenticatedUser, supabase } = await getAuthenticatedUser(request);
   const parsed = schema.safeParse(await request.json().catch(() => null));
   if (!parsed.success) return NextResponse.json({ error: "Enter a question of up to 2,000 characters." }, { status: 400 });
   const { message, conversationId, plannerContext } = parsed.data;
+  let user = authenticatedUser;
+  if (authenticatedUser) {
+    const { data: roles, error: roleError } = await supabase.from("user_roles").select("role").eq("user_id", authenticatedUser.id).eq("is_active", true);
+    if (roleError) return NextResponse.json({ error: "We could not verify your account access. Please try again." }, { status: 503 });
+    if (!roles?.some((role) => role.role === "customer")) user = null;
+  }
+  if (!user) {
+    const quota = await consumeGuestAiRequest(request);
+    if (quota !== "ok") return NextResponse.json({ error: quota === "limited" ? "You have reached the guest assistant request limit. Please wait before asking another question." : "AI request limits are temporarily unavailable. Please try again shortly." }, { status: quota === "limited" ? 429 : 503 });
+    if (plannerContext && JSON.stringify(plannerContext).length > 30000) return NextResponse.json({ error: "The planner context is too large. Start a new conversation and try again." }, { status: 400 });
+    const prompt = `You are Evntora's event-planning assistant. Answer helpfully using the user's question and explicitly supplied guest context only. You have no access to private account records, bookings, memories, or vendor availability. Never invent actual vendors, ratings, prices, bookings, payments, or availability. General planning ideas must be presented as suggestions and estimates. Never perform bookings, payments, or other consequential actions. Maintain context from this current-session conversation: ${JSON.stringify((parsed.data.guestHistory ?? []).slice(-12))}. Current user message: ${message}.${plannerContext ? ` Guest planner context: ${JSON.stringify(plannerContext)}.` : ""}`;
+    try {
+      let answer: string;
+      let refinedBlueprint: unknown;
+      if (plannerContext) {
+        const result = await generateText(`${prompt}\nIf the user asks to refine the plan, return JSON only as {"answer": string, "blueprint": object}; keep the supplied blueprint structure and only change requested details. Never claim bookings or real quotes.`, true);
+        let parsedOutput: unknown;
+        try { parsedOutput = JSON.parse(result); } catch { return NextResponse.json({ error: "The plan could not be updated in this response. Please try again." }, { status: 502 }); }
+        const output = z.object({ answer: z.string().min(1).max(4000), blueprint: z.record(z.string(), z.unknown()) }).safeParse(parsedOutput);
+        if (!output.success) return NextResponse.json({ error: "The plan update was incomplete. Please try again." }, { status: 502 });
+        const checkedBlueprint = blueprintSchema.safeParse(output.data.blueprint);
+        if (!checkedBlueprint.success) return NextResponse.json({ error: "The plan update was incomplete. Please try again." }, { status: 502 });
+        answer = output.data.answer;
+        refinedBlueprint = { ...checkedBlueprint.data, venueRecommendations: checkedBlueprint.data.venueRecommendations.map((venue, index) => ({ ...venue, name: `Venue format ${index + 1}` })) };
+      } else answer = await generateText(prompt);
+      return NextResponse.json({ answer, conversationId: null, links: [], ...(refinedBlueprint ? { blueprint: refinedBlueprint } : {}) });
+    } catch (error) {
+      const failure = getAiErrorResponse(error, "assistant");
+      return NextResponse.json({ error: failure.error }, { status: failure.status });
+    }
+  }
+
   const quota = await consumeAiRequest(supabase);
   if (quota !== "ok") return NextResponse.json({ error: quota === "limited" ? "You have reached the assistant request limit. Please wait a minute and try again." : "AI request limits are temporarily unavailable. Please try again." }, { status: quota === "limited" ? 429 : 503 });
   let eventId = parsed.data.eventId ?? null;

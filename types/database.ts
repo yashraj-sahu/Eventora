@@ -583,6 +583,7 @@ export interface Database {
       enable_customer_access: { Args: Record<string, never>; Returns: boolean };
       set_admin_membership: { Args: { p_user_id: string; p_active: boolean }; Returns: boolean };
       consume_ai_request: { Args: Record<string, never>; Returns: boolean };
+      consume_ai_guest_request: { Args: { p_fingerprint: string }; Returns: boolean };
     };
     Enums: {
       user_role: UserRole;

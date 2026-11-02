@@ -24,6 +24,7 @@ const navLinks = [
   { href: "/events", label: "Explore Events" },
   { href: "/vendors", label: "Find Vendors" },
   { href: "/planner", label: "AI Planner", badge: "AI" },
+  { href: "/ai-assistant", label: "Ask AI" },
   { href: "/how-it-works", label: "How It Works" },
   { href: "/about", label: "About" },
 ];
