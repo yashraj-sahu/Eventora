@@ -4,7 +4,7 @@ import { verifyRazorpaySignature, fetchRazorpayPayment } from "@/lib/razorpay-se
 
 export async function POST(request: Request) {
   try {
-    const { user, error: authError } = await getAuthenticatedUser(request);
+    const { user, supabase: sessionClient, error: authError } = await getAuthenticatedUser(request);
 
     if (authError || !user) {
       return NextResponse.json(
@@ -12,6 +12,10 @@ export async function POST(request: Request) {
         { status: 401 }
       );
     }
+
+    const { data: memberships, error: rolesError } = await sessionClient.from("user_roles").select("role").eq("user_id", user.id).eq("is_active", true);
+    if (rolesError) return NextResponse.json({ error: "Account access could not be verified." }, { status: 503 });
+    if (!memberships?.some((item) => item.role === "customer")) return NextResponse.json({ error: "Enable Customer access before verifying payment." }, { status: 403 });
 
     const body = await request.json();
     const {

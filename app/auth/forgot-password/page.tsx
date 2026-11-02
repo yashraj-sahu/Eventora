@@ -24,12 +24,12 @@ function ForgotPasswordForm() {
       const { error: resetError } = await supabase.auth.resetPasswordForEmail(
         email.trim(),
         {
-          redirectTo: `${window.location.origin}/auth/reset-password`,
+          redirectTo: `${window.location.origin}/auth/callback?next=/auth/reset-password`,
         }
       );
 
       if (resetError) {
-        setError(resetError.message || "Failed to send reset link. Please check your email and try again.");
+        setError("We couldn’t send a recovery link. Check the email address and try again.");
       } else {
         setSent(true);
       }

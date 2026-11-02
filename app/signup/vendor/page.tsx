@@ -1,10 +1,11 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { Navbar } from "@/components/layout/Navbar";
 import { Footer } from "@/components/layout/Footer";
 import { supabase } from "@/lib/supabase";
+import { useAuth } from "@/lib/auth-context";
 import {
   Store,
   Lock,
@@ -50,6 +51,7 @@ const CITIES = [
 ];
 
 export default function VendorSignUpPage() {
+  const { user } = useAuth();
   const [contactName, setContactName] = useState("");
   const [businessName, setBusinessName] = useState("");
   const [email, setEmail] = useState("");
@@ -68,13 +70,15 @@ export default function VendorSignUpPage() {
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
 
+  useEffect(() => { if (user?.email) setEmail(user.email); if (user?.user_metadata?.full_name) setContactName(String(user.user_metadata.full_name)); }, [user]);
+
   const validate = () => {
     if (!contactName.trim()) return "Please enter your name.";
     if (!businessName.trim()) return "Please enter your business name.";
-    if (!email.trim()) return "Please enter your email address.";
+    if (!user && !email.trim()) return "Please enter your email address.";
     if (!phone.trim()) return "Phone number is required for vendor accounts.";
-    if (password.length < 8) return "Password must be at least 8 characters.";
-    if (password !== confirmPassword) return "Passwords do not match.";
+    if (!user && password.length < 8) return "Password must be at least 8 characters.";
+    if (!user && password !== confirmPassword) return "Passwords do not match.";
     if (!(category === "Other" ? customCategory.trim() : category)) return "Please enter a business category.";
     if (!(city === "Other" ? customCity.trim() : city)) return "Please enter your city.";
     if (!agreedToTerms) return "Please accept the Terms & Privacy Policy.";
@@ -94,6 +98,21 @@ export default function VendorSignUpPage() {
     setIsLoading(true);
 
     try {
+      if (user) {
+        if (!user.email_confirmed_at) { setError("Verify your email before submitting a vendor application."); return; }
+        const { data: existing, error: existingError } = await supabase.from("vendor_profiles").select("id").eq("user_id", user.id).maybeSingle();
+        if (existingError) throw new Error("We couldn’t check your existing vendor application.");
+        if (existing) { window.location.assign("/vendor-portal/pending"); return; }
+        const { error: registrationError } = await supabase.from("vendor_profiles").insert({
+          user_id: user.id, business_name: businessName.trim(), business_category: (category === "Other" ? customCategory : category).trim(),
+          city: (city === "Other" ? customCity : city).trim(), business_description: description.trim() || null,
+          address: address.trim() || null, contact_phone: phone.trim(), contact_email: user.email,
+          approval_status: "pending", is_published: false,
+        });
+        if (registrationError) throw new Error("Your vendor application could not be submitted. Please try again.");
+        window.location.assign("/vendor-portal/pending");
+        return;
+      }
       // 1. Create Supabase Auth user
       const { data, error: signUpError } = await supabase.auth.signUp({
         email: email.trim(),
@@ -120,7 +139,7 @@ export default function VendorSignUpPage() {
         if (signUpError.message.includes("already registered")) {
           setError("An account with this email already exists. Please sign in.");
         } else {
-          setError(signUpError.message || "Failed to create vendor account. Please try again.");
+          setError("We couldn’t create your vendor account right now. Please try again.");
         }
         return;
       }
@@ -142,10 +161,11 @@ export default function VendorSignUpPage() {
         if (registrationError) throw registrationError;
       }
 
-      setSuccess(true);
+      if (data.session) window.location.assign("/vendor-portal/pending");
+      else setSuccess(true);
     } catch (err: unknown) {
       console.error("Vendor sign-up exception:", err);
-      setError(err instanceof Error ? err.message : "An unexpected error occurred during registration.");
+      setError("An unexpected error occurred during registration. Please try again.");
     } finally {
       setIsLoading(false);
     }
@@ -282,6 +302,7 @@ export default function VendorSignUpPage() {
                   required
                   autoComplete="email"
                   value={email}
+                  readOnly={Boolean(user)}
                   onChange={(e) => setEmail(e.target.value)}
                   placeholder="contact@udaivilas.com"
                   className="w-full pl-9 pr-3 py-2.5 rounded-xl bg-[#FAF8F3] dark:bg-[#1C2520] border border-[#E8E2D7] dark:border-[#344139] text-[#252522] dark:text-[#F4F0E7] placeholder-[#77746D]/60 focus:outline-none focus:border-[#173F35] dark:focus:border-[#A9C7B2] transition-colors"
@@ -380,8 +401,8 @@ export default function VendorSignUpPage() {
               </div>
             </div>
 
-            {/* Password */}
-            <div className="grid grid-cols-2 gap-3">
+            {/* Account credentials are only needed when registering a new account. */}
+            {!user && <div className="grid grid-cols-2 gap-3">
               <div>
                 <label htmlFor="password" className="block text-[#77746D] dark:text-[#B5B5AA] mb-1.5 font-medium">
                   Password <span className="text-rose-500">*</span>
@@ -427,7 +448,7 @@ export default function VendorSignUpPage() {
                   />
                 </div>
               </div>
-            </div>
+            </div>}
 
             {/* Terms */}
             <div className="flex items-start gap-2.5">

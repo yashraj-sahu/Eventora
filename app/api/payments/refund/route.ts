@@ -4,27 +4,22 @@ import { processRazorpayRefund } from "@/lib/razorpay-server";
 
 export async function POST(request: Request) {
   try {
-    const { user, error: authError } = await getAuthenticatedUser(request);
+    const { user, supabase: sessionClient, error: authError } = await getAuthenticatedUser(request);
 
     if (authError || !user) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const supabase = createAdminSupabaseClient();
-
-    // Verify admin role
-    const { data: profile } = await supabase
-      .from("profiles")
-      .select("role")
-      .eq("id", user.id)
-      .maybeSingle();
-
-    if (profile?.role !== "admin") {
+    const { data: roles, error: roleError } = await sessionClient.from("user_roles").select("role").eq("user_id", user.id).eq("is_active", true);
+    if (roleError) return NextResponse.json({ error: "Account access could not be verified." }, { status: 503 });
+    if (!roles?.some((item) => item.role === "admin" || item.role === "platform_owner")) {
       return NextResponse.json(
         { error: "Forbidden. Only administrators can issue refunds." },
         { status: 403 }
       );
     }
+
+    const supabase = createAdminSupabaseClient();
 
     const body = await request.json();
     const { paymentId, amountPaise, reason } = body;

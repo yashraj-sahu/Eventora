@@ -1,4 +1,4 @@
-import { PortalSignInPage } from "@/app/signin/page";
+import { PortalSignInPage } from "@/components/auth/PortalSignInPage";
 
 export default function AdminSignInPage() {
   return <PortalSignInPage portal="admin" />;

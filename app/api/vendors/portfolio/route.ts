@@ -1,11 +1,11 @@
 import { NextResponse } from "next/server";
-import { createServerSupabaseClient, getAuthenticatedUser } from "@/lib/supabase-server";
+import { getAuthenticatedUser } from "@/lib/supabase-server";
 
 export async function GET(request: Request) {
   const path = new URL(request.url).searchParams.get("path") || "";
   if (!/^[0-9a-f-]{36}\/[0-9a-f-]{36}\.(jpg|png|webp)$/i.test(path)) return NextResponse.json({ error: "Invalid image path" }, { status: 400 });
-  const { token } = await getAuthenticatedUser(request);
-  const client = createServerSupabaseClient(token);
+  const { user, supabase: client } = await getAuthenticatedUser(request);
+  if (!user) return NextResponse.json({ error: "Image unavailable" }, { status: 404 });
   const { data: image } = await client.from("vendor_portfolio").select("id").eq("storage_path", path).maybeSingle();
   if (!image) return NextResponse.json({ error: "Image unavailable" }, { status: 404 });
   const { data, error } = await client.storage.from("vendor-portfolio").download(path);
@@ -14,13 +14,12 @@ export async function GET(request: Request) {
 }
 
 export async function POST(request: Request) {
-  const { user, token } = await getAuthenticatedUser(request);
-  if (!user || !token) return NextResponse.json({ error: "Sign in required" }, { status: 401 });
+  const { user, supabase: client, error: authError } = await getAuthenticatedUser(request);
+  if (!user || authError) return NextResponse.json({ error: "Sign in required" }, { status: 401 });
   const form = await request.formData().catch(() => null);
   const vendorId = form?.get("vendorId"); const file = form?.get("file");
   if (typeof vendorId !== "string" || !/^[0-9a-f-]{36}$/i.test(vendorId) || !(file instanceof File)) return NextResponse.json({ error: "Invalid upload" }, { status: 400 });
   if (file.size > 5 * 1024 * 1024 || !["image/jpeg", "image/png", "image/webp"].includes(file.type)) return NextResponse.json({ error: "Use a JPEG, PNG or WebP image up to 5 MB" }, { status: 400 });
-  const client = createServerSupabaseClient(token);
   const { data: vendor } = await client.from("vendor_profiles").select("id").eq("id", vendorId).eq("user_id", user.id).maybeSingle();
   if (!vendor) return NextResponse.json({ error: "Vendor listing not found" }, { status: 404 });
   const extension = file.type === "image/jpeg" ? "jpg" : file.type.split("/")[1];
@@ -34,11 +33,10 @@ export async function POST(request: Request) {
 }
 
 export async function DELETE(request: Request) {
-  const { user, token } = await getAuthenticatedUser(request);
-  if (!user || !token) return NextResponse.json({ error: "Sign in required" }, { status: 401 });
+  const { user, supabase: client, error: authError } = await getAuthenticatedUser(request);
+  if (!user || authError) return NextResponse.json({ error: "Sign in required" }, { status: 401 });
   let id: unknown; try { id = (await request.json()).id; } catch { return NextResponse.json({ error: "Invalid JSON" }, { status: 400 }); }
   if (typeof id !== "string" || !/^[0-9a-f-]{36}$/i.test(id)) return NextResponse.json({ error: "Invalid image" }, { status: 400 });
-  const client = createServerSupabaseClient(token);
   const { data: image } = await client.from("vendor_portfolio").select("id,storage_path,vendor_profile_id").eq("id", id).maybeSingle();
   if (!image) return NextResponse.json({ error: "Image not found" }, { status: 404 });
   const { data: vendor } = await client.from("vendor_profiles").select("id").eq("id", image.vendor_profile_id).eq("user_id", user.id).maybeSingle();

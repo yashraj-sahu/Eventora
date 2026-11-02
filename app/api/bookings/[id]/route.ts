@@ -7,7 +7,7 @@ export async function GET(
 ) {
   try {
     const { id } = await params;
-    const { user, error: authError } = await getAuthenticatedUser(request);
+    const { user, supabase: sessionClient, error: authError } = await getAuthenticatedUser(request);
 
     if (authError || !user) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -25,29 +25,16 @@ export async function GET(
     }
 
     // Authorization: User must be customer, vendor, or admin
-    const { data: profile } = await supabase
-      .from("profiles")
-      .select("role")
-      .eq("id", user.id)
-      .maybeSingle();
-
-    const isAdmin = profile?.role === "admin";
+    const { data: memberships, error: rolesError } = await sessionClient.from("user_roles").select("role").eq("user_id", user.id).eq("is_active", true);
+    if (rolesError) return NextResponse.json({ error: "Account access could not be verified." }, { status: 503 });
+    const isAdmin = Boolean(memberships?.some((item) => item.role === "admin" || item.role === "platform_owner"));
     const isCustomer = booking.customer_id === user.id;
-
     let isVendor = false;
     if (booking.vendor_profile_id) {
-      const { data: vp } = await supabase
-        .from("vendor_profiles")
-        .select("id")
-        .eq("id", booking.vendor_profile_id)
-        .eq("user_id", user.id)
-        .maybeSingle();
-      if (vp) isVendor = true;
+      const { data: vendor } = await supabase.from("vendor_profiles").select("id").eq("id", booking.vendor_profile_id).eq("user_id", user.id).maybeSingle();
+      isVendor = Boolean(vendor);
     }
-
-    if (!isAdmin && !isCustomer && !isVendor) {
-      return NextResponse.json({ error: "Access denied" }, { status: 403 });
-    }
+    if (!isAdmin && !isCustomer && !isVendor) return NextResponse.json({ error: "You do not have access to this booking." }, { status: 403 });
 
     // Fetch customer profile details
     const { data: customerProfile } = await supabase
@@ -80,7 +67,7 @@ export async function PATCH(
 ) {
   try {
     const { id } = await params;
-    const { user, error: authError } = await getAuthenticatedUser(request);
+    const { user, supabase: sessionClient, error: authError } = await getAuthenticatedUser(request);
 
     if (authError || !user) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -115,23 +102,28 @@ export async function PATCH(
     }
 
     // Check permissions
-    const { data: profile } = await supabase
-      .from("profiles")
-      .select("role")
-      .eq("id", user.id)
-      .maybeSingle();
-
-    const isAdmin = profile?.role === "admin";
+    const { data: memberships, error: rolesError } = await sessionClient.from("user_roles").select("role").eq("user_id", user.id).eq("is_active", true);
+    if (rolesError) return NextResponse.json({ error: "Account access could not be verified." }, { status: 503 });
+    const isAdmin = Boolean(memberships?.some((item) => item.role === "admin" || item.role === "platform_owner"));
     const isCustomer = booking.customer_id === user.id;
+    let isVendor = false;
+    if (booking.vendor_profile_id) {
+      const { data: vendor } = await supabase.from("vendor_profiles").select("id").eq("id", booking.vendor_profile_id).eq("user_id", user.id).maybeSingle();
+      isVendor = Boolean(vendor);
+    }
+    if (!isAdmin && !isCustomer && !isVendor) return NextResponse.json({ error: "You do not have access to this booking." }, { status: 403 });
 
     // Customers can only cancel their booking if not yet confirmed or completed
     if (isCustomer && !isAdmin) {
-      if (status !== "cancelled") {
+      if (status !== "cancelled" || ["confirmed", "completed"].includes(booking.status)) {
         return NextResponse.json(
           { error: "Customers can only cancel unfulfilled bookings." },
           { status: 403 }
         );
       }
+    }
+    if (isVendor && !isAdmin && !["confirmed", "cancelled", "completed"].includes(status)) {
+      return NextResponse.json({ error: "Vendors cannot make that booking status change." }, { status: 403 });
     }
 
     const { data: updated, error: updateError } = await supabase

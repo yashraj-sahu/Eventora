@@ -1,7 +1,7 @@
 /**
  * Database type definitions matching the Supabase schema.
  */
-export type UserRole = "customer" | "vendor" | "admin";
+export type UserRole = "customer" | "vendor" | "admin" | "platform_owner";
 export type ApprovalStatus = "pending" | "approved" | "rejected" | "suspended";
 export type BookingStatus =
   | "draft"
@@ -17,6 +17,18 @@ export type RefundStatus = "pending" | "processed" | "failed";
 export interface Database {
   public: {
     Tables: {
+      user_roles: {
+        Row: { user_id: string; role: UserRole; is_active: boolean; granted_by: string | null; created_at: string };
+        Insert: { user_id: string; role: UserRole; is_active?: boolean; granted_by?: string | null; created_at?: string };
+        Update: { user_id?: string; role?: UserRole; is_active?: boolean; granted_by?: string | null };
+        Relationships: [];
+      };
+      admin_invitations: {
+        Row: { id: string; email: string; invited_by: string; target_user_id: string | null; expires_at: string; accepted_at: string | null; revoked_at: string | null; created_at: string };
+        Insert: { id?: string; email: string; invited_by: string; target_user_id?: string | null; expires_at?: string; accepted_at?: string | null; revoked_at?: string | null; created_at?: string };
+        Update: { id?: string; email?: string; invited_by?: string; target_user_id?: string | null; expires_at?: string; accepted_at?: string | null; revoked_at?: string | null };
+        Relationships: [];
+      };
       profiles: {
         Row: {
           id: string;
@@ -534,7 +546,13 @@ export interface Database {
       };
     };
     Views: Record<string, never>;
-    Functions: { claim_vendor_listing: { Args: { p_vendor_id: string; p_confirm_role_change: boolean }; Returns: string } };
+    Functions: {
+      claim_vendor_listing: { Args: { p_vendor_id: string; p_confirm_role_change: boolean }; Returns: string };
+      is_evntora_owner: { Args: Record<string, never>; Returns: boolean };
+      accept_admin_invitation: { Args: { p_invitation_id: string }; Returns: boolean };
+      enable_customer_access: { Args: Record<string, never>; Returns: boolean };
+      set_admin_membership: { Args: { p_user_id: string; p_active: boolean }; Returns: boolean };
+    };
     Enums: {
       user_role: UserRole;
       approval_status: ApprovalStatus;

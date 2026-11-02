@@ -53,7 +53,7 @@ const portalLinks = [
 ];
 
 function AccountMenu({ onClose }: { onClose: () => void }) {
-  const { profile, signOut } = useAuth();
+  const { profile, roles, signOut } = useAuth();
 
   const handleSignOut = async () => {
     onClose();
@@ -61,12 +61,7 @@ function AccountMenu({ onClose }: { onClose: () => void }) {
     window.location.assign("/");
   };
 
-  const portalHref =
-    profile?.role === "admin"
-      ? "/admin"
-      : profile?.role === "vendor"
-      ? "/vendor-portal"
-      : "/dashboard";
+  const portalHref = roles.includes("customer") ? "/dashboard" : roles.includes("vendor") ? "/vendor-portal" : roles.some((role) => role === "admin" || role === "platform_owner") ? "/admin" : "/signin";
 
   return (
     <div className="absolute right-0 mt-2 w-60 bg-white dark:bg-[#232F28] rounded-2xl shadow-xl border border-[#E8E2D7] dark:border-[#344139] py-2 z-50 animate-in fade-in zoom-in-95 duration-150">
@@ -79,7 +74,7 @@ function AccountMenu({ onClose }: { onClose: () => void }) {
           {profile?.email}
         </p>
         <span className="inline-block mt-1 text-[10px] px-2 py-0.5 rounded-full bg-[#E7EFEA] dark:bg-[#173F35]/50 text-[#173F35] dark:text-[#A9C7B2] font-semibold capitalize">
-          {profile?.role || "Member"} Portal
+          {roles.length ? `${roles.map((role) => role.replace("platform_owner", "owner")).join(" + ")} access` : "Member"}
         </span>
       </div>
 
@@ -155,7 +150,7 @@ function PortalsDropdown({ onClose }: { onClose: () => void }) {
 
 export function Navbar() {
   const pathname = usePathname();
-  const { user, profile, isLoading, signOut } = useAuth();
+  const { user, profile, roles, isLoading, signOut } = useAuth();
   const [scrolled, setScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [accountMenuOpen, setAccountMenuOpen] = useState(false);
@@ -425,7 +420,7 @@ export function Navbar() {
                       {profile?.full_name}
                     </p>
                     <p className="text-[10px] text-[#77746D] dark:text-[#B5B5AA] capitalize">
-                      {profile?.role}
+                      {roles.join(" + ") || "Member"}
                     </p>
                   </div>
                 </div>

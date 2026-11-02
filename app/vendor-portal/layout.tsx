@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useAuth } from "@/lib/auth-context";
 import { RequireRole } from "@/components/auth/RequireRole";
+import { PortalAccessNotice } from "@/components/auth/PortalAccessNotice";
 import { ThemeToggle } from "@/components/ui/ThemeToggle";
 import {
   Store,
@@ -32,7 +33,7 @@ export default function VendorPortalLayout({
   const category = vendorProfile?.business_category || "Vendor";
 
   return (
-    <RequireRole role="vendor"><div className="min-h-screen flex flex-col bg-[#FAF8F3] dark:bg-[#151B18] text-[#252522] dark:text-[#F4F0E7] selection:bg-[#173F35] dark:selection:bg-[#A9C7B2] selection:text-white dark:selection:text-[#151B18] font-sans transition-colors duration-200">
+    <RequireRole role="vendor"><div className="min-h-screen flex flex-col bg-[#FAF8F3] dark:bg-[#151B18] text-[#252522] dark:text-[#F4F0E7] selection:bg-[#173F35] dark:selection:bg-[#A9C7B2] selection:text-white dark:selection:text-[#151B18] font-sans transition-colors duration-200"><PortalAccessNotice />
       <div className="flex-1 flex">
         {/* Vendor Sidebar */}
         <aside className="hidden lg:flex flex-col w-64 bg-white dark:bg-[#1C2520] border-r border-[#E8E2D7] dark:border-[#344139] shrink-0 select-none">

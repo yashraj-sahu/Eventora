@@ -171,7 +171,7 @@ export function Footer() {
                 </Link>
               </li>
               <li>
-                <Link href="/admin" className="hover:text-[#173F35] dark:hover:text-[#A9C7B2] transition-colors">
+                <Link href="/admin/signin" className="hover:text-[#173F35] dark:hover:text-[#A9C7B2] transition-colors">
                   Admin Platform
                 </Link>
               </li>

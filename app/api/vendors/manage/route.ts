@@ -1,10 +1,9 @@
 import { NextResponse } from "next/server";
-import { createServerSupabaseClient, getAuthenticatedUser } from "@/lib/supabase-server";
+import { getAuthenticatedUser } from "@/lib/supabase-server";
 
 export async function POST(request: Request) {
-  const { user, token } = await getAuthenticatedUser(request);
-  if (!user || !token) return NextResponse.json({ error: "Sign in required" }, { status: 401 });
-  const client = createServerSupabaseClient(token);
+  const { user, supabase: client, error: authError } = await getAuthenticatedUser(request);
+  if (!user || authError) return NextResponse.json({ error: "Sign in required" }, { status: 401 });
   let body: Record<string, unknown>;
   try { body = await request.json(); } catch { return NextResponse.json({ error: "Invalid JSON" }, { status: 400 }); }
   if (typeof body.vendorId !== "string" || !/^[0-9a-f-]{36}$/i.test(body.vendorId) || !["service", "package"].includes(String(body.kind)))

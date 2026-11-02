@@ -55,12 +55,15 @@ export default function SignUpPage() {
     setIsLoading(true);
 
     try {
+      const params = new URLSearchParams(window.location.search);
+      const requestedRedirect = params.get("redirectTo") || "";
+      const safeDestination = requestedRedirect.startsWith("/") && !requestedRedirect.startsWith("//") && !requestedRedirect.includes("\\") && new URL(requestedRedirect, window.location.origin).origin === window.location.origin ? requestedRedirect : "/dashboard";
       // 1. Create Supabase Auth user
       const { data, error: signUpError } = await supabase.auth.signUp({
         email: email.trim(),
         password,
         options: {
-          emailRedirectTo: `${window.location.origin}/auth/callback?next=/dashboard`,
+          emailRedirectTo: `${window.location.origin}/auth/callback?next=${encodeURIComponent(safeDestination)}`,
           data: {
             full_name: fullName.trim(),
             role: "customer",
@@ -72,7 +75,7 @@ export default function SignUpPage() {
         if (signUpError.message.includes("already registered")) {
           setError("An account with this email already exists. Please sign in.");
         } else {
-          setError(signUpError.message || "Failed to create account. Please try again.");
+          setError("We couldn’t create your account right now. Please try again.");
         }
         return;
       }
@@ -102,16 +105,14 @@ export default function SignUpPage() {
         setSuccess(true);
       } else if (data.session) {
         // Immediate session established
-        window.location.assign("/dashboard");
+        window.location.assign(safeDestination);
       } else {
         setSuccess(true);
       }
     } catch (err: unknown) {
       console.error("Sign up error:", err);
       setError(
-        err instanceof Error
-          ? err.message
-          : "An unexpected error occurred during account registration."
+        "An unexpected error occurred during account registration."
       );
     } finally {
       setIsLoading(false);

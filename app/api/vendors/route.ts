@@ -1,11 +1,11 @@
 import { NextResponse } from "next/server";
-import { createServerSupabaseClient, getAuthenticatedUser } from "@/lib/supabase-server";
+import { getAuthenticatedUser } from "@/lib/supabase-server";
 
 export const dynamic = "force-dynamic";
 
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
-  const supabase = createServerSupabaseClient((await getAuthenticatedUser(request)).token);
+  const { supabase } = await getAuthenticatedUser(request);
   let query = supabase.from("vendor_profiles").select("*")
     .eq("approval_status", "approved").eq("is_published", true).order("is_featured", { ascending: false });
   const category = searchParams.get("category");
@@ -31,11 +31,11 @@ export async function GET(request: Request) {
 }
 
 export async function POST(request: Request) {
-  const { user, token } = await getAuthenticatedUser(request);
-  if (!user || !token) return NextResponse.json({ error: "Sign in required" }, { status: 401 });
-  const supabase = createServerSupabaseClient(token);
-  const { data: profile } = await supabase.from("profiles").select("role").eq("id", user.id).maybeSingle();
-  if (profile?.role !== "admin") return NextResponse.json({ error: "Administrator access required" }, { status: 403 });
+  const { user, supabase, error: authError } = await getAuthenticatedUser(request);
+  if (!user || authError) return NextResponse.json({ error: "Sign in required" }, { status: 401 });
+  const { data: roles, error: roleError } = await supabase.from("user_roles").select("role").eq("user_id", user.id).eq("is_active", true);
+  if (roleError) return NextResponse.json({ error: "Account access could not be verified" }, { status: 503 });
+  if (!roles?.some((item) => item.role === "admin" || item.role === "platform_owner")) return NextResponse.json({ error: "Administrator access required" }, { status: 403 });
   let body: Record<string, unknown>;
   try { body = await request.json(); } catch { return NextResponse.json({ error: "Invalid JSON" }, { status: 400 }); }
   const businessName = typeof body.business_name === "string" ? body.business_name.trim() : "";

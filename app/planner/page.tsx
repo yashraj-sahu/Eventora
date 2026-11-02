@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, Suspense } from "react";
+import { useState, useEffect, Suspense } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { Navbar } from "@/components/layout/Navbar";
 import { Footer } from "@/components/layout/Footer";
@@ -8,6 +8,7 @@ import { EVENT_CATEGORIES } from "@/data/categories";
 import { CITIES } from "@/data/cities";
 import { generateAIBlueprint } from "@/data/sampleBlueprints";
 import { useEvntoraStore } from "@/lib/store";
+import { useAuth } from "@/lib/auth-context";
 import { formatINR } from "@/lib/utils";
 import { AIEventBlueprint, EventCategory } from "@/types";
 import {
@@ -31,6 +32,7 @@ function PlannerContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const { addEvent } = useEvntoraStore();
+  const { user } = useAuth();
 
   // Initial params from URL query if available
   const initialType = (searchParams.get("type") as EventCategory) || "Weddings";
@@ -53,6 +55,25 @@ function PlannerContent() {
   const [blueprint, setBlueprint] = useState<AIEventBlueprint | null>(null);
   const [isGenerating, setIsGenerating] = useState(false);
   const [savedToDashboard, setSavedToDashboard] = useState(false);
+
+  useEffect(() => {
+    if (searchParams.get("resume") !== "1") return;
+    try {
+      const raw = sessionStorage.getItem("evntora-planner-auth-draft");
+      if (!raw) return;
+      const draft = JSON.parse(raw) as { eventType: EventCategory; city: string; date: string; guestCount: number; budgetINR: number; venuePreference: string; styleTheme: string; requirements: string; blueprint: AIEventBlueprint | null };
+      setEventType(draft.eventType); setCity(draft.city); setDate(draft.date); setGuestCount(draft.guestCount); setBudgetINR(draft.budgetINR);
+      setVenuePreference(draft.venuePreference); setStyleTheme(draft.styleTheme); setRequirements(draft.requirements); setBlueprint(draft.blueprint);
+      setStep(draft.blueprint ? 3 : 1); sessionStorage.removeItem("evntora-planner-auth-draft");
+    } catch { sessionStorage.removeItem("evntora-planner-auth-draft"); }
+  }, [searchParams]);
+
+  const requireCustomerForSave = () => {
+    if (user) return true;
+    sessionStorage.setItem("evntora-planner-auth-draft", JSON.stringify({ eventType, city, date, guestCount, budgetINR, venuePreference, styleTheme, requirements, blueprint }));
+    router.push(`/signin?portal=customer&redirectTo=${encodeURIComponent("/planner?resume=1")}`);
+    return false;
+  };
 
   // AI Assistant Chat Drawer State
   const [assistantOpen, setAssistantOpen] = useState(false);
@@ -85,6 +106,7 @@ function PlannerContent() {
 
   const handleSaveToDashboard = () => {
     if (!blueprint) return;
+    if (!requireCustomerForSave()) return;
     addEvent({
       title: `${eventType} in ${city} for ${guestCount} Guests`,
       category: eventType,
@@ -105,6 +127,7 @@ function PlannerContent() {
 
   const handleProceedToBookingBlueprint = async () => {
     if (!blueprint) return;
+    if (!requireCustomerForSave()) return;
     addEvent({
       title: `${eventType} in ${city} for ${guestCount} Guests`,
       category: eventType,

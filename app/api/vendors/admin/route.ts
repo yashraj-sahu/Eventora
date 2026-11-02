@@ -1,12 +1,11 @@
 import { NextResponse } from "next/server";
-import { createServerSupabaseClient, getAuthenticatedUser } from "@/lib/supabase-server";
+import { getAuthenticatedUser } from "@/lib/supabase-server";
 
 async function adminClient(request: Request) {
-  const { user, token } = await getAuthenticatedUser(request);
-  if (!user || !token) return null;
-  const client = createServerSupabaseClient(token);
-  const { data } = await client.from("profiles").select("role").eq("id", user.id).maybeSingle();
-  return data?.role === "admin" ? client : null;
+  const { user, supabase, error } = await getAuthenticatedUser(request);
+  if (!user || error) return null;
+  const { data, error: roleError } = await supabase.from("user_roles").select("role").eq("user_id", user.id).eq("is_active", true);
+  return !roleError && data?.some((item) => item.role === "admin" || item.role === "platform_owner") ? supabase : null;
 }
 
 export async function GET(request: Request) {
