@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { getAuthenticatedUser } from "@/lib/supabase-server";
-import { generateText, getGeminiErrorResponse } from "@/lib/gemini";
+import { generateText, getAiErrorResponse } from "@/lib/gemini";
 import { consumeAiRequest } from "@/lib/ai-rate-limit";
 import { blueprintSchema } from "@/lib/ai-schemas";
 
@@ -39,7 +39,7 @@ Use these keys: blueprintId,title,executiveSummary,themeAndAtmosphere{themeName,
     const safeBlueprint = { ...blueprint.data, venueRecommendations: blueprint.data.venueRecommendations.map((venue, index) => ({ ...venue, name: `Venue format ${index + 1}` })) };
     return NextResponse.json({ blueprint: safeBlueprint });
   } catch (error) {
-    const failure = getGeminiErrorResponse(error, "planning");
+    const failure = getAiErrorResponse(error, "planning");
     return NextResponse.json({ error: failure.error }, { status: failure.status });
   }
 }

@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { getAuthenticatedUser } from "@/lib/supabase-server";
-import { generateText, getGeminiErrorResponse } from "@/lib/gemini";
+import { generateText, getAiErrorResponse } from "@/lib/gemini";
 import { consumeAiRequest } from "@/lib/ai-rate-limit";
 import { blueprintSchema } from "@/lib/ai-schemas";
 
@@ -131,7 +131,7 @@ Answer the latest question only, respecting the preceding context.`;
     const links = linkRows.filter((item, index, items) => items.findIndex((candidate) => candidate.id === item.id) === index).map((vendor) => ({ label: vendor.business_name, href: `/vendors/${vendor.id}`, detail: `${vendor.business_category} · ${vendor.city}` }));
     return NextResponse.json({ answer, conversationId: currentConversation, links, ...(refinedBlueprint ? { blueprint: refinedBlueprint } : {}) });
   } catch (error) {
-    const failure = getGeminiErrorResponse(error, "assistant");
+    const failure = getAiErrorResponse(error, "assistant");
     return NextResponse.json({ error: failure.error }, { status: failure.status });
   }
 }
