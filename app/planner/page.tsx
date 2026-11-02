@@ -6,11 +6,10 @@ import { Navbar } from "@/components/layout/Navbar";
 import { Footer } from "@/components/layout/Footer";
 import { EVENT_CATEGORIES } from "@/data/categories";
 import { CITIES } from "@/data/cities";
-import { generateAIBlueprint } from "@/data/sampleBlueprints";
-import { useEvntoraStore } from "@/lib/store";
 import { useAuth } from "@/lib/auth-context";
 import { formatINR } from "@/lib/utils";
 import { AIEventBlueprint, EventCategory } from "@/types";
+import { SearchableMultiSelect, SearchableSelect, type SelectOption } from "@/components/ui/SearchableSelect";
 import {
   Sparkles,
   MapPin,
@@ -31,46 +30,51 @@ import {
 function PlannerContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
-  const { addEvent } = useEvntoraStore();
-  const { user } = useAuth();
+  const { user, hasRole, isLoading: authLoading, rolesError } = useAuth();
 
   // Initial params from URL query if available
   const initialType = (searchParams.get("type") as EventCategory) || "Weddings";
-  const initialCity = searchParams.get("city") || "Udaipur";
-  const initialGuests = Number(searchParams.get("guests")) || 350;
-  const initialBudget = Number(searchParams.get("budget")) || 4500000;
+  const initialCity = searchParams.get("city") || "";
+  const initialGuests = Number(searchParams.get("guests")) || 0;
+  const initialBudget = Number(searchParams.get("budget")) || 0;
 
   // Wizard state
   const [step, setStep] = useState(1);
   const [eventType, setEventType] = useState<EventCategory>(initialType);
   const [city, setCity] = useState(initialCity);
-  const [date, setDate] = useState("2026-11-20");
+  const [date, setDate] = useState("");
   const [guestCount, setGuestCount] = useState(initialGuests);
   const [budgetINR, setBudgetINR] = useState(initialBudget);
-  const [venuePreference, setVenuePreference] = useState("Heritage Palace & Lakeside Lawn");
-  const [styleTheme, setStyleTheme] = useState("Royal Mewari Heritage");
-  const [requirements, setRequirements] = useState("Include separate Jain live chaat counter; arrange vintage car for baraat arrival.");
+  const [venuePreference, setVenuePreference] = useState("");
+  const [styleTheme, setStyleTheme] = useState("");
+  const [requirements, setRequirements] = useState("");
+  const [preferences, setPreferences] = useState<string[]>([]);
 
   // Generated Blueprint State
   const [blueprint, setBlueprint] = useState<AIEventBlueprint | null>(null);
   const [isGenerating, setIsGenerating] = useState(false);
   const [savedToDashboard, setSavedToDashboard] = useState(false);
+  const [savedEventId, setSavedEventId] = useState<string | null>(null);
+  const [plannerError, setPlannerError] = useState("");
 
   useEffect(() => {
     if (searchParams.get("resume") !== "1") return;
     try {
       const raw = sessionStorage.getItem("evntora-planner-auth-draft");
       if (!raw) return;
-      const draft = JSON.parse(raw) as { eventType: EventCategory; city: string; date: string; guestCount: number; budgetINR: number; venuePreference: string; styleTheme: string; requirements: string; blueprint: AIEventBlueprint | null };
+      const draft = JSON.parse(raw) as { eventType: EventCategory; city: string; date: string; guestCount: number; budgetINR: number; venuePreference: string; styleTheme: string; requirements: string; preferences?: string[]; blueprint: AIEventBlueprint | null };
       setEventType(draft.eventType); setCity(draft.city); setDate(draft.date); setGuestCount(draft.guestCount); setBudgetINR(draft.budgetINR);
-      setVenuePreference(draft.venuePreference); setStyleTheme(draft.styleTheme); setRequirements(draft.requirements); setBlueprint(draft.blueprint);
+      setVenuePreference(draft.venuePreference); setStyleTheme(draft.styleTheme); setRequirements(draft.requirements); setPreferences(draft.preferences ?? []); setBlueprint(draft.blueprint);
       setStep(draft.blueprint ? 3 : 1); sessionStorage.removeItem("evntora-planner-auth-draft");
     } catch { sessionStorage.removeItem("evntora-planner-auth-draft"); }
   }, [searchParams]);
 
   const requireCustomerForSave = () => {
-    if (user) return true;
-    sessionStorage.setItem("evntora-planner-auth-draft", JSON.stringify({ eventType, city, date, guestCount, budgetINR, venuePreference, styleTheme, requirements, blueprint }));
+    if (authLoading) { setPlannerError("Checking your account access. Please try again in a moment."); return false; }
+    if (rolesError) { setPlannerError("We could not verify your account access. Refresh the page or try again shortly."); return false; }
+    if (user && hasRole("customer")) return true;
+    if (user) { setPlannerError("This account does not have Customer access. Use an account with Customer access to plan and save events."); return false; }
+    sessionStorage.setItem("evntora-planner-auth-draft", JSON.stringify({ eventType, city, date, guestCount, budgetINR, venuePreference, styleTheme, requirements, preferences, blueprint }));
     router.push(`/signin?portal=customer&redirectTo=${encodeURIComponent("/planner?resume=1")}`);
     return false;
   };
@@ -84,120 +88,80 @@ function PlannerContent() {
     },
   ]);
   const [chatInput, setChatInput] = useState("");
+  const [chatBusy, setChatBusy] = useState(false);
+  const [chatError, setChatError] = useState("");
+  const [conversationId, setConversationId] = useState<string | null>(null);
 
-  const handleGenerateBlueprint = () => {
+  useEffect(() => {
+    const id = sessionStorage.getItem("evntora-planner-ai-conversation");
+    if (!id) return;
+    setConversationId(id);
+    void fetch(`/api/ai/chat?conversationId=${encodeURIComponent(id)}`, { cache: "no-store" }).then(async (response) => {
+      if (!response.ok) return;
+      const data = await response.json();
+      setChatMessages((data.messages ?? []).map((message: { role: "user" | "assistant"; content: string }) => ({ role: message.role === "assistant" ? "ai" : "user", text: message.content })));
+    }).catch(() => {});
+  }, []);
+
+  const categoryOptions: SelectOption[] = EVENT_CATEGORIES.map((category) => ({ value: category.id, label: category.name }));
+  const cityOptions: SelectOption[] = CITIES.map((item) => ({ value: item.name, label: item.name, description: item.state }));
+  const preferenceOptions = (eventType.toLowerCase().includes("corporate")
+    ? ["Accessibility support", "Hybrid streaming", "Networking time", "Dietary choices", "Sustainability"]
+    : ["Accessibility support", "Jain arrangements", "Vegetarian menu", "Elder-friendly schedule", "Children's activities", "Regional rituals", "Sustainability"])
+    .map((value) => ({ value, label: value }));
+
+  const handleGenerateBlueprint = async (refinement?: string) => {
+    setPlannerError("");
+    if (!date || date < new Date().toISOString().slice(0, 10) || !city.trim() || guestCount < 10 || guestCount > 5000 || budgetINR < 500000 || budgetINR > 100000000) { setPlannerError("Choose a future date, city, 10–5,000 guests, and a budget from ₹5 lakh to ₹10 crore."); return; }
+    if (!requireCustomerForSave()) return;
     setIsGenerating(true);
-    setTimeout(() => {
-      const generated = generateAIBlueprint({
-        category: eventType,
-        city,
-        date,
-        guestCount,
-        totalBudget: budgetINR,
-        venuePreference,
-        styleTheme,
-        requirements,
-      });
-      setBlueprint(generated);
-      setIsGenerating(false);
-      setStep(3); // Blueprint View Step
-    }, 700);
-  };
-
-  const handleSaveToDashboard = () => {
-    if (!blueprint) return;
-    if (!requireCustomerForSave()) return;
-    addEvent({
-      title: `${eventType} in ${city} for ${guestCount} Guests`,
-      category: eventType,
-      city,
-      date,
-      guestCount,
-      totalBudget: budgetINR,
-      venuePreference,
-      styleTheme,
-      status: "planning",
-      blueprint,
-    });
-    setSavedToDashboard(true);
-    setTimeout(() => {
-      router.push("/dashboard/workspace");
-    }, 600);
-  };
-
-  const handleProceedToBookingBlueprint = async () => {
-    if (!blueprint) return;
-    if (!requireCustomerForSave()) return;
-    addEvent({
-      title: `${eventType} in ${city} for ${guestCount} Guests`,
-      category: eventType,
-      city,
-      date,
-      guestCount,
-      totalBudget: budgetINR,
-      venuePreference,
-      styleTheme,
-      status: "planning",
-      blueprint,
-    });
-
     try {
-      const primaryVenue = blueprint.venueRecommendations[0]?.name || venuePreference || "Selected Palace Venue";
-      const venueCostEstimate = Math.round(budgetINR * 0.35); // 35% venue allocation
-      const res = await fetch("/api/bookings/create", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          vendorId: "v-01",
-          vendorName: primaryVenue,
-          vendorCategory: "Venues & Royal Estates",
-          packageName: `${eventType} Royal Palace Booking`,
-          eventDate: date,
-          eventCity: city,
-          guestCount,
-          totalAmount: venueCostEstimate,
-          advancePercentage: 25,
-          requirements: requirements || `Blueprint booking for ${eventType} in ${city}`,
-          serviceDetails: {
-            styleTheme,
-            venuePreference,
-          },
-        }),
-      });
-
-      const data = await res.json();
-      if (res.ok && data.bookingId) {
-        router.push(`/checkout?bookingId=${data.bookingId}`);
-      } else {
-        router.push("/dashboard/workspace");
-      }
-    } catch {
-      router.push("/dashboard/workspace");
-    }
+      const response = await fetch("/api/ai/blueprint", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ category: eventType, city, date, guestCount, totalBudget: budgetINR, venuePreference, styleTheme, requirements, preferences, ...(refinement ? { refinement, previousBlueprint: blueprint } : {}) }) });
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.error || "The plan could not be generated.");
+      setBlueprint(data.blueprint as AIEventBlueprint);
+      setSavedToDashboard(false);
+      setStep(3);
+    } catch (error) { setPlannerError(error instanceof Error ? error.message : "The plan could not be generated."); }
+    finally { setIsGenerating(false); }
   };
 
-  const handleSendChatMessage = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!chatInput.trim()) return;
+  const persistBlueprint = async () => {
+    if (!blueprint) return;
+    if (!requireCustomerForSave()) return null;
+    setPlannerError("");
+    try {
+      const response = await fetch("/api/ai/events", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ eventId: savedEventId ?? undefined, title: `${eventType} in ${city} for ${guestCount} Guests`, category: eventType, city, date, guestCount, totalBudget: budgetINR, venuePreference, styleTheme, requirements: [requirements, preferences.length ? `Additional preferences: ${preferences.join(", ")}` : ""].filter(Boolean).join("\n"), blueprint }) });
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.error || "The event plan could not be saved.");
+      setSavedEventId(data.eventId); setSavedToDashboard(true); return data.eventId as string;
+    } catch (error) { setPlannerError(error instanceof Error ? error.message : "The event plan could not be saved."); return null; }
+  };
 
-    const userQuery = chatInput;
+  const handleSaveToDashboard = async () => { const eventId = await persistBlueprint(); if (eventId) router.push(`/dashboard/workspace?eventId=${encodeURIComponent(eventId)}`); };
+
+  const handleProceedToMarketplace = async () => {
+    if (!blueprint) return;
+    if (!requireCustomerForSave()) return;
+    if (await persistBlueprint()) router.push("/vendors?city=" + encodeURIComponent(city));
+  };
+
+  const handleSendChatMessage = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!chatInput.trim() || chatBusy) return;
+    if (!requireCustomerForSave()) return;
+    const userQuery = chatInput.trim();
     setChatMessages((prev) => [...prev, { role: "user", text: userQuery }]);
     setChatInput("");
-
-    setTimeout(() => {
-      let aiReply = "I have analyzed your event parameters. ";
-      const lower = userQuery.toLowerCase();
-      if (lower.includes("catering") || lower.includes("food") || lower.includes("jain")) {
-        aiReply += "For Indian guest counts of this scale, locking 6 live interactive counters with a 70:30 vegetarian-to-global cuisine ratio is optimal. Ensure you specify separate cookware for Jain items.";
-      } else if (lower.includes("budget") || lower.includes("cost") || lower.includes("save")) {
-        aiReply += "To trim 10-15% without compromising visual grandeur, transition from imported Holland blooms to fragrant regional Rajnigandha and Marigolds, and book local sound engineers instead of flying crews.";
-      } else if (lower.includes("alcohol") || lower.includes("sound") || lower.includes("curfew")) {
-        aiReply += "Outdoor sound curfews in most Indian states apply at 22:00 (10 PM). Move the dancefloor to the soundproofed indoor banquet hall for the afterparty.";
-      } else {
-        aiReply += `For your ${eventType} in ${city}, this aligns seamlessly with current luxury celebration standards. I recommend locking the venue advance contract at least 3 months prior.`;
-      }
-      setChatMessages((prev) => [...prev, { role: "ai", text: aiReply }]);
-    }, 600);
+    setChatBusy(true); setChatError("");
+    try {
+      const response = await fetch("/api/ai/chat", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ message: userQuery, eventId: savedEventId ?? undefined, conversationId: conversationId ?? undefined, ...(blueprint ? { plannerContext: { category: eventType, city, date, guestCount, totalBudget: budgetINR, venuePreference, styleTheme, requirements: [requirements, preferences.length ? `Additional preferences: ${preferences.join(", ")}` : ""].filter(Boolean).join("\n"), blueprint } } : {}) }) });
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.error || "The assistant could not respond.");
+      setConversationId(data.conversationId); sessionStorage.setItem("evntora-planner-ai-conversation", data.conversationId); if (data.blueprint) { setBlueprint(data.blueprint as AIEventBlueprint); setSavedToDashboard(false); }
+      setChatMessages((prev) => [...prev, { role: "ai", text: data.answer }]);
+    } catch (error) { setChatError(error instanceof Error ? error.message : "The assistant is temporarily unavailable."); }
+    finally { setChatBusy(false); }
   };
 
   return (
@@ -231,6 +195,8 @@ function PlannerContent() {
           </div>
         </div>
 
+        {plannerError && <div role="alert" className="rounded-xl border border-red-300 bg-red-50 dark:bg-red-950/30 px-4 py-3 text-sm text-red-800 dark:text-red-200">{plannerError}</div>}
+
         {/* Wizard Form vs Blueprint View */}
         {step < 3 ? (
           <div className="max-w-4xl mx-auto p-8 sm:p-12 rounded-3xl bg-white dark:bg-[#232F28] border border-[#E8E2D7] dark:border-[#344139] shadow-lg space-y-8">
@@ -249,40 +215,10 @@ function PlannerContent() {
               <div className="space-y-6 text-xs animate-in fade-in duration-200">
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   {/* Event Type */}
-                  <div>
-                    <label className="block text-[#77746D] dark:text-[#B5B5AA] mb-1.5 font-bold uppercase tracking-wider">
-                      Celebration Category
-                    </label>
-                    <select
-                      value={eventType}
-                      onChange={(e) => setEventType(e.target.value as EventCategory)}
-                      className="w-full px-4 py-3 rounded-xl bg-[#FAF8F3] dark:bg-[#1C2520] border border-[#E8E2D7] dark:border-[#344139] text-[#252522] dark:text-[#F4F0E7] font-medium text-xs focus:outline-none focus:border-[#173F35] dark:focus:border-[#A9C7B2] cursor-pointer"
-                    >
-                      {EVENT_CATEGORIES.map((cat) => (
-                        <option key={cat.id} value={cat.id}>
-                          {cat.name}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
+                  <SearchableSelect label="Celebration Category" value={eventType} options={categoryOptions} onChange={(value) => setEventType(value as EventCategory)} allowCustom customLabel="Use category" />
 
                   {/* Destination City */}
-                  <div>
-                    <label className="block text-[#77746D] dark:text-[#B5B5AA] mb-1.5 font-bold uppercase tracking-wider">
-                      Destination / City
-                    </label>
-                    <select
-                      value={city}
-                      onChange={(e) => setCity(e.target.value)}
-                      className="w-full px-4 py-3 rounded-xl bg-[#FAF8F3] dark:bg-[#1C2520] border border-[#E8E2D7] dark:border-[#344139] text-[#252522] dark:text-[#F4F0E7] font-medium text-xs focus:outline-none focus:border-[#173F35] dark:focus:border-[#A9C7B2] cursor-pointer"
-                    >
-                      {CITIES.map((c) => (
-                        <option key={c.id} value={c.name}>
-                          {c.name} ({c.state})
-                        </option>
-                      ))}
-                    </select>
-                  </div>
+                  <SearchableSelect label="Destination / City" value={city} options={cityOptions} onChange={setCity} allowCustom customLabel="Use city" placeholder="Search or enter a city" />
                 </div>
 
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
@@ -358,35 +294,17 @@ function PlannerContent() {
                   <label className="block text-[#77746D] dark:text-[#B5B5AA] mb-1.5 font-bold uppercase tracking-wider">
                     Venue Style & Setting
                   </label>
-                  <select
-                    value={venuePreference}
-                    onChange={(e) => setVenuePreference(e.target.value)}
-                    className="w-full px-4 py-3 rounded-xl bg-[#FAF8F3] dark:bg-[#1C2520] border border-[#E8E2D7] dark:border-[#344139] text-[#252522] dark:text-[#F4F0E7] font-medium text-xs focus:outline-none focus:border-[#173F35] dark:focus:border-[#A9C7B2] cursor-pointer"
-                  >
-                    <option value="Heritage Palace & Lakeside Lawn">Heritage Palace & Lakeside Lawn</option>
-                    <option value="5-Star Luxury Pillarless Ballroom">5-Star Luxury Pillarless Ballroom</option>
-                    <option value="Beachfront Sunset Deck & Lawn">Beachfront Sunset Deck & Lawn</option>
-                    <option value="Sprawling Farmhouse Estate">Sprawling Farmhouse Estate</option>
-                    <option value="Contemporary Botanical Conservatory">Contemporary Botanical Conservatory</option>
-                  </select>
+                  <SearchableSelect label="Venue Style & Setting" value={venuePreference} options={["Heritage palace or lakeside lawn", "Luxury hotel ballroom", "Beachfront venue", "Farmhouse estate", "Botanical conservatory", "Community or cultural venue"].map((value) => ({ value, label: value }))} onChange={setVenuePreference} allowCustom customLabel="Use setting" placeholder="Choose or describe a setting" />
                 </div>
 
                 <div>
                   <label className="block text-[#77746D] dark:text-[#B5B5AA] mb-1.5 font-bold uppercase tracking-wider">
                     Aesthetic Style & Theme
                   </label>
-                  <select
-                    value={styleTheme}
-                    onChange={(e) => setStyleTheme(e.target.value)}
-                    className="w-full px-4 py-3 rounded-xl bg-[#FAF8F3] dark:bg-[#1C2520] border border-[#E8E2D7] dark:border-[#344139] text-[#252522] dark:text-[#F4F0E7] font-medium text-xs focus:outline-none focus:border-[#173F35] dark:focus:border-[#A9C7B2] cursor-pointer"
-                  >
-                    <option value="Royal Mewari Heritage">Royal Mewari Heritage (Crimson & Antique Gold)</option>
-                    <option value="Goan Coastal Sunset Chic">Goan Coastal Sunset Chic (Pastel Coral & Macramé)</option>
-                    <option value="Enchanted Glasshouse & Fairy Lights">Enchanted Glasshouse & Fairy Lights (Botanical Emerald)</option>
-                    <option value="Minimalist High-Impact Tech Gala">Minimalist High-Impact Tech Gala (Obsidian & Cyan)</option>
-                    <option value="Bollywood Starry Night Extravaganza">Bollywood Starry Night Extravaganza (Mirrorwork & Gold)</option>
-                  </select>
+                  <SearchableSelect label="Aesthetic Style & Theme" value={styleTheme} options={["Royal heritage", "Coastal sunset", "Botanical garden", "Minimalist modern", "Bollywood inspired", "Traditional regional"].map((value) => ({ value, label: value }))} onChange={setStyleTheme} allowCustom customLabel="Use theme" placeholder="Choose or enter your theme" />
                 </div>
+
+                <SearchableMultiSelect label="Additional planning preferences" value={preferences} options={preferenceOptions} onChange={setPreferences} allowCustom placeholder="Select any that apply or add your own" />
 
                 <div>
                   <label className="block text-[#77746D] dark:text-[#B5B5AA] mb-1.5 font-bold uppercase tracking-wider">
@@ -412,7 +330,7 @@ function PlannerContent() {
 
                   <button
                     type="button"
-                    onClick={handleGenerateBlueprint}
+                    onClick={() => void handleGenerateBlueprint()}
                     disabled={isGenerating}
                     className="px-8 py-3 rounded-xl bg-[#173F35] hover:bg-[#0F2B24] text-[#FAF8F3] font-bold text-xs uppercase tracking-wider transition-all shadow-sm flex items-center gap-2 cursor-pointer disabled:opacity-50"
                   >
@@ -441,7 +359,7 @@ function PlannerContent() {
                       {blueprint.blueprintId}
                     </span>
                     <span className="px-2 py-0.5 rounded-full bg-[#E7EFEA] text-[#173F35] text-[10px] font-bold">
-                      Calculated Successfully
+                      AI Generated
                     </span>
                   </div>
                   <h2 className="text-xl font-serif font-bold text-[#173F35] dark:text-[#F4F0E7]">{blueprint.title}</h2>
@@ -475,11 +393,11 @@ function PlannerContent() {
                   </button>
 
                   <button
-                    onClick={handleProceedToBookingBlueprint}
+                    onClick={handleProceedToMarketplace}
                     className="px-5 py-2.5 rounded-xl bg-[#173F35] hover:bg-[#0F2B24] text-[#FAF8F3] font-bold text-xs uppercase tracking-wider flex items-center gap-1.5 cursor-pointer shadow-sm transition-all"
                   >
                     <Sparkles className="w-3.5 h-3.5 text-[#C6A66B]" />
-                    <span>Book Blueprint • Pay Advance</span>
+                    <span>Explore Vendors</span>
                     <ArrowRight className="w-3.5 h-3.5" />
                   </button>
                 </div>
@@ -520,6 +438,7 @@ function PlannerContent() {
                     <MapPin className="w-5 h-5 text-[#173F35] dark:text-[#A9C7B2]" />
                     <span>Recommended Venue Options</span>
                   </h3>
+                  <p className="text-[11px] text-[#77746D] dark:text-[#B5B5AA]">AI planning estimates and venue formats only. They are not Evntora listings, quotes, or availability. Explore published vendors separately before requesting a booking.</p>
                   <div className="space-y-4">
                     {blueprint.venueRecommendations.map((v, i) => (
                       <div key={i} className="p-5 rounded-2xl bg-[#FAF8F3] dark:bg-[#1C2520] border border-[#E8E2D7] dark:border-[#344139] space-y-2">
@@ -675,7 +594,7 @@ function PlannerContent() {
                 </div>
                 <div>
                   <h4 className="text-xs font-bold text-[#252522] dark:text-[#F4F0E7]">Evntora AI Assistant</h4>
-                  <span className="text-[10px] text-[#173F35] dark:text-[#A9C7B2] font-semibold">Online • Event Architect</span>
+                  <span className="text-[10px] text-[#173F35] dark:text-[#A9C7B2] font-semibold">Event planning assistant</span>
                 </div>
               </div>
               <button
@@ -699,18 +618,23 @@ function PlannerContent() {
                   {msg.text}
                 </div>
               ))}
+              {chatBusy && <div role="status" className="mr-auto p-3 rounded-2xl bg-[#FAF8F3] dark:bg-[#1C2520] text-[#77746D]">Thinking…</div>}
             </div>
+
+            {chatError && <p role="alert" className="text-xs text-red-700 dark:text-red-300 py-1">{chatError}</p>}
 
             <form onSubmit={handleSendChatMessage} className="pt-2 border-t border-[#E8E2D7] dark:border-[#344139] flex gap-2">
               <input
                 type="text"
                 value={chatInput}
                 onChange={(e) => setChatInput(e.target.value)}
-                placeholder="Ask about sound curfews, catering splits..."
+                disabled={chatBusy}
+                placeholder={blueprint ? "Ask a question or request a plan change…" : "Ask about your event…"}
                 className="flex-1 px-3 py-2 rounded-xl bg-[#FAF8F3] dark:bg-[#1C2520] border border-[#E8E2D7] dark:border-[#344139] text-[#252522] dark:text-[#F4F0E7] placeholder-[#77746D] dark:placeholder-[#898D84] text-xs focus:outline-none focus:border-[#173F35] dark:focus:border-[#A9C7B2]"
               />
               <button
                 type="submit"
+                disabled={chatBusy || !chatInput.trim()}
                 className="p-2 rounded-xl bg-[#173F35] hover:bg-[#0F2B24] text-[#FAF8F3] font-bold cursor-pointer"
               >
                 <Send className="w-4 h-4" />

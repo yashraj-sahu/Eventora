@@ -13,6 +13,7 @@ import {
   PieChart as PieIcon,
   ShieldCheck,
 } from "lucide-react";
+import { SearchableSelect } from "@/components/ui/SearchableSelect";
 
 export default function BudgetTrackerPage() {
   const { activeEvent, activeExpenses, addExpense, deleteExpense } = useEvntoraStore();
@@ -297,19 +298,7 @@ export default function BudgetTrackerPage() {
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-slate-400 mb-1 font-medium">Category</label>
-                  <select
-                    value={category}
-                    onChange={(e) => setCategory(e.target.value)}
-                    className="w-full px-3 py-2.5 rounded-xl bg-slate-950 border border-slate-800 text-white focus:outline-none focus:border-amber-400 cursor-pointer"
-                  >
-                    <option value="Venue">Venue</option>
-                    <option value="Catering">Catering</option>
-                    <option value="Decor">Decor</option>
-                    <option value="Photography">Photography</option>
-                    <option value="Entertainment">Entertainment</option>
-                    <option value="Logistics">Logistics</option>
-                  </select>
+                  <SearchableSelect label="Category" value={category} options={["Venue", "Catering", "Decor", "Photography", "Entertainment", "Logistics"].map((value) => ({ value, label: value }))} onChange={setCategory} allowCustom customLabel="Use category" />
                 </div>
 
                 <div>
@@ -339,16 +328,7 @@ export default function BudgetTrackerPage() {
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-slate-400 mb-1 font-medium">Payment Status</label>
-                  <select
-                    value={status}
-                    onChange={(e) => setStatus(e.target.value as any)}
-                    className="w-full px-3 py-2.5 rounded-xl bg-slate-950 border border-slate-800 text-white focus:outline-none focus:border-amber-400 cursor-pointer"
-                  >
-                    <option value="paid">Paid</option>
-                    <option value="pending">Pending</option>
-                    <option value="due">Due Soon</option>
-                  </select>
+                  <SearchableSelect label="Payment Status" value={status} options={[{ value: "paid", label: "Paid" }, { value: "pending", label: "Pending" }, { value: "due", label: "Due Soon" }]} onChange={(value) => setStatus(value as typeof status)} />
                 </div>
 
                 <div>

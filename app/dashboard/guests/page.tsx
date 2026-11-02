@@ -14,6 +14,7 @@ import {
   Utensils,
   Search,
 } from "lucide-react";
+import { SearchableSelect } from "@/components/ui/SearchableSelect";
 
 export default function GuestManagementPage() {
   const { activeEvent, activeGuests, addGuest, updateGuest, deleteGuest } = useEvntoraStore();
@@ -159,32 +160,11 @@ export default function GuestManagementPage() {
           </div>
 
           <div>
-            <select
-              value={filterGroup}
-              onChange={(e) => setFilterGroup(e.target.value)}
-              className="w-full px-3 py-2 rounded-xl bg-slate-950 border border-slate-800 text-white text-xs focus:outline-none focus:border-amber-400 cursor-pointer"
-            >
-              <option value="All">All Guest Groups</option>
-              <option value="VIP">VIP</option>
-              <option value="Bride's Family">Bride&apos;s Family</option>
-              <option value="Groom's Family">Groom&apos;s Family</option>
-              <option value="Friends">Friends</option>
-              <option value="Corporate">Corporate</option>
-              <option value="General">General</option>
-            </select>
+            <SearchableSelect label="Guest group filter" value={filterGroup} options={[{ value: "All", label: "All Guest Groups" }, ...(["VIP", "Bride's Family", "Groom's Family", "Friends", "Corporate", "General"].map((value) => ({ value, label: value })))]} onChange={setFilterGroup} />
           </div>
 
           <div>
-            <select
-              value={filterRsvp}
-              onChange={(e) => setFilterRsvp(e.target.value)}
-              className="w-full px-3 py-2 rounded-xl bg-slate-950 border border-slate-800 text-white text-xs focus:outline-none focus:border-amber-400 cursor-pointer"
-            >
-              <option value="All">All RSVP Statuses</option>
-              <option value="confirmed">Confirmed</option>
-              <option value="pending">Pending</option>
-              <option value="declined">Declined</option>
-            </select>
+            <SearchableSelect label="RSVP status filter" value={filterRsvp} options={[{ value: "All", label: "All RSVP Statuses" }, ...(["confirmed", "pending", "declined"].map((value) => ({ value, label: value })))]} onChange={setFilterRsvp} />
           </div>
         </div>
       </div>
@@ -307,48 +287,17 @@ export default function GuestManagementPage() {
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-slate-400 mb-1">Group Affiliation</label>
-                  <select
-                    value={group}
-                    onChange={(e) => setGroup(e.target.value as any)}
-                    className="w-full px-3 py-2.5 rounded-xl bg-slate-950 border border-slate-800 text-white focus:outline-none focus:border-amber-400 cursor-pointer"
-                  >
-                    <option value="VIP">VIP</option>
-                    <option value="Bride's Family">Bride&apos;s Family</option>
-                    <option value="Groom's Family">Groom&apos;s Family</option>
-                    <option value="Friends">Friends</option>
-                    <option value="Corporate">Corporate</option>
-                    <option value="General">General</option>
-                  </select>
+                  <SearchableSelect label="Group affiliation" value={group} options={["VIP", "Bride's Family", "Groom's Family", "Friends", "Corporate", "General"].map((value) => ({ value, label: value }))} onChange={(value) => setGroup(value as GuestItem["group"])} allowCustom customLabel="Use group" />
                 </div>
 
                 <div>
-                  <label className="block text-slate-400 mb-1">RSVP Status</label>
-                  <select
-                    value={rsvpStatus}
-                    onChange={(e) => setRsvpStatus(e.target.value as any)}
-                    className="w-full px-3 py-2.5 rounded-xl bg-slate-950 border border-slate-800 text-white focus:outline-none focus:border-amber-400 cursor-pointer"
-                  >
-                    <option value="confirmed">Confirmed</option>
-                    <option value="pending">Pending</option>
-                    <option value="declined">Declined</option>
-                  </select>
+                  <SearchableSelect label="RSVP Status" value={rsvpStatus} options={["confirmed", "pending", "declined"].map((value) => ({ value, label: value }))} onChange={(value) => setRsvpStatus(value as GuestItem["rsvpStatus"])} />
                 </div>
               </div>
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-slate-400 mb-1">Dietary Preference</label>
-                  <select
-                    value={dietaryPreference}
-                    onChange={(e) => setDietaryPreference(e.target.value as any)}
-                    className="w-full px-3 py-2.5 rounded-xl bg-slate-950 border border-slate-800 text-white focus:outline-none focus:border-amber-400 cursor-pointer"
-                  >
-                    <option value="Vegetarian">Strict Vegetarian</option>
-                    <option value="Jain">Jain (No Root Veg)</option>
-                    <option value="Non-Vegetarian">Non-Vegetarian</option>
-                    <option value="Vegan">Vegan</option>
-                  </select>
+                  <SearchableSelect label="Dietary Preference" value={dietaryPreference ?? ""} options={[{ value: "Vegetarian", label: "Strict Vegetarian" }, { value: "Jain", label: "Jain (No Root Veg)" }, { value: "Non-Vegetarian", label: "Non-Vegetarian" }, { value: "Vegan", label: "Vegan" }]} onChange={(value) => setDietaryPreference(value as GuestItem["dietaryPreference"])} allowCustom customLabel="Use preference" />
                 </div>
 
                 <div>

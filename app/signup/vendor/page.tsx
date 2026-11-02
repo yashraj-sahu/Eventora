@@ -6,6 +6,7 @@ import { Navbar } from "@/components/layout/Navbar";
 import { Footer } from "@/components/layout/Footer";
 import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/lib/auth-context";
+import { SearchableSelect } from "@/components/ui/SearchableSelect";
 import {
   Store,
   Lock,
@@ -47,7 +48,6 @@ const CITIES = [
   "Ahmedabad",
   "Chandigarh",
   "Lucknow",
-  "Other",
 ];
 
 export default function VendorSignUpPage() {
@@ -60,9 +60,7 @@ export default function VendorSignUpPage() {
   const [confirmPassword, setConfirmPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [category, setCategory] = useState("");
-  const [customCategory, setCustomCategory] = useState("");
   const [city, setCity] = useState("");
-  const [customCity, setCustomCity] = useState("");
   const [description, setDescription] = useState("");
   const [address, setAddress] = useState("");
   const [agreedToTerms, setAgreedToTerms] = useState(false);
@@ -80,8 +78,8 @@ export default function VendorSignUpPage() {
     if (!phone.trim()) return "Phone number is required for vendor accounts.";
     if (!user && password.length < 8) return "Password must be at least 8 characters.";
     if (!user && password !== confirmPassword) return "Passwords do not match.";
-    if (!(category === "Other" ? customCategory.trim() : category)) return "Please enter a business category.";
-    if (!(city === "Other" ? customCity.trim() : city)) return "Please enter your city.";
+    if (!category.trim()) return "Please enter a business category.";
+    if (!city.trim()) return "Please enter your city.";
     if (!agreedToTerms) return "Please accept the Terms & Privacy Policy.";
     return null;
   };
@@ -105,8 +103,8 @@ export default function VendorSignUpPage() {
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             businessName: businessName.trim(),
-            category: (category === "Other" ? customCategory : category).trim(),
-            city: (city === "Other" ? customCity : city).trim(),
+            category: category.trim(),
+            city: city.trim(),
             description: description.trim(),
             address: address.trim(),
             phone: phone.trim(),
@@ -132,8 +130,8 @@ export default function VendorSignUpPage() {
             role: "vendor",
             vendor_registration: {
               business_name: businessName.trim(),
-              business_category: (category === "Other" ? customCategory : category).trim(),
-              city: (city === "Other" ? customCity : city).trim(),
+              business_category: category.trim(),
+              city: city.trim(),
               business_description: description.trim(),
               address: address.trim(),
               contact_phone: phone.trim(),
@@ -332,21 +330,7 @@ export default function VendorSignUpPage() {
                 <label htmlFor="category" className="block text-[#77746D] dark:text-[#B5B5AA] mb-1.5 font-medium">
                   Category <span className="text-rose-500">*</span>
                 </label>
-                <select
-                  id="category"
-                  required
-                  value={category}
-                  onChange={(e) => setCategory(e.target.value)}
-                  className="w-full py-2.5 px-3 rounded-xl bg-[#FAF8F3] dark:bg-[#1C2520] border border-[#E8E2D7] dark:border-[#344139] text-[#252522] dark:text-[#F4F0E7] focus:outline-none focus:border-[#173F35] dark:focus:border-[#A9C7B2] transition-colors"
-                >
-                  <option value="">Select category...</option>
-                  {VENDOR_CATEGORIES.map((c) => (
-                    <option key={c} value={c} className="bg-white dark:bg-[#1C2520]">
-                      {c}
-                    </option>
-                  ))}
-                </select>
-                {category === "Other" && <input required value={customCategory} onChange={(e) => setCustomCategory(e.target.value)} placeholder="Enter category" className="mt-2 w-full py-2.5 px-3 rounded-xl bg-[#FAF8F3] dark:bg-[#1C2520] border border-[#E8E2D7] dark:border-[#344139]" />}
+                <SearchableSelect id="vendor-category" label="Business category" labelClassName="sr-only" value={category} options={VENDOR_CATEGORIES.map((value) => ({ value, label: value }))} onChange={setCategory} allowCustom customLabel="Use category" placeholder="Select or enter category" />
               </div>
 
               {/* City */}
@@ -355,21 +339,7 @@ export default function VendorSignUpPage() {
                   City <span className="text-rose-500">*</span>
                 </label>
                 <div className="relative">
-                  <select
-                    id="city"
-                    required
-                    value={city}
-                    onChange={(e) => setCity(e.target.value)}
-                    className="w-full py-2.5 px-3 rounded-xl bg-[#FAF8F3] dark:bg-[#1C2520] border border-[#E8E2D7] dark:border-[#344139] text-[#252522] dark:text-[#F4F0E7] focus:outline-none focus:border-[#173F35] dark:focus:border-[#A9C7B2] transition-colors"
-                  >
-                    <option value="">Select city...</option>
-                    {CITIES.map((c) => (
-                      <option key={c} value={c} className="bg-white dark:bg-[#1C2520]">
-                        {c}
-                      </option>
-                    ))}
-                  </select>
-                  {city === "Other" && <input required value={customCity} onChange={(e) => setCustomCity(e.target.value)} placeholder="Enter city or region" className="mt-2 w-full py-2.5 px-3 rounded-xl bg-[#FAF8F3] dark:bg-[#1C2520] border border-[#E8E2D7] dark:border-[#344139]" />}
+                  <SearchableSelect id="vendor-city" label="Business city" labelClassName="sr-only" value={city} options={CITIES.map((value) => ({ value, label: value }))} onChange={setCity} allowCustom customLabel="Use city" placeholder="Select or enter city" />
                 </div>
               </div>
             </div>

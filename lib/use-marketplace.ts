@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { marketplaceVendorToLegacy, type MarketplaceVendor, type VendorItem } from "@/types";
+import { supabase } from "@/lib/supabase";
 
 export function useMarketplaceVendors(category?: string) {
   const [vendors, setVendors] = useState<VendorItem[]>([]);
@@ -21,6 +22,17 @@ export function useMarketplaceVendors(category?: string) {
     finally { setLoading(false); }
   }, [category]);
   useEffect(() => { void refresh(); }, [refresh]);
+  useEffect(() => {
+    const channel = supabase.channel("published-marketplace-refresh")
+      .on("postgres_changes", { event: "*", schema: "public", table: "vendor_profiles" }, () => void refresh())
+      .on("postgres_changes", { event: "*", schema: "public", table: "vendor_services" }, () => void refresh())
+      .on("postgres_changes", { event: "*", schema: "public", table: "vendor_packages" }, () => void refresh())
+      .subscribe();
+    const interval = window.setInterval(() => void refresh(), 60_000);
+    const onFocus = () => void refresh();
+    window.addEventListener("focus", onFocus);
+    return () => { window.clearInterval(interval); window.removeEventListener("focus", onFocus); void supabase.removeChannel(channel); };
+  }, [refresh]);
   useEffect(() => {
     let active = true;
     fetch("/api/vendors/saved").then(async (response) => {

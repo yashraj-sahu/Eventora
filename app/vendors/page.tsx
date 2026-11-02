@@ -1,17 +1,15 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import Link from "next/link";
 import { Navbar } from "@/components/layout/Navbar";
 import { Footer } from "@/components/layout/Footer";
-import { CITIES } from "@/data/cities";
-import { VENDOR_CATEGORIES } from "@/data/categories";
 import { useMarketplaceVendors } from "@/lib/use-marketplace";
 import { formatINR } from "@/lib/utils";
+import { SearchableSelect, type SelectOption } from "@/components/ui/SearchableSelect";
 import {
   Search,
   MapPin,
-  Star,
   ShieldCheck,
   Bookmark,
   ArrowRight,
@@ -25,12 +23,14 @@ import type { VendorItem } from "@/types";
 export default function VendorsPage() {
   const { vendors, savedIds, loading, error, toggleSaved } = useMarketplaceVendors();
   const [searchQuery, setSearchQuery] = useState("");
-  const [selectedCity, setSelectedCity] = useState("All");
-  const [selectedCategory, setSelectedCategory] = useState("All");
-  const [selectedPriceRange, setSelectedPriceRange] = useState("All");
-  const [minRating, setMinRating] = useState(0);
+  const [selectedCity, setSelectedCity] = useState("");
+  const [selectedCategory, setSelectedCategory] = useState("");
+  const [selectedService, setSelectedService] = useState("");
+  const [minimumPrice, setMinimumPrice] = useState("");
+  const [maximumPrice, setMaximumPrice] = useState("");
   const [bookingModalOpen, setBookingModalOpen] = useState(false);
   const [selectedVendorForBooking, setSelectedVendorForBooking] = useState<VendorItem | null>(null);
+  useEffect(() => { const city = new URLSearchParams(window.location.search).get("city"); if (city) setSelectedCity(city); }, []);
 
   const filteredVendors = useMemo(() => {
     return vendors.filter((v) => {
@@ -39,21 +39,26 @@ export default function VendorsPage() {
         v.city.toLowerCase().includes(searchQuery.toLowerCase()) ||
         v.services.some((s) => s.toLowerCase().includes(searchQuery.toLowerCase()));
 
-      const matchesCity = selectedCity === "All" || v.city === selectedCity;
-      const matchesCategory = selectedCategory === "All" || v.category === selectedCategory;
-      const matchesPrice = selectedPriceRange === "All" || v.priceRange === selectedPriceRange;
-      const matchesRating = minRating === 0 || (v.rating !== null && v.rating >= minRating);
-
-      return matchesSearch && matchesCity && matchesCategory && matchesPrice && matchesRating;
+      const prices = [v.startingPrice ?? 0, ...v.packages.map((item) => item.price)].filter((price) => price > 0);
+      const matchesCity = !selectedCity || v.city.toLowerCase() === selectedCity.toLowerCase();
+      const matchesCategory = !selectedCategory || v.category.toLowerCase() === selectedCategory.toLowerCase();
+      const matchesService = !selectedService || v.services.some((service) => service.toLowerCase() === selectedService.toLowerCase());
+      const matchesPrice = (!minimumPrice && !maximumPrice) || prices.some((price) => (!minimumPrice || price >= Number(minimumPrice)) && (!maximumPrice || price <= Number(maximumPrice)));
+      return matchesSearch && matchesCity && matchesCategory && matchesService && matchesPrice;
     });
-  }, [vendors, searchQuery, selectedCity, selectedCategory, selectedPriceRange, minRating]);
+  }, [vendors, searchQuery, selectedCity, selectedCategory, selectedService, minimumPrice, maximumPrice]);
+
+  const cityOptions: SelectOption[] = [{ value: "", label: "All published cities" }, ...Array.from(new Set(vendors.map((vendor) => vendor.city).filter(Boolean))).sort().map((city) => ({ value: city, label: city }))];
+  const categoryOptions: SelectOption[] = [{ value: "", label: "All published categories" }, ...Array.from(new Set(vendors.map((vendor) => vendor.category).filter(Boolean))).sort().map((category) => ({ value: category, label: category }))];
+  const serviceOptions: SelectOption[] = [{ value: "", label: "All active services" }, ...Array.from(new Set(vendors.flatMap((vendor) => vendor.services).filter(Boolean))).sort().map((service) => ({ value: service, label: service }))];
 
   const handleResetFilters = () => {
     setSearchQuery("");
-    setSelectedCity("All");
-    setSelectedCategory("All");
-    setSelectedPriceRange("All");
-    setMinRating(0);
+    setSelectedCity("");
+    setSelectedCategory("");
+    setSelectedService("");
+    setMinimumPrice("");
+    setMaximumPrice("");
   };
 
   return (
@@ -90,86 +95,20 @@ export default function VendorsPage() {
           </div>
 
           {/* Filter Dropdowns Grid */}
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 pt-2">
-            {/* City Filter */}
-            <div>
-              <label className="block text-[10px] uppercase font-bold tracking-wider text-[#77746D] dark:text-[#B5B5AA] mb-1">
-                Destination City
-              </label>
-              <select
-                value={selectedCity}
-                onChange={(e) => setSelectedCity(e.target.value)}
-                className="w-full px-3 py-2 rounded-xl bg-[#FAF8F3] dark:bg-[#1C2520] border border-[#E8E2D7] dark:border-[#344139] text-[#252522] dark:text-[#F4F0E7] text-xs focus:outline-none focus:border-[#173F35] dark:focus:border-[#A9C7B2] cursor-pointer"
-              >
-                <option value="All">All Cities (Pan-India)</option>
-                {CITIES.map((c) => (
-                  <option key={c.id} value={c.name}>
-                    {c.name} ({c.state})
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            {/* Category Filter */}
-            <div>
-              <label className="block text-[10px] uppercase font-bold tracking-wider text-[#77746D] dark:text-[#B5B5AA] mb-1">
-                Artisan Category
-              </label>
-              <select
-                value={selectedCategory}
-                onChange={(e) => setSelectedCategory(e.target.value)}
-                className="w-full px-3 py-2 rounded-xl bg-[#FAF8F3] dark:bg-[#1C2520] border border-[#E8E2D7] dark:border-[#344139] text-[#252522] dark:text-[#F4F0E7] text-xs focus:outline-none focus:border-[#173F35] dark:focus:border-[#A9C7B2] cursor-pointer"
-              >
-                <option value="All">All Categories</option>
-                {VENDOR_CATEGORIES.map((vc) => (
-                  <option key={vc.id} value={vc.id}>
-                    {vc.name}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            {/* Price Tier Filter */}
-            <div>
-              <label className="block text-[10px] uppercase font-bold tracking-wider text-[#77746D] dark:text-[#B5B5AA] mb-1">
-                Price Tier
-              </label>
-              <select
-                value={selectedPriceRange}
-                onChange={(e) => setSelectedPriceRange(e.target.value)}
-                className="w-full px-3 py-2 rounded-xl bg-[#FAF8F3] dark:bg-[#1C2520] border border-[#E8E2D7] dark:border-[#344139] text-[#252522] dark:text-[#F4F0E7] text-xs focus:outline-none focus:border-[#173F35] dark:focus:border-[#A9C7B2] cursor-pointer"
-              >
-                <option value="All">Any Price Tier</option>
-                <option value="₹₹">₹₹ (Moderate)</option>
-                <option value="₹₹₹">₹₹₹ (Premium)</option>
-                <option value="₹₹₹₹">₹₹₹₹ (Luxury)</option>
-                <option value="₹₹₹₹₹">₹₹₹₹₹ (Royal Bespoke)</option>
-              </select>
-            </div>
-
-            {/* Rating Filter */}
-            <div>
-              <label className="block text-[10px] uppercase font-bold tracking-wider text-[#77746D] dark:text-[#B5B5AA] mb-1">
-                Client Rating
-              </label>
-              <select
-                value={minRating}
-                onChange={(e) => setMinRating(Number(e.target.value))}
-                className="w-full px-3 py-2 rounded-xl bg-[#FAF8F3] dark:bg-[#1C2520] border border-[#E8E2D7] dark:border-[#344139] text-[#252522] dark:text-[#F4F0E7] text-xs focus:outline-none focus:border-[#173F35] dark:focus:border-[#A9C7B2] cursor-pointer"
-              >
-                <option value={0}>Any Rating</option>
-                <option value={4.8}>4.8+ Stars</option>
-                <option value={4.9}>4.9+ Stars (Top Rated)</option>
-              </select>
-            </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3 pt-2 items-end">
+            <SearchableSelect label="Destination City" value={selectedCity} options={cityOptions} onChange={setSelectedCity} placeholder="All published cities" loading={loading} />
+            <SearchableSelect label="Vendor Category" value={selectedCategory} options={categoryOptions} onChange={setSelectedCategory} placeholder="All published categories" loading={loading} />
+            <SearchableSelect label="Active Service" value={selectedService} options={serviceOptions} onChange={setSelectedService} placeholder="All active services" loading={loading} />
+            <label className="block text-[10px] uppercase font-bold tracking-wider text-[#77746D] dark:text-[#B5B5AA]">Minimum price (INR)<input type="number" min="0" value={minimumPrice} onChange={(event) => setMinimumPrice(event.target.value)} placeholder="Any" className="mt-1 w-full px-3 py-3 rounded-xl bg-[#FAF8F3] dark:bg-[#1C2520] border border-[#E8E2D7] dark:border-[#344139] text-xs text-[#252522] dark:text-[#F4F0E7]" /></label>
+            <label className="block text-[10px] uppercase font-bold tracking-wider text-[#77746D] dark:text-[#B5B5AA]">Maximum price (INR)<input type="number" min="0" value={maximumPrice} onChange={(event) => setMaximumPrice(event.target.value)} placeholder="Any" className="mt-1 w-full px-3 py-3 rounded-xl bg-[#FAF8F3] dark:bg-[#1C2520] border border-[#E8E2D7] dark:border-[#344139] text-xs text-[#252522] dark:text-[#F4F0E7]" /></label>
           </div>
 
           {/* Active Filter Indicators */}
           <div className="flex items-center justify-between pt-2 border-t border-[#E8E2D7] dark:border-[#344139] text-xs text-[#77746D] dark:text-[#B5B5AA]">
             <div>
-              Showing <span className="font-bold text-[#252522] dark:text-[#F4F0E7]">{filteredVendors.length}</span> verified artisans & estates
+              Showing <span className="font-bold text-[#252522] dark:text-[#F4F0E7]">{filteredVendors.length}</span> approved vendor listings. Ratings are shown only when review data exists.
             </div>
-            {(searchQuery || selectedCity !== "All" || selectedCategory !== "All" || selectedPriceRange !== "All" || minRating > 0) && (
+            {(searchQuery || selectedCity || selectedCategory || selectedService || minimumPrice || maximumPrice) && (
               <button
                 onClick={handleResetFilters}
                 className="flex items-center gap-1 text-[#173F35] dark:text-[#A9C7B2] hover:underline font-semibold cursor-pointer"
@@ -182,7 +121,7 @@ export default function VendorsPage() {
         </div>
 
         {/* Vendors Grid or Empty State */}
-        {filteredVendors.length === 0 ? (
+        {loading ? <p role="status" className="py-12 text-center">Loading published vendors…</p> : error ? <p role="alert" className="py-12 text-center text-rose-600">{error}</p> : filteredVendors.length === 0 ? (
           <div className="p-16 rounded-3xl bg-white dark:bg-[#232F28] border border-[#E8E2D7] dark:border-[#344139] text-center space-y-4 max-w-lg mx-auto">
             <Filter className="w-8 h-8 text-[#77746D] dark:text-[#B5B5AA] mx-auto" />
             <h3 className="text-xl font-serif font-bold text-[#252522] dark:text-[#F4F0E7]">No Matching Vendors Found</h3>
@@ -198,9 +137,6 @@ export default function VendorsPage() {
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {loading && <p className="col-span-full py-12 text-center">Loading vendors…</p>}
-        {error && <p className="col-span-full py-12 text-center text-rose-600">{error}</p>}
-        {!loading && !error && filteredVendors.length === 0 && <p className="col-span-full py-12 text-center">No approved vendors match these filters yet.</p>}
         {filteredVendors.map((vendor) => {
           const isSaved = savedIds.includes(vendor.id);
               return (
@@ -241,10 +177,7 @@ export default function VendorsPage() {
                     </button>
 
                     <div className="absolute bottom-3 left-3 right-3 flex items-center justify-between text-xs text-white">
-                      <div className="flex items-center gap-1 bg-black/60 backdrop-blur-md px-2.5 py-1 rounded-lg">
-                        <Star className="w-3.5 h-3.5 fill-[#C6A66B] text-[#C6A66B]" />
-                        {vendor.rating !== null && <><span className="font-bold">{vendor.rating}</span>{vendor.reviewCount !== null && <span className="text-white/80">({vendor.reviewCount})</span>}</>}
-                      </div>
+                      {vendor.rating !== null && <div className="flex items-center gap-1 bg-black/60 backdrop-blur-md px-2.5 py-1 rounded-lg"><span className="font-bold">{vendor.rating}</span>{vendor.reviewCount !== null && <span className="text-white/80">({vendor.reviewCount})</span>}</div>}
                       <div className="flex items-center gap-1 bg-black/60 backdrop-blur-md px-2.5 py-1 rounded-lg text-white">
                         <MapPin className="w-3.5 h-3.5 text-[#C6A66B]" />
                         <span>{vendor.city}</span>

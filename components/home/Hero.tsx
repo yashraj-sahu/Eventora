@@ -14,6 +14,7 @@ import {
 } from "lucide-react";
 import { CITIES } from "@/data/cities";
 import { EVENT_CATEGORIES } from "@/data/categories";
+import { SearchableSelect, type SelectOption } from "@/components/ui/SearchableSelect";
 
 export function Hero() {
   const router = useRouter();
@@ -21,6 +22,8 @@ export function Hero() {
   const [selectedCity, setSelectedCity] = useState("Udaipur");
   const [guestCount, setGuestCount] = useState("350");
   const [budgetINR, setBudgetINR] = useState("4500000");
+  const categoryOptions: SelectOption[] = EVENT_CATEGORIES.map((category) => ({ value: category.id, label: category.name }));
+  const cityOptions: SelectOption[] = CITIES.map((city) => ({ value: city.name, label: city.name, description: city.state }));
 
   const handleQuickPlan = (e: React.FormEvent) => {
     e.preventDefault();
@@ -92,17 +95,7 @@ export function Hero() {
                   <Calendar className="w-3 h-3 text-[#173F35] dark:text-[#A9C7B2]" />
                   <span>Celebration</span>
                 </label>
-                <select
-                  value={selectedType}
-                  onChange={(e) => setSelectedType(e.target.value)}
-                  className="w-full bg-transparent text-[#252522] dark:text-[#F4F0E7] font-semibold text-xs focus:outline-none cursor-pointer"
-                >
-                  {EVENT_CATEGORIES.map((cat) => (
-                    <option key={cat.id} value={cat.id} className="bg-white dark:bg-[#1C2520] text-[#252522] dark:text-[#F4F0E7]">
-                      {cat.name}
-                    </option>
-                  ))}
-                </select>
+                <SearchableSelect label="Celebration" labelClassName="sr-only" value={selectedType} options={categoryOptions} onChange={setSelectedType} allowCustom customLabel="Use category" />
               </div>
 
               {/* City / Destination */}
@@ -111,17 +104,7 @@ export function Hero() {
                   <MapPin className="w-3 h-3 text-[#173F35] dark:text-[#A9C7B2]" />
                   <span>Destination</span>
                 </label>
-                <select
-                  value={selectedCity}
-                  onChange={(e) => setSelectedCity(e.target.value)}
-                  className="w-full bg-transparent text-[#252522] dark:text-[#F4F0E7] font-semibold text-xs focus:outline-none cursor-pointer"
-                >
-                  {CITIES.map((city) => (
-                    <option key={city.id} value={city.name} className="bg-white dark:bg-[#1C2520] text-[#252522] dark:text-[#F4F0E7]">
-                      {city.name} ({city.state})
-                    </option>
-                  ))}
-                </select>
+                <SearchableSelect label="Destination" labelClassName="sr-only" value={selectedCity} options={cityOptions} onChange={setSelectedCity} allowCustom customLabel="Use city" />
               </div>
 
               {/* Guest Count */}
@@ -130,17 +113,7 @@ export function Hero() {
                   <Users className="w-3 h-3 text-[#173F35] dark:text-[#A9C7B2]" />
                   <span>Guests</span>
                 </label>
-                <select
-                  value={guestCount}
-                  onChange={(e) => setGuestCount(e.target.value)}
-                  className="w-full bg-transparent text-[#252522] dark:text-[#F4F0E7] font-semibold text-xs focus:outline-none cursor-pointer"
-                >
-                  <option value="50" className="bg-white dark:bg-[#1C2520] text-[#252522] dark:text-[#F4F0E7]">Intimate (Up to 50)</option>
-                  <option value="150" className="bg-white dark:bg-[#1C2520] text-[#252522] dark:text-[#F4F0E7]">Classic (150 Guests)</option>
-                  <option value="350" className="bg-white dark:bg-[#1C2520] text-[#252522] dark:text-[#F4F0E7]">Grand (350 Guests)</option>
-                  <option value="600" className="bg-white dark:bg-[#1C2520] text-[#252522] dark:text-[#F4F0E7]">Royal (600+ Guests)</option>
-                  <option value="1000" className="bg-white dark:bg-[#1C2520] text-[#252522] dark:text-[#F4F0E7]">Monumental (1,000+)</option>
-                </select>
+                <SearchableSelect label="Guest count" labelClassName="sr-only" value={guestCount} options={[{ value: "50", label: "Intimate (up to 50)" }, { value: "150", label: "Classic (150 guests)" }, { value: "350", label: "Grand (350 guests)" }, { value: "600", label: "Royal (600+)" }, { value: "1000", label: "Monumental (1,000+)" }]} onChange={setGuestCount} />
               </div>
 
               {/* Budget Range (INR) */}
@@ -149,17 +122,7 @@ export function Hero() {
                   <Coins className="w-3 h-3 text-[#173F35] dark:text-[#A9C7B2]" />
                   <span>Target Budget</span>
                 </label>
-                <select
-                  value={budgetINR}
-                  onChange={(e) => setBudgetINR(e.target.value)}
-                  className="w-full bg-transparent text-[#252522] dark:text-[#F4F0E7] font-semibold text-xs focus:outline-none cursor-pointer"
-                >
-                  <option value="1000000" className="bg-white dark:bg-[#1C2520] text-[#252522] dark:text-[#F4F0E7]">₹10 Lakhs</option>
-                  <option value="2500000" className="bg-white dark:bg-[#1C2520] text-[#252522] dark:text-[#F4F0E7]">₹25 Lakhs</option>
-                  <option value="4500000" className="bg-white dark:bg-[#1C2520] text-[#252522] dark:text-[#F4F0E7]">₹45 Lakhs</option>
-                  <option value="8500000" className="bg-white dark:bg-[#1C2520] text-[#252522] dark:text-[#F4F0E7]">₹85 Lakhs</option>
-                  <option value="15000000" className="bg-white dark:bg-[#1C2520] text-[#252522] dark:text-[#F4F0E7]">₹1.5+ Crores</option>
-                </select>
+                <SearchableSelect label="Target budget" labelClassName="sr-only" value={budgetINR} options={[{ value: "1000000", label: "₹10 Lakhs" }, { value: "2500000", label: "₹25 Lakhs" }, { value: "4500000", label: "₹45 Lakhs" }, { value: "8500000", label: "₹85 Lakhs" }, { value: "15000000", label: "₹1.5+ Crores" }]} onChange={setBudgetINR} />
               </div>
 
               {/* Submit CTA */}

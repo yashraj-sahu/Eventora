@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useEvntoraStore } from "@/lib/store";
 import { CheckSquare, Plus, Check, Calendar, Tag, ShieldCheck } from "lucide-react";
+import { SearchableSelect } from "@/components/ui/SearchableSelect";
 
 export default function ChecklistPage() {
   const { activeEvent, activeChecklist, toggleChecklist, addChecklistTask } = useEvntoraStore();
@@ -162,35 +163,11 @@ export default function ChecklistPage() {
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-slate-400 mb-1">Category</label>
-                  <select
-                    value={category}
-                    onChange={(e) => setCategory(e.target.value)}
-                    className="w-full px-3 py-2.5 rounded-xl bg-slate-950 border border-slate-800 text-white focus:outline-none focus:border-amber-400 cursor-pointer"
-                  >
-                    <option value="Venue">Venue</option>
-                    <option value="Catering">Catering</option>
-                    <option value="Decor">Decor</option>
-                    <option value="Photography">Photography</option>
-                    <option value="Entertainment">Entertainment</option>
-                    <option value="Guests">Guests</option>
-                    <option value="General">General</option>
-                  </select>
+                  <SearchableSelect label="Category" value={category} options={["Venue", "Catering", "Decor", "Photography", "Entertainment", "Guests", "General"].map((value) => ({ value, label: value }))} onChange={setCategory} allowCustom customLabel="Use category" />
                 </div>
 
                 <div>
-                  <label className="block text-slate-400 mb-1">Timeline Stage</label>
-                  <select
-                    value={timelineStage}
-                    onChange={(e) => setTimelineStage(e.target.value as any)}
-                    className="w-full px-3 py-2.5 rounded-xl bg-slate-950 border border-slate-800 text-white focus:outline-none focus:border-amber-400 cursor-pointer"
-                  >
-                    <option value="3+ Months Out">3+ Months Out</option>
-                    <option value="1 Month Out">1 Month Out</option>
-                    <option value="2 Weeks Out">2 Weeks Out</option>
-                    <option value="1 Week Out">1 Week Out</option>
-                    <option value="Day Of Event">Day Of Event</option>
-                  </select>
+                  <SearchableSelect label="Timeline Stage" value={timelineStage} options={["3+ Months Out", "1 Month Out", "2 Weeks Out", "1 Week Out", "Day Of Event"].map((value) => ({ value, label: value }))} onChange={(value) => setTimelineStage(value as typeof timelineStage)} />
                 </div>
               </div>
 

@@ -288,6 +288,8 @@ export interface Database {
           venue_preference: string | null;
           style_theme: string | null;
           status: string;
+          blueprint: Record<string, unknown> | null;
+          planning_requirements: string | null;
           created_at: string;
           updated_at: string;
         };
@@ -303,6 +305,8 @@ export interface Database {
           venue_preference?: string | null;
           style_theme?: string | null;
           status?: string;
+          blueprint?: Record<string, unknown> | null;
+          planning_requirements?: string | null;
           created_at?: string;
           updated_at?: string;
         };
@@ -317,6 +321,8 @@ export interface Database {
           venue_preference?: string | null;
           style_theme?: string | null;
           status?: string;
+          blueprint?: Record<string, unknown> | null;
+          planning_requirements?: string | null;
           updated_at?: string;
         };
         Relationships: [
@@ -328,6 +334,30 @@ export interface Database {
             referencedColumns: ["id"];
           }
         ];
+      };
+      ai_conversations: {
+        Row: { id: string; user_id: string; event_id: string | null; title: string; created_at: string; updated_at: string };
+        Insert: { id?: string; user_id: string; event_id?: string | null; title?: string; created_at?: string; updated_at?: string };
+        Update: { event_id?: string | null; title?: string; updated_at?: string };
+        Relationships: [];
+      };
+      ai_messages: {
+        Row: { id: string; conversation_id: string; role: "user" | "assistant"; content: string; created_at: string };
+        Insert: { id?: string; conversation_id: string; role: "user" | "assistant"; content: string; created_at?: string };
+        Update: { content?: string };
+        Relationships: [];
+      };
+      ai_memories: {
+        Row: { id: string; user_id: string; event_id: string | null; memory_type: "personal" | "event"; content: string; is_enabled: boolean; created_at: string; updated_at: string };
+        Insert: { id?: string; user_id: string; event_id?: string | null; memory_type: "personal" | "event"; content: string; is_enabled?: boolean; created_at?: string; updated_at?: string };
+        Update: { content?: string; is_enabled?: boolean; updated_at?: string };
+        Relationships: [];
+      };
+      ai_usage_events: {
+        Row: { id: string; user_id: string; created_at: string };
+        Insert: { id?: string; user_id: string; created_at?: string };
+        Update: never;
+        Relationships: [];
       };
       bookings: {
         Row: {
@@ -552,6 +582,7 @@ export interface Database {
       accept_admin_invitation: { Args: { p_invitation_id: string }; Returns: boolean };
       enable_customer_access: { Args: Record<string, never>; Returns: boolean };
       set_admin_membership: { Args: { p_user_id: string; p_active: boolean }; Returns: boolean };
+      consume_ai_request: { Args: Record<string, never>; Returns: boolean };
     };
     Enums: {
       user_role: UserRole;

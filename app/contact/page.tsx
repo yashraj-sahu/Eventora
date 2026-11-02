@@ -6,6 +6,7 @@ import { Footer } from "@/components/layout/Footer";
 import { Sparkles, Mail, Phone, Clock, CheckCircle2, Send } from "lucide-react";
 import { CITIES } from "@/data/cities";
 import { EVENT_CATEGORIES } from "@/data/categories";
+import { SearchableSelect } from "@/components/ui/SearchableSelect";
 
 export default function ContactPage() {
   const [name, setName] = useState("");
@@ -99,32 +100,12 @@ export default function ContactPage() {
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
                     <label className="block text-[#77746D] dark:text-[#B5B5AA] mb-1 font-semibold">Celebration Type</label>
-                    <select
-                      value={category}
-                      onChange={(e) => setCategory(e.target.value)}
-                      className="w-full px-4 py-3 rounded-xl bg-[#FAF8F3] dark:bg-[#1C2520] border border-[#E8E2D7] dark:border-[#344139] text-[#252522] dark:text-[#F4F0E7] focus:outline-none focus:border-[#173F35] dark:focus:border-[#A9C7B2] text-xs cursor-pointer"
-                    >
-                      {EVENT_CATEGORIES.map((cat) => (
-                        <option key={cat.id} value={cat.id}>
-                          {cat.name}
-                        </option>
-                      ))}
-                    </select>
+                    <SearchableSelect label="Celebration Type" labelClassName="sr-only" value={category} options={EVENT_CATEGORIES.map((cat) => ({ value: cat.id, label: cat.name }))} onChange={setCategory} allowCustom customLabel="Use category" />
                   </div>
 
                   <div>
                     <label className="block text-[#77746D] dark:text-[#B5B5AA] mb-1 font-semibold">Destination / City</label>
-                    <select
-                      value={city}
-                      onChange={(e) => setCity(e.target.value)}
-                      className="w-full px-4 py-3 rounded-xl bg-[#FAF8F3] dark:bg-[#1C2520] border border-[#E8E2D7] dark:border-[#344139] text-[#252522] dark:text-[#F4F0E7] focus:outline-none focus:border-[#173F35] dark:focus:border-[#A9C7B2] text-xs cursor-pointer"
-                    >
-                      {CITIES.map((c) => (
-                        <option key={c.id} value={c.name}>
-                          {c.name} ({c.state})
-                        </option>
-                      ))}
-                    </select>
+                    <SearchableSelect label="Destination / City" labelClassName="sr-only" value={city} options={CITIES.map((c) => ({ value: c.name, label: c.name, description: c.state }))} onChange={setCity} allowCustom customLabel="Use city" />
                   </div>
                 </div>
 

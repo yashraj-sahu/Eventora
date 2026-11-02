@@ -1,7 +1,11 @@
 "use client";
 
-import { useEvntoraStore } from "@/lib/store";
+import { useEffect, useState } from "react";
+import Link from "next/link";
+import { supabase } from "@/lib/supabase";
 import { formatINR } from "@/lib/utils";
+import type { Database } from "@/types/database";
+import type { AIEventBlueprint } from "@/types";
 import {
   Sparkles,
   MapPin,
@@ -16,8 +20,28 @@ import {
 } from "lucide-react";
 
 export default function WorkspacePage() {
-  const { activeEvent } = useEvntoraStore();
-  const bp = activeEvent?.blueprint;
+  type EventRow = Database["public"]["Tables"]["events"]["Row"];
+  const [activeEvent, setActiveEvent] = useState<EventRow | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+  useEffect(() => {
+    let active = true;
+    const eventId = new URLSearchParams(window.location.search).get("eventId");
+    void (async () => {
+      let query = supabase.from("events").select("*").order("created_at", { ascending: false }).limit(1);
+      if (eventId) query = supabase.from("events").select("*").eq("id", eventId).limit(1);
+      const { data, error: loadError } = await query;
+      if (!active) return;
+      if (loadError) setError("Your saved event workspace could not be loaded. If this is a new deployment, apply the AI planning migration first.");
+      else setActiveEvent(data?.[0] ?? null);
+      setLoading(false);
+    })();
+    return () => { active = false; };
+  }, []);
+  const bp = activeEvent?.blueprint as AIEventBlueprint | null | undefined;
+
+  if (loading) return <div role="status" className="p-16 text-center glass-card rounded-3xl text-slate-300">Loading your saved event workspace…</div>;
+  if (error) return <div role="alert" className="p-8 text-center glass-card rounded-3xl text-rose-300">{error}</div>;
 
   if (!bp) {
     return (
@@ -25,8 +49,9 @@ export default function WorkspacePage() {
         <Sparkles className="w-8 h-8 text-amber-400 mx-auto" />
         <h2 className="text-xl font-bold text-white">No Blueprint Attached</h2>
         <p className="text-xs text-slate-400">
-          This celebration does not have a generated AI blueprint yet.
+          {activeEvent ? "This saved event does not have a generated AI blueprint yet." : "No saved event plans are available in this account yet."}
         </p>
+        <Link href="/planner" className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-amber-500 text-slate-950 text-xs font-semibold">Open AI Planner</Link>
       </div>
     );
   }
@@ -52,6 +77,7 @@ export default function WorkspacePage() {
             <Coins className="w-4 h-4 text-amber-400" />
             <span>Recommended Budget Matrix ({formatINR(bp.recommendedBudget.total)})</span>
           </h2>
+          <p className="text-[11px] text-slate-400">Planning formats and rough estimates only; these are not vendor listings, quotes, or availability confirmations.</p>
           <div className="space-y-2.5">
             {bp.recommendedBudget.breakdown.map((item, i) => (
               <div key={i} className="p-3.5 rounded-xl bg-slate-950/70 border border-slate-800 flex items-center justify-between text-xs">
@@ -84,39 +110,8 @@ export default function WorkspacePage() {
                 <p className="text-slate-400 text-[11px]">{v.type} • Capacity: {v.capacity}</p>
                 <p className="text-slate-300">{v.highlight}</p>
                 <div className="pt-2 flex items-center justify-between border-t border-slate-800">
-                  <span className="text-[10px] text-slate-400">Lock date with advance</span>
-                  <button
-                    onClick={async () => {
-                      try {
-                        const res = await fetch("/api/bookings/create", {
-                          method: "POST",
-                          headers: { "Content-Type": "application/json" },
-                          body: JSON.stringify({
-                            vendorId: "v-01",
-                            vendorName: v.name,
-                            vendorCategory: "Venues & Royal Estates",
-                            packageName: "Venue Exclusive Reservation",
-                            eventDate: activeEvent?.date || "2026-11-20",
-                            eventCity: activeEvent?.city || "Udaipur",
-                            guestCount: activeEvent?.guestCount || 250,
-                            totalAmount: Math.round((activeEvent?.totalBudget || 4500000) * 0.35),
-                            advancePercentage: 25,
-                            requirements: `Venue reservation for ${v.name} (${v.type})`,
-                          }),
-                        });
-                        const data = await res.json();
-                        if (data.bookingId) {
-                          window.location.assign(`/checkout?bookingId=${data.bookingId}`);
-                        }
-                      } catch (err) {
-                        console.error(err);
-                      }
-                    }}
-                    className="px-3 py-1 rounded-lg bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-[11px] uppercase tracking-wider flex items-center gap-1 cursor-pointer transition-all"
-                  >
-                    <Sparkles className="w-3 h-3" />
-                    <span>Book Venue</span>
-                  </button>
+                  <span className="text-[10px] text-slate-400">Planning idea, not a real listing or quote</span>
+                  <Link href={`/vendors?city=${encodeURIComponent(activeEvent?.city ?? "")}`} className="px-3 py-1 rounded-lg bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-[11px] uppercase tracking-wider flex items-center gap-1 transition-all">Find Vendors</Link>
                 </div>
               </div>
             ))}
