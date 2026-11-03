@@ -7,13 +7,14 @@ export function CategoryShowcase() {
     <section className="py-20 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-12">
       <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
         <div className="space-y-3 max-w-2xl">
-          <div className="text-xs uppercase tracking-widest text-[#C6A66B] dark:text-[#D4B77D] font-bold">
-            Celebration Categories
+          <div className="inline-flex items-center gap-2 text-xs uppercase tracking-[0.2em] text-[#B77A36] dark:text-[#EAD2B0] font-bold">
+            <span className="w-6 h-[1px] bg-[#B77A36]" />
+            <span>Celebration Categories</span>
           </div>
-          <h2 className="text-3xl sm:text-5xl font-serif font-bold text-[#173F35] dark:text-[#F4F0E7] tracking-tight">
+          <h2 className="text-3xl sm:text-5xl font-serif font-bold text-[#30221D] dark:text-[#FFF3E3] tracking-tight">
             Curated For India&apos;s Most Sacred & Prestigious Milestones.
           </h2>
-          <p className="text-[#77746D] dark:text-[#B5B5AA] text-sm sm:text-base leading-relaxed">
+          <p className="text-[#59453E] dark:text-[#D4C3B7] text-sm sm:text-base leading-relaxed">
             Every celebration carries its own cultural soul, rituals, and logistical complexity. 
             Evntora adapts its intelligent blueprints to your exact occasion.
           </p>
@@ -21,7 +22,7 @@ export function CategoryShowcase() {
 
         <Link
           href="/events"
-          className="inline-flex items-center gap-2 text-sm font-semibold text-[#173F35] dark:text-[#A9C7B2] hover:text-[#0F2B24] dark:hover:text-[#F4F0E7] transition-colors group shrink-0"
+          className="inline-flex items-center gap-2 text-sm font-semibold text-[#681B1D] dark:text-[#EAD2B0] hover:text-[#4B1117] dark:hover:text-[#FFF3E3] transition-colors group shrink-0"
         >
           <span>Explore All 8 Categories</span>
           <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
@@ -32,7 +33,7 @@ export function CategoryShowcase() {
         {EVENT_CATEGORIES.map((category) => (
           <div
             key={category.id}
-            className="group relative rounded-3xl overflow-hidden bg-white dark:bg-[#232F28] border border-[#E8E2D7] dark:border-[#344139] hover:border-[#C6A66B] dark:hover:border-[#D4B77D] hover:shadow-lg transition-all duration-300 flex flex-col justify-between"
+            className="group relative rounded-3xl overflow-hidden bg-[#FFF3E3] dark:bg-[#2E1F1E] border border-[#EAD2B0] dark:border-[#4D3331] hover:border-[#B77A36] hover:shadow-xl transition-all duration-300 flex flex-col justify-between"
           >
             {/* Visual Header with Real Image */}
             <div className="relative h-56 w-full overflow-hidden">
@@ -42,10 +43,10 @@ export function CategoryShowcase() {
                 alt={category.name}
                 className="w-full h-full object-cover object-center group-hover:scale-105 transition-transform duration-500"
               />
-              <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent"></div>
+              <div className="absolute inset-0 bg-gradient-to-t from-black/65 via-black/20 to-transparent"></div>
 
               <div className="absolute top-4 left-4">
-                <span className="px-3 py-1 rounded-full text-[11px] font-semibold bg-white/90 dark:bg-[#151B18]/90 backdrop-blur-md text-[#173F35] dark:text-[#A9C7B2] border border-[#E8E2D7] dark:border-[#344139] shadow-xs">
+                <span className="px-3 py-1 rounded-full text-[11px] font-semibold bg-[#FFF3E3]/95 dark:bg-[#1A1211]/95 backdrop-blur-md text-[#681B1D] dark:text-[#EAD2B0] border border-[#EAD2B0] dark:border-[#4D3331] shadow-xs">
                   {category.tagline}
                 </span>
               </div>
@@ -54,35 +55,35 @@ export function CategoryShowcase() {
             {/* Content Details */}
             <div className="p-6 space-y-4 flex-1 flex flex-col justify-between">
               <div className="space-y-2">
-                <h3 className="text-xl font-serif font-bold text-[#173F35] dark:text-[#F4F0E7] group-hover:text-[#0F2B24] transition-colors">
+                <h3 className="text-xl font-serif font-bold text-[#30221D] dark:text-[#FFF3E3] group-hover:text-[#681B1D] dark:group-hover:text-[#EAD2B0] transition-colors">
                   {category.name}
                 </h3>
-                <p className="text-xs text-[#77746D] dark:text-[#B5B5AA] line-clamp-2 leading-relaxed">
+                <p className="text-xs text-[#7D6B63] dark:text-[#D4C3B7] line-clamp-2 leading-relaxed">
                   {category.description}
                 </p>
               </div>
 
-              <div className="pt-4 border-t border-[#E8E2D7] dark:border-[#344139] space-y-2 text-xs text-[#77746D] dark:text-[#B5B5AA]">
+              <div className="pt-4 border-t border-[#EAD2B0]/80 dark:border-[#4D3331] space-y-2 text-xs text-[#7D6B63] dark:text-[#D4C3B7]">
                 <div className="flex items-center justify-between">
                   <span className="flex items-center gap-1.5">
-                    <Coins className="w-3.5 h-3.5 text-[#173F35] dark:text-[#A9C7B2]" />
+                    <Coins className="w-3.5 h-3.5 text-[#B77A36]" />
                     <span>Typical Budget:</span>
                   </span>
-                  <span className="font-semibold text-[#252522] dark:text-[#F4F0E7]">{category.avgBudgetRange}</span>
+                  <span className="font-semibold text-[#30221D] dark:text-[#FFF3E3]">{category.avgBudgetRange}</span>
                 </div>
                 <div className="flex items-center justify-between">
                   <span className="flex items-center gap-1.5">
-                    <Users className="w-3.5 h-3.5 text-[#173F35] dark:text-[#A9C7B2]" />
+                    <Users className="w-3.5 h-3.5 text-[#B77A36]" />
                     <span>Guest Range:</span>
                   </span>
-                  <span className="font-semibold text-[#252522] dark:text-[#F4F0E7]">{category.typicalGuestRange}</span>
+                  <span className="font-semibold text-[#30221D] dark:text-[#FFF3E3]">{category.typicalGuestRange}</span>
                 </div>
               </div>
 
               <div className="pt-2">
                 <Link
                   href={`/planner?type=${encodeURIComponent(category.id)}`}
-                  className="w-full py-2.5 rounded-xl bg-[#FAF8F3] dark:bg-[#1C2520] hover:bg-[#E7EFEA] dark:hover:bg-[#173F35]/40 text-[#173F35] dark:text-[#A9C7B2] border border-[#E8E2D7] dark:border-[#344139] text-xs font-semibold transition-all flex items-center justify-center gap-2 cursor-pointer shadow-2xs"
+                  className="w-full py-2.5 rounded-xl bg-white dark:bg-[#1A1211] hover:bg-[#EAD2B0]/40 dark:hover:bg-[#3D2624] text-[#681B1D] dark:text-[#EAD2B0] border border-[#EAD2B0] dark:border-[#4D3331] text-xs font-semibold transition-all flex items-center justify-center gap-2 cursor-pointer shadow-2xs"
                 >
                   <span>Plan This Event</span>
                   <ArrowRight className="w-3.5 h-3.5" />

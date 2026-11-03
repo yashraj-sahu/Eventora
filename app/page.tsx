@@ -12,7 +12,7 @@ import { FinalCTA } from "@/components/home/FinalCTA";
 
 export default function HomePage() {
   return (
-    <div className="min-h-screen flex flex-col w-full bg-[#FAF8F3] dark:bg-[#151B18] text-[#252522] dark:text-[#F4F0E7] selection:bg-[#173F35] dark:selection:bg-[#A9C7B2] selection:text-white dark:selection:text-[#151B18] font-sans transition-colors duration-200">
+    <div className="min-h-screen flex flex-col w-full bg-[#FFF3E3] dark:bg-[#1A1211] text-[#30221D] dark:text-[#FFF3E3] selection:bg-[#681B1D] dark:selection:bg-[#EAD2B0] selection:text-[#FFF3E3] dark:selection:text-[#4B1117] font-sans transition-colors duration-200">
       <Navbar />
 
       {/* Page Body */}

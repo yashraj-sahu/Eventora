@@ -62,44 +62,52 @@ function AccountMenu({ onClose }: { onClose: () => void }) {
     window.location.assign("/");
   };
 
-  const portalHref = roles.includes("customer") ? "/dashboard" : roles.includes("vendor") ? "/vendor-portal" : roles.some((role) => role === "admin" || role === "platform_owner") ? "/admin" : "/signin";
+  const portalHref = roles.includes("customer")
+    ? "/dashboard"
+    : roles.includes("vendor")
+    ? "/vendor-portal"
+    : roles.some((role) => role === "admin" || role === "platform_owner")
+    ? "/admin"
+    : "/signin";
 
   return (
-    <div className="absolute right-0 mt-2 w-60 bg-white dark:bg-[#232F28] rounded-2xl shadow-xl border border-[#E8E2D7] dark:border-[#344139] py-2 z-50 animate-in fade-in zoom-in-95 duration-150">
+    <div className="absolute right-0 mt-2 w-64 bg-[#FFF3E3] dark:bg-[#2E1F1E] rounded-2xl shadow-xl border border-[#EAD2B0] dark:border-[#4D3331] py-2 z-50 animate-in fade-in zoom-in-95 duration-150">
       {/* User identity */}
-      <div className="px-4 py-3 border-b border-[#E8E2D7] dark:border-[#344139]">
-        <p className="text-xs font-bold text-[#252522] dark:text-[#F4F0E7] truncate">
+      <div className="px-4 py-3 border-b border-[#EAD2B0] dark:border-[#4D3331]">
+        <p className="text-xs font-bold text-[#30221D] dark:text-[#FFF3E3] truncate font-serif">
           {profile?.full_name || "User"}
         </p>
-        <p className="text-[11px] text-[#77746D] dark:text-[#B5B5AA] truncate">
+        <p className="text-[11px] text-[#7D6B63] dark:text-[#D4C3B7] truncate">
           {profile?.email}
         </p>
-        <span className="inline-block mt-1 text-[10px] px-2 py-0.5 rounded-full bg-[#E7EFEA] dark:bg-[#173F35]/50 text-[#173F35] dark:text-[#A9C7B2] font-semibold capitalize">
-          {roles.length ? `${roles.map((role) => role.replace("platform_owner", "owner")).join(" + ")} access` : "Member"}
+        <span className="inline-block mt-1.5 text-[10px] px-2.5 py-0.5 rounded-full bg-[#EAD2B0]/40 dark:bg-[#681B1D]/50 text-[#681B1D] dark:text-[#EAD2B0] font-semibold capitalize border border-[#EAD2B0] dark:border-[#4D3331]">
+          {roles.length
+            ? `${roles.map((role) => role.replace("platform_owner", "owner")).join(" + ")} access`
+            : "Member"}
         </span>
       </div>
 
       <Link
         href={portalHref}
         onClick={onClose}
-        className="flex items-center gap-2.5 px-4 py-2.5 text-xs font-semibold text-[#252522] dark:text-[#F4F0E7] hover:text-[#173F35] dark:hover:text-[#A9C7B2] hover:bg-[#E7EFEA]/70 dark:hover:bg-[#1C2520] transition-colors"
+        className="flex items-center gap-2.5 px-4 py-2.5 text-xs font-semibold text-[#30221D] dark:text-[#FFF3E3] hover:text-[#681B1D] dark:hover:text-[#EAD2B0] hover:bg-[#EAD2B0]/30 dark:hover:bg-[#3D2624] transition-colors"
       >
-        <LayoutDashboard className="w-4 h-4 text-[#173F35] dark:text-[#A9C7B2]" />
+        <LayoutDashboard className="w-4 h-4 text-[#681B1D] dark:text-[#EAD2B0]" />
         <span>My Dashboard</span>
       </Link>
       <Link
         href={`${portalHref}/settings`}
         onClick={onClose}
-        className="flex items-center gap-2.5 px-4 py-2.5 text-xs font-semibold text-[#252522] dark:text-[#F4F0E7] hover:text-[#173F35] dark:hover:text-[#A9C7B2] hover:bg-[#E7EFEA]/70 dark:hover:bg-[#1C2520] transition-colors"
+        className="flex items-center gap-2.5 px-4 py-2.5 text-xs font-semibold text-[#30221D] dark:text-[#FFF3E3] hover:text-[#681B1D] dark:hover:text-[#EAD2B0] hover:bg-[#EAD2B0]/30 dark:hover:bg-[#3D2624] transition-colors"
       >
-        <Settings className="w-4 h-4 text-[#C6A66B] dark:text-[#D4B77D]" />
+        <Settings className="w-4 h-4 text-[#B77A36] dark:text-[#EAD2B0]" />
         <span>Account Settings</span>
       </Link>
 
-      <div className="border-t border-[#E8E2D7] dark:border-[#344139] mt-1 pt-1">
+      <div className="border-t border-[#EAD2B0] dark:border-[#4D3331] mt-1 pt-1">
         <button
           onClick={handleSignOut}
-          className="flex items-center gap-2.5 px-4 py-2 text-xs font-medium text-[#77746D] dark:text-[#B5B5AA] hover:text-rose-600 dark:hover:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/20 transition-colors w-full text-left cursor-pointer"
+          className="flex items-center gap-2.5 px-4 py-2 text-xs font-medium text-[#7D6B63] dark:text-[#D4C3B7] hover:text-rose-600 dark:hover:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/20 transition-colors w-full text-left cursor-pointer"
         >
           <LogOut className="w-4 h-4" />
           <span>Sign Out</span>
@@ -113,9 +121,9 @@ function PortalsDropdown({ onClose }: { onClose: () => void }) {
   const pathname = usePathname();
 
   return (
-    <div className="absolute left-1/2 -translate-x-1/2 mt-2 w-64 bg-white dark:bg-[#232F28] rounded-2xl shadow-xl border border-[#E8E2D7] dark:border-[#344139] py-2 z-50 animate-in fade-in zoom-in-95 duration-150">
-      <div className="px-3 py-1.5 border-b border-[#E8E2D7] dark:border-[#344139] mb-1">
-        <p className="text-[10px] font-bold tracking-wider uppercase text-[#77746D] dark:text-[#B5B5AA]">
+    <div className="absolute left-1/2 -translate-x-1/2 mt-2 w-64 bg-[#FFF3E3] dark:bg-[#2E1F1E] rounded-2xl shadow-xl border border-[#EAD2B0] dark:border-[#4D3331] py-2 z-50 animate-in fade-in zoom-in-95 duration-150">
+      <div className="px-3 py-1.5 border-b border-[#EAD2B0] dark:border-[#4D3331] mb-1">
+        <p className="text-[10px] font-bold tracking-wider uppercase text-[#B77A36] dark:text-[#EAD2B0]">
           Evntora Portals
         </p>
       </div>
@@ -129,16 +137,16 @@ function PortalsDropdown({ onClose }: { onClose: () => void }) {
             onClick={onClose}
             className={`flex items-start gap-2.5 px-3 py-2 rounded-xl mx-1 transition-colors ${
               isActive
-                ? "bg-[#E7EFEA] dark:bg-[#1C2520] text-[#173F35] dark:text-[#A9C7B2]"
-                : "text-[#252522] dark:text-[#F4F0E7] hover:bg-[#E7EFEA]/60 dark:hover:bg-[#1C2520]"
+                ? "bg-[#EAD2B0]/40 dark:bg-[#3D2624] text-[#681B1D] dark:text-[#EAD2B0] font-semibold"
+                : "text-[#30221D] dark:text-[#FFF3E3] hover:bg-[#EAD2B0]/30 dark:hover:bg-[#3D2624]"
             }`}
           >
-            <div className="w-7 h-7 rounded-lg bg-[#FAF8F3] dark:bg-[#151B18] border border-[#E8E2D7] dark:border-[#344139] flex items-center justify-center shrink-0 mt-0.5">
-              <Icon className="w-3.5 h-3.5 text-[#173F35] dark:text-[#C6A66B]" />
+            <div className="w-7 h-7 rounded-lg bg-[#FAF3E8] dark:bg-[#1A1211] border border-[#EAD2B0] dark:border-[#4D3331] flex items-center justify-center shrink-0 mt-0.5">
+              <Icon className="w-3.5 h-3.5 text-[#681B1D] dark:text-[#B77A36]" />
             </div>
             <div>
               <p className="text-xs font-semibold leading-tight">{portal.label}</p>
-              <p className="text-[10px] text-[#77746D] dark:text-[#B5B5AA] leading-normal">
+              <p className="text-[10px] text-[#7D6B63] dark:text-[#D4C3B7] leading-normal">
                 {portal.desc}
               </p>
             </div>
@@ -200,50 +208,47 @@ export function Navbar() {
   const isAuthenticated = Boolean(user);
 
   return (
-    <header
-      className={`sticky top-0 z-40 w-full transition-all duration-300 ${
-        scrolled
-          ? "bg-[#FAF8F3]/95 dark:bg-[#151B18]/95 backdrop-blur-md border-b border-[#E8E2D7] dark:border-[#344139] shadow-[0_4px_20px_-4px_rgba(23,63,53,0.06)]"
-          : "bg-[#FAF8F3] dark:bg-[#151B18] border-b border-[#E8E2D7] dark:border-[#344139]"
-      }`}
-    >
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between h-[68px] gap-2 lg:gap-4">
-
-          {/* ── BRAND LOGO ── */}
-          <Link href="/" className="flex items-center gap-2.5 group shrink-0">
-            <div className="w-9 h-9 rounded-xl bg-[#173F35] flex items-center justify-center font-serif font-bold text-[#C6A66B] text-xl shadow-xs group-hover:bg-[#0F2B24] transition-colors">
-              E
+    <header className="sticky top-0 z-40 w-full transition-all duration-300 py-3 px-3 sm:px-6 lg:px-8">
+      <div
+        className={`max-w-7xl mx-auto rounded-full transition-all duration-300 px-4 sm:px-6 py-2 border ${
+          scrolled
+            ? "bg-[#FFF3E3]/95 dark:bg-[#1A1211]/95 backdrop-blur-md border-[#EAD2B0] dark:border-[#4D3331] shadow-[0_8px_30px_rgba(75,17,23,0.12)]"
+            : "bg-[#FFF3E3]/92 dark:bg-[#1A1211]/92 backdrop-blur-sm border-[#EAD2B0]/90 dark:border-[#4D3331]/90 shadow-[0_4px_24px_rgba(75,17,23,0.06)]"
+        }`}
+      >
+        <div className="flex items-center justify-between h-[54px] gap-2 lg:gap-4">
+          {/* ── BRAND LOGO WITH ROYAL SCALLOPED CREST ── */}
+          <Link href="/" className="flex items-center gap-2.5 group shrink-0 pl-1">
+            <div className="relative w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-gradient-to-br from-[#681B1D] to-[#4B1117] border border-[#B77A36]/70 flex items-center justify-center font-serif font-bold text-[#EAD2B0] text-xl shadow-xs group-hover:from-[#7A2124] group-hover:to-[#5C151D] transition-all">
+              <span>E</span>
             </div>
             <div className="flex flex-col">
-              <span className="font-serif tracking-widest text-[20px] sm:text-[22px] font-bold text-[#173F35] dark:text-[#A9C7B2] group-hover:text-[#0F2B24] transition-colors leading-none">
+              <span className="font-serif tracking-widest text-[19px] sm:text-[21px] font-bold text-[#30221D] dark:text-[#FFF3E3] group-hover:text-[#681B1D] dark:group-hover:text-[#EAD2B0] transition-colors leading-none">
                 EVNTORA
               </span>
-              <span className="text-[9px] tracking-wider uppercase text-[#77746D] dark:text-[#B5B5AA] font-sans mt-0.5 hidden xl:block">
-                Every Celebration, Beautifully Planned
+              <span className="text-[8.5px] tracking-wider uppercase text-[#B77A36] dark:text-[#EAD2B0] font-sans mt-0.5 hidden xl:block">
+                Luxury Event Planning
               </span>
             </div>
           </Link>
 
           {/* ── DESKTOP NAVIGATION ── */}
-          <nav className="hidden lg:flex items-center gap-1 xl:gap-1.5 min-w-0">
+          <nav className="hidden lg:flex items-center gap-1 xl:gap-2 min-w-0">
             {navLinks.map((link) => {
               const isActive = pathname === link.href;
               return (
                 <Link
                   key={link.href}
                   href={link.href}
-                  className={`px-2.5 xl:px-3 py-1.5 rounded-lg text-xs xl:text-[13px] font-medium transition-colors flex items-center gap-1.5 whitespace-nowrap ${
+                  className={`px-3 py-1.5 rounded-full text-xs xl:text-[13px] font-medium transition-colors flex items-center gap-1.5 whitespace-nowrap ${
                     isActive
-                      ? "text-[#173F35] dark:text-[#151B18] bg-[#E7EFEA] dark:bg-[#A9C7B2] font-semibold"
-                      : "text-[#252522] dark:text-[#F4F0E7] hover:text-[#173F35] dark:hover:text-[#A9C7B2] hover:bg-[#E7EFEA]/50 dark:hover:bg-[#1C2520]"
+                      ? "text-[#681B1D] dark:text-[#FFF3E3] bg-[#EAD2B0]/45 dark:bg-[#3D2624] font-semibold shadow-2xs"
+                      : "text-[#30221D] dark:text-[#FFF3E3] hover:text-[#681B1D] dark:hover:text-[#EAD2B0] hover:bg-[#EAD2B0]/25 dark:hover:bg-[#2E1F1E]"
                   }`}
                 >
                   <span>{link.label}</span>
                   {link.badge && (
-                    <span className="text-[9px] px-1.5 py-0.2 rounded-full bg-[#173F35] dark:bg-[#232F28] text-[#FAF8F3] dark:text-[#D4B77D] font-bold uppercase tracking-wider leading-none">
-                      {link.badge}
-                    </span>
+                    <Sparkles className="w-3 h-3 text-[#B77A36]" />
                   )}
                 </Link>
               );
@@ -253,12 +258,12 @@ export function Navbar() {
             <div className="relative" ref={portalsMenuRef}>
               <button
                 onClick={() => setPortalsMenuOpen(!portalsMenuOpen)}
-                className={`px-2.5 xl:px-3 py-1.5 rounded-lg text-xs xl:text-[13px] font-medium transition-colors flex items-center gap-1 whitespace-nowrap cursor-pointer ${
+                className={`px-3 py-1.5 rounded-full text-xs xl:text-[13px] font-medium transition-colors flex items-center gap-1 whitespace-nowrap cursor-pointer ${
                   pathname.startsWith("/dashboard") ||
                   pathname.startsWith("/vendor-portal") ||
                   pathname.startsWith("/admin")
-                    ? "text-[#173F35] dark:text-[#151B18] bg-[#E7EFEA] dark:bg-[#A9C7B2] font-semibold"
-                    : "text-[#77746D] dark:text-[#B5B5AA] hover:text-[#173F35] dark:hover:text-[#A9C7B2] hover:bg-[#E7EFEA]/50 dark:hover:bg-[#1C2520]"
+                    ? "text-[#681B1D] dark:text-[#FFF3E3] bg-[#EAD2B0]/45 dark:bg-[#3D2624] font-semibold"
+                    : "text-[#7D6B63] dark:text-[#D4C3B7] hover:text-[#681B1D] dark:hover:text-[#EAD2B0] hover:bg-[#EAD2B0]/25 dark:hover:bg-[#2E1F1E]"
                 }`}
               >
                 <span>Portals</span>
@@ -275,7 +280,7 @@ export function Navbar() {
           </nav>
 
           {/* ── RIGHT ACTION CTAs ── */}
-          <div className="hidden md:flex items-center gap-2 xl:gap-2.5 shrink-0">
+          <div className="hidden md:flex items-center gap-2 xl:gap-3 shrink-0 pr-1">
             {/* Functional Theme Switcher */}
             <ThemeToggle />
 
@@ -286,18 +291,18 @@ export function Navbar() {
                   <div className="relative" ref={accountMenuRef}>
                     <button
                       onClick={() => setAccountMenuOpen(!accountMenuOpen)}
-                      className="flex items-center gap-1.5 xl:gap-2 px-2.5 xl:px-3 py-1.5 rounded-xl bg-white dark:bg-[#232F28] hover:bg-[#F0EDE5] dark:hover:bg-[#1C2520] border border-[#E8E2D7] dark:border-[#344139] transition-all text-xs cursor-pointer shadow-xs"
+                      className="flex items-center gap-1.5 xl:gap-2 px-3 py-1.5 rounded-full bg-white/80 dark:bg-[#2E1F1E] hover:bg-[#FAF3E8] dark:hover:bg-[#3D2624] border border-[#EAD2B0] dark:border-[#4D3331] transition-all text-xs cursor-pointer shadow-xs"
                     >
-                      <div className="w-6 h-6 rounded-full bg-[#173F35] flex items-center justify-center text-[#FAF8F3] font-bold text-xs shrink-0">
+                      <div className="w-6 h-6 rounded-full bg-[#681B1D] flex items-center justify-center text-[#FFF3E3] font-bold text-xs shrink-0">
                         {profile?.full_name?.charAt(0)?.toUpperCase() ?? (
                           <User className="w-3 h-3" />
                         )}
                       </div>
-                      <span className="text-[#252522] dark:text-[#F4F0E7] font-semibold max-w-[80px] xl:max-w-[100px] truncate">
+                      <span className="text-[#30221D] dark:text-[#FFF3E3] font-semibold max-w-[80px] xl:max-w-[100px] truncate">
                         {profile?.full_name?.split(" ")[0] ?? "Account"}
                       </span>
                       <ChevronDown
-                        className={`w-3.5 h-3.5 text-[#77746D] dark:text-[#B5B5AA] transition-transform duration-200 ${
+                        className={`w-3.5 h-3.5 text-[#7D6B63] dark:text-[#D4C3B7] transition-transform duration-200 ${
                           accountMenuOpen ? "rotate-180" : ""
                         }`}
                       />
@@ -310,7 +315,7 @@ export function Navbar() {
                   /* Sign In */
                   <Link
                     href="/signin"
-                    className="px-3 xl:px-3.5 py-1.5 xl:py-2 rounded-xl text-xs font-semibold text-[#173F35] dark:text-[#A9C7B2] hover:bg-[#E7EFEA] dark:hover:bg-[#1C2520] border border-[#173F35]/25 dark:border-[#344139] transition-all whitespace-nowrap"
+                    className="px-4 py-2 rounded-full text-xs font-semibold text-[#30221D] dark:text-[#FFF3E3] hover:text-[#681B1D] dark:hover:text-[#EAD2B0] hover:bg-[#EAD2B0]/30 transition-all whitespace-nowrap"
                   >
                     Sign In
                   </Link>
@@ -318,15 +323,13 @@ export function Navbar() {
               </>
             )}
 
-            {/* Prominent Emerald Start Planning CTA */}
+            {/* Prominent Royal Maroon Start Planning CTA */}
             <Link
               href="/planner"
-              className="px-3.5 xl:px-4 py-2 rounded-xl bg-[#173F35] hover:bg-[#0F2B24] text-[#FAF8F3] text-xs font-bold tracking-wide shadow-xs hover:shadow-md transition-all flex items-center gap-1.5 xl:gap-2 whitespace-nowrap cursor-pointer shrink-0"
+              className="px-4 xl:px-5 py-2.5 rounded-full bg-gradient-to-r from-[#681B1D] to-[#4B1117] hover:from-[#7A2124] hover:to-[#5C151D] text-[#FFF3E3] text-xs font-bold tracking-wide shadow-md hover:shadow-lg transition-all flex items-center gap-1.5 xl:gap-2 whitespace-nowrap cursor-pointer shrink-0 border border-[#B77A36]/40"
             >
-              <Sparkles className="w-3.5 h-3.5 text-[#C6A66B]" />
-              <span className="hidden sm:inline">Start Planning</span>
-              <span className="sm:hidden">Plan</span>
-              <ArrowRight className="w-3.5 h-3.5" />
+              <span>Start Planning</span>
+              <ArrowRight className="w-3.5 h-3.5 text-[#EAD2B0]" />
             </Link>
           </div>
 
@@ -335,13 +338,13 @@ export function Navbar() {
             <ThemeToggle />
             <Link
               href="/planner"
-              className="px-3 py-1.5 rounded-lg bg-[#173F35] text-[#FAF8F3] text-xs font-bold"
+              className="px-3 py-1.5 rounded-full bg-[#681B1D] text-[#FFF3E3] text-xs font-bold border border-[#B77A36]/40"
             >
               Plan
             </Link>
             <button
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              className="p-2 rounded-lg text-[#252522] dark:text-[#F4F0E7] hover:bg-[#F0EDE5] dark:hover:bg-[#232F28] border border-[#E8E2D7] dark:border-[#344139] cursor-pointer"
+              className="p-2 rounded-lg text-[#30221D] dark:text-[#FFF3E3] hover:bg-[#EAD2B0]/30 border border-[#EAD2B0] dark:border-[#4D3331] cursor-pointer"
               aria-label="Toggle navigation menu"
             >
               {mobileMenuOpen ? (
@@ -356,12 +359,12 @@ export function Navbar() {
 
       {/* ── MOBILE DRAWER ── */}
       {mobileMenuOpen && (
-        <div className="lg:hidden bg-[#FAF8F3] dark:bg-[#151B18] border-b border-[#E8E2D7] dark:border-[#344139] px-5 py-5 space-y-4 shadow-lg animate-in slide-in-from-top-4 duration-200">
+        <div className="lg:hidden mt-2 rounded-2xl bg-[#FFF3E3] dark:bg-[#1A1211] border border-[#EAD2B0] dark:border-[#4D3331] px-5 py-5 space-y-4 shadow-xl animate-in slide-in-from-top-4 duration-200">
           <div className="space-y-0.5">
             <Link
               href="/"
               onClick={() => setMobileMenuOpen(false)}
-              className="flex items-center justify-between px-3 py-2.5 rounded-lg text-sm font-medium text-[#252522] dark:text-[#F4F0E7] hover:bg-[#E7EFEA] dark:hover:bg-[#232F28] hover:text-[#173F35] dark:hover:text-[#A9C7B2] transition-colors"
+              className="flex items-center justify-between px-3 py-2.5 rounded-lg text-sm font-medium text-[#30221D] dark:text-[#FFF3E3] hover:bg-[#EAD2B0]/30 hover:text-[#681B1D] transition-colors"
             >
               <span>Home</span>
             </Link>
@@ -370,11 +373,11 @@ export function Navbar() {
                 key={link.href}
                 href={link.href}
                 onClick={() => setMobileMenuOpen(false)}
-                className="flex items-center justify-between px-3 py-2.5 rounded-lg text-sm font-medium text-[#252522] dark:text-[#F4F0E7] hover:bg-[#E7EFEA] dark:hover:bg-[#232F28] hover:text-[#173F35] dark:hover:text-[#A9C7B2] transition-colors"
+                className="flex items-center justify-between px-3 py-2.5 rounded-lg text-sm font-medium text-[#30221D] dark:text-[#FFF3E3] hover:bg-[#EAD2B0]/30 hover:text-[#681B1D] transition-colors"
               >
                 <span>{link.label}</span>
                 {link.badge && (
-                  <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-[#173F35] dark:bg-[#232F28] text-[#FAF8F3] dark:text-[#D4B77D] font-bold">
+                  <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-[#681B1D] text-[#FFF3E3] font-bold">
                     {link.badge}
                   </span>
                 )}
@@ -382,8 +385,8 @@ export function Navbar() {
             ))}
           </div>
 
-          <div className="pt-3 border-t border-[#E8E2D7] dark:border-[#344139]">
-            <p className="text-[10px] font-bold text-[#77746D] dark:text-[#B5B5AA] uppercase tracking-widest px-3 mb-2">
+          <div className="pt-3 border-t border-[#EAD2B0] dark:border-[#4D3331]">
+            <p className="text-[10px] font-bold text-[#B77A36] dark:text-[#EAD2B0] uppercase tracking-widest px-3 mb-2">
               Evntora Portals
             </p>
             <div className="grid grid-cols-1 gap-1.5">
@@ -394,12 +397,12 @@ export function Navbar() {
                     key={portal.href}
                     href={portal.href}
                     onClick={() => setMobileMenuOpen(false)}
-                    className="flex items-center gap-3 px-3 py-2 rounded-xl text-xs font-semibold text-[#173F35] dark:text-[#A9C7B2] bg-white dark:bg-[#232F28] hover:bg-[#E7EFEA] dark:hover:bg-[#1C2520] transition-colors border border-[#E8E2D7] dark:border-[#344139]"
+                    className="flex items-center gap-3 px-3 py-2 rounded-xl text-xs font-semibold text-[#681B1D] dark:text-[#EAD2B0] bg-white dark:bg-[#2E1F1E] hover:bg-[#EAD2B0]/30 transition-colors border border-[#EAD2B0] dark:border-[#4D3331]"
                   >
-                    <Icon className="w-4 h-4 text-[#C6A66B]" />
+                    <Icon className="w-4 h-4 text-[#B77A36]" />
                     <div>
                       <p className="text-xs font-semibold">{portal.label}</p>
-                      <p className="text-[10px] text-[#77746D] dark:text-[#B5B5AA] font-normal">
+                      <p className="text-[10px] text-[#7D6B63] dark:text-[#D4C3B7] font-normal">
                         {portal.desc}
                       </p>
                     </div>
@@ -409,18 +412,18 @@ export function Navbar() {
             </div>
           </div>
 
-          <div className="pt-3 border-t border-[#E8E2D7] dark:border-[#344139] space-y-2">
+          <div className="pt-3 border-t border-[#EAD2B0] dark:border-[#4D3331] space-y-2">
             {isAuthenticated ? (
-              <div className="flex items-center justify-between px-3 py-2.5 rounded-xl bg-white dark:bg-[#232F28] border border-[#E8E2D7] dark:border-[#344139]">
+              <div className="flex items-center justify-between px-3 py-2.5 rounded-xl bg-white dark:bg-[#2E1F1E] border border-[#EAD2B0] dark:border-[#4D3331]">
                 <div className="flex items-center gap-2">
-                  <div className="w-7 h-7 rounded-full bg-[#173F35] flex items-center justify-center text-[#FAF8F3] font-bold text-xs">
+                  <div className="w-7 h-7 rounded-full bg-[#681B1D] flex items-center justify-center text-[#FFF3E3] font-bold text-xs">
                     {profile?.full_name?.charAt(0)?.toUpperCase() ?? "U"}
                   </div>
                   <div>
-                    <p className="text-xs font-bold text-[#252522] dark:text-[#F4F0E7]">
+                    <p className="text-xs font-bold text-[#30221D] dark:text-[#FFF3E3]">
                       {profile?.full_name}
                     </p>
-                    <p className="text-[10px] text-[#77746D] dark:text-[#B5B5AA] capitalize">
+                    <p className="text-[10px] text-[#7D6B63] dark:text-[#D4C3B7] capitalize">
                       {roles.join(" + ") || "Member"}
                     </p>
                   </div>
@@ -436,7 +439,7 @@ export function Navbar() {
               <Link
                 href="/signin"
                 onClick={() => setMobileMenuOpen(false)}
-                className="flex items-center justify-center w-full px-4 py-2.5 rounded-xl border border-[#173F35] text-xs font-bold text-[#173F35] dark:text-[#A9C7B2] bg-white dark:bg-[#232F28] hover:bg-[#E7EFEA] dark:hover:bg-[#1C2520] transition-colors"
+                className="flex items-center justify-center w-full px-4 py-2.5 rounded-xl border border-[#681B1D] text-xs font-bold text-[#681B1D] dark:text-[#EAD2B0] bg-white dark:bg-[#2E1F1E] hover:bg-[#EAD2B0]/30 transition-colors"
               >
                 Sign In
               </Link>
@@ -445,9 +448,9 @@ export function Navbar() {
             <Link
               href="/planner"
               onClick={() => setMobileMenuOpen(false)}
-              className="flex items-center justify-center gap-2 w-full px-4 py-2.5 rounded-xl bg-[#173F35] text-[#FAF8F3] text-xs font-bold shadow-md hover:bg-[#0F2B24]"
+              className="flex items-center justify-center gap-2 w-full px-4 py-2.5 rounded-xl bg-gradient-to-r from-[#681B1D] to-[#4B1117] text-[#FFF3E3] text-xs font-bold shadow-md hover:from-[#7A2124] hover:to-[#5C151D] border border-[#B77A36]/40"
             >
-              <Sparkles className="w-3.5 h-3.5 text-[#C6A66B]" />
+              <Sparkles className="w-3.5 h-3.5 text-[#B77A36]" />
               <span>Start Planning My Event</span>
             </Link>
           </div>

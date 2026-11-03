@@ -74,18 +74,20 @@ export function HowItWorks() {
   ];
 
   return (
-    <section className="py-24 bg-[#F0EDE5] dark:bg-[#1C2520] border-y border-[#E8E2D7] dark:border-[#344139] transition-colors duration-200">
+    <section className="py-24 bg-[#F8EFE4] dark:bg-[#241918] border-y border-[#EAD2B0] dark:border-[#4D3331] transition-colors duration-200">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-16">
         <div className="text-center max-w-3xl mx-auto space-y-4">
-          <span className="text-xs uppercase tracking-widest text-[#C6A66B] dark:text-[#D4B77D] font-bold">
-            The Evntora Method
-          </span>
-          <h2 className="text-3xl sm:text-5xl font-serif font-bold text-[#173F35] dark:text-[#F4F0E7] tracking-tight">
-            How Evntora Transforms Chaos Into Sheer Celebration.
+          <div className="inline-flex items-center gap-2 text-xs uppercase tracking-[0.2em] text-[#B77A36] dark:text-[#EAD2B0] font-bold">
+            <span className="w-6 h-[1px] bg-[#B77A36]" />
+            <span>The Evntora Method</span>
+            <span className="w-6 h-[1px] bg-[#B77A36]" />
+          </div>
+          <h2 className="text-3xl sm:text-5xl font-serif font-bold text-[#30221D] dark:text-[#FFF3E3] tracking-tight">
+            How Evntora Transforms Chaos Into Royal Elegance.
           </h2>
-          <p className="text-[#77746D] dark:text-[#B5B5AA] text-sm sm:text-base leading-relaxed">
-            Planning a celebration in India used to mean endless phone calls, ambiguous pricing, and fragmented spreadsheets. 
-            We replaced that with seamless AI intelligence.
+          <p className="text-[#59453E] dark:text-[#D4C3B7] text-sm sm:text-base leading-relaxed">
+            Planning a grand celebration in India used to mean endless phone calls, ambiguous pricing, and fragmented spreadsheets. 
+            We replaced that with seamless AI intelligence rooted in tradition.
           </p>
         </div>
 
@@ -102,14 +104,14 @@ export function HowItWorks() {
                   onClick={() => setActiveStep(idx)}
                   className={`p-5 rounded-2xl cursor-pointer transition-all border ${
                     isActive
-                      ? "bg-white dark:bg-[#232F28] border-[#173F35] dark:border-[#A9C7B2] shadow-md scale-[1.01]"
-                      : "bg-[#FAF8F3] dark:bg-[#151B18] border-[#E8E2D7] dark:border-[#344139] opacity-80 hover:opacity-100 hover:border-[#C6A66B]"
+                      ? "bg-[#FFF3E3] dark:bg-[#2E1F1E] border-[#681B1D] dark:border-[#EAD2B0] shadow-md scale-[1.01]"
+                      : "bg-[#FFF3E3]/60 dark:bg-[#1A1211]/60 border-[#EAD2B0] dark:border-[#4D3331] opacity-80 hover:opacity-100 hover:border-[#B77A36]"
                   }`}
                 >
                   <div className="flex items-start gap-4">
                     <span
                       className={`font-serif text-2xl font-bold ${
-                        isActive ? "text-[#173F35] dark:text-[#A9C7B2]" : "text-[#77746D] dark:text-[#898D84]"
+                        isActive ? "text-[#681B1D] dark:text-[#EAD2B0]" : "text-[#7D6B63] dark:text-[#9E897F]"
                       }`}
                     >
                       {step.num}
@@ -118,12 +120,12 @@ export function HowItWorks() {
                       <div className="flex items-center gap-2">
                         <Icon
                           className={`w-4 h-4 ${
-                            isActive ? "text-[#173F35] dark:text-[#A9C7B2]" : "text-[#77746D] dark:text-[#898D84]"
+                            isActive ? "text-[#681B1D] dark:text-[#EAD2B0]" : "text-[#7D6B63] dark:text-[#9E897F]"
                           }`}
                         />
-                        <h3 className="text-base font-bold text-[#252522] dark:text-[#F4F0E7]">{step.title}</h3>
+                        <h3 className="text-base font-bold text-[#30221D] dark:text-[#FFF3E3]">{step.title}</h3>
                       </div>
-                      <p className="text-xs text-[#77746D] dark:text-[#B5B5AA]">{step.tagline}</p>
+                      <p className="text-xs text-[#7D6B63] dark:text-[#D4C3B7]">{step.tagline}</p>
                     </div>
                   </div>
                 </div>
@@ -133,33 +135,33 @@ export function HowItWorks() {
 
           {/* Detailed Preview Card */}
           <div className="lg:col-span-7">
-            <div className="p-8 sm:p-10 rounded-3xl bg-white dark:bg-[#232F28] border border-[#E8E2D7] dark:border-[#344139] shadow-lg relative overflow-hidden space-y-6">
-              <div className="flex items-center justify-between border-b border-[#E8E2D7] dark:border-[#344139] pb-4">
-                <span className="text-xs font-mono font-semibold uppercase tracking-wider text-[#C6A66B] dark:text-[#D4B77D]">
+            <div className="p-8 sm:p-10 rounded-3xl bg-[#FFF3E3] dark:bg-[#2E1F1E] border border-[#EAD2B0] dark:border-[#4D3331] shadow-xl relative overflow-hidden space-y-6">
+              <div className="flex items-center justify-between border-b border-[#EAD2B0] dark:border-[#4D3331] pb-4">
+                <span className="text-xs font-mono font-semibold uppercase tracking-wider text-[#B77A36] dark:text-[#EAD2B0]">
                   Step {steps[activeStep].num} Deep-Dive
                 </span>
-                <span className="px-3 py-1 rounded-full text-[11px] font-semibold bg-[#E7EFEA] dark:bg-[#173F35]/50 text-[#173F35] dark:text-[#A9C7B2] border border-[#173F35]/20">
+                <span className="px-3 py-1 rounded-full text-[11px] font-semibold bg-[#EAD2B0]/40 dark:bg-[#681B1D]/40 text-[#681B1D] dark:text-[#EAD2B0] border border-[#EAD2B0] dark:border-[#4D3331]">
                   Interactive Preview
                 </span>
               </div>
 
               <div className="space-y-3">
-                <h3 className="text-2xl font-serif font-bold text-[#173F35] dark:text-[#F4F0E7]">
+                <h3 className="text-2xl font-serif font-bold text-[#30221D] dark:text-[#FFF3E3]">
                   {steps[activeStep].title}
                 </h3>
-                <p className="text-sm text-[#77746D] dark:text-[#B5B5AA] leading-relaxed">
+                <p className="text-sm text-[#59453E] dark:text-[#D4C3B7] leading-relaxed">
                   {steps[activeStep].desc}
                 </p>
               </div>
 
-              <div className="p-5 rounded-2xl bg-[#FAF8F3] dark:bg-[#1C2520] border border-[#E8E2D7] dark:border-[#344139] space-y-3">
-                <div className="text-xs font-bold text-[#173F35] dark:text-[#A9C7B2] uppercase tracking-wider">
+              <div className="p-5 rounded-2xl bg-white/80 dark:bg-[#1A1211]/80 border border-[#EAD2B0] dark:border-[#4D3331] space-y-3">
+                <div className="text-xs font-bold text-[#681B1D] dark:text-[#EAD2B0] uppercase tracking-wider">
                   Key Capabilities
                 </div>
                 <div className="space-y-2">
                   {steps[activeStep].features.map((feat, i) => (
-                    <div key={i} className="flex items-start gap-2.5 text-xs text-[#252522] dark:text-[#F4F0E7]">
-                      <CheckCircle2 className="w-4 h-4 text-[#173F35] dark:text-[#A9C7B2] shrink-0 mt-0.5" />
+                    <div key={i} className="flex items-start gap-2.5 text-xs text-[#30221D] dark:text-[#FFF3E3]">
+                      <CheckCircle2 className="w-4 h-4 text-[#B77A36] shrink-0 mt-0.5" />
                       <span>{feat}</span>
                     </div>
                   ))}
@@ -169,13 +171,13 @@ export function HowItWorks() {
               <div className="pt-2 flex items-center justify-between">
                 <Link
                   href="/planner"
-                  className="px-6 py-2.5 rounded-xl bg-[#173F35] hover:bg-[#0F2B24] text-[#FAF8F3] font-bold text-xs tracking-wide transition-all shadow-sm flex items-center gap-2 cursor-pointer"
+                  className="px-6 py-2.5 rounded-full bg-gradient-to-r from-[#681B1D] to-[#4B1117] hover:from-[#7A2124] hover:to-[#5C151D] text-[#FFF3E3] font-bold text-xs tracking-wide transition-all shadow-md flex items-center gap-2 cursor-pointer border border-[#B77A36]/40"
                 >
                   <span>Experience AI Planner</span>
-                  <ArrowRight className="w-3.5 h-3.5" />
+                  <ArrowRight className="w-3.5 h-3.5 text-[#EAD2B0]" />
                 </Link>
 
-                <div className="text-xs text-[#77746D] dark:text-[#B5B5AA]">
+                <div className="text-xs text-[#7D6B63] dark:text-[#D4C3B7]">
                   Step {activeStep + 1} of 4
                 </div>
               </div>
