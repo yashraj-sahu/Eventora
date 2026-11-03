@@ -114,23 +114,23 @@ export default function VendorDashboardPage() {
   return (
     <div className="space-y-8 animate-in fade-in duration-200">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-[#E8E2D7] dark:border-[#344139] pb-6">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-[#EAD2B0] dark:border-[#4D3331] pb-6">
         <div className="space-y-1">
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#E7EFEA] dark:bg-[#173F35]/50 text-[#173F35] dark:text-[#A9C7B2] text-xs font-semibold border border-[#173F35]/20 dark:border-[#A9C7B2]/30">
-            <Store className="w-3.5 h-3.5 text-[#C6A66B] dark:text-[#D4B77D]" />
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#EAD2B0] dark:bg-[#681B1D]/50 text-[#681B1D] dark:text-[#EAD2B0] text-xs font-semibold border border-[#681B1D]/20 dark:border-[#EAD2B0]/30">
+            <Store className="w-3.5 h-3.5 text-[#B77A36] dark:text-[#D4B77D]" />
             <span>Artisan Partner Desk • {businessName}</span>
           </div>
-          <h1 className="text-2xl sm:text-4xl font-serif font-bold text-[#173F35] dark:text-[#F4F0E7]">
+          <h1 className="text-2xl sm:text-4xl font-serif font-bold text-[#681B1D] dark:text-[#F4F0E7]">
             Partner Operations Hub
           </h1>
-          <p className="text-xs text-[#77746D] dark:text-[#B5B5AA]">
+          <p className="text-xs text-[#7D6B63] dark:text-[#D4C3B7]">
             Real-time management of client celebration requests, escrow receipts, and contracts
           </p>
         </div>
 
         <div className="flex items-center gap-2">
-          <span className="px-3.5 py-1.5 rounded-xl bg-[#E7EFEA] dark:bg-[#173F35]/50 border border-[#173F35]/20 dark:border-[#A9C7B2]/30 text-[#173F35] dark:text-[#A9C7B2] text-xs font-semibold flex items-center gap-1.5 shadow-2xs">
-            <CheckCircle2 className="w-4 h-4 text-[#173F35] dark:text-[#A9C7B2]" />
+          <span className="px-3.5 py-1.5 rounded-xl bg-[#EAD2B0] dark:bg-[#681B1D]/50 border border-[#681B1D]/20 dark:border-[#EAD2B0]/30 text-[#681B1D] dark:text-[#EAD2B0] text-xs font-semibold flex items-center gap-1.5 shadow-2xs">
+            <CheckCircle2 className="w-4 h-4 text-[#681B1D] dark:text-[#EAD2B0]" />
             <span>{vendorProfile?.approval_status === "approved" ? "Approved Vendor Desk" : "Application Pending Review"}</span>
           </span>
         </div>
@@ -138,66 +138,66 @@ export default function VendorDashboardPage() {
 
       {/* 4 Real Metric Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <div className="p-5 sm:p-6 rounded-2xl bg-white dark:bg-[#232F28] border border-[#E8E2D7] dark:border-[#344139] space-y-2 shadow-xs">
-          <span className="text-[#77746D] dark:text-[#B5B5AA] text-xs uppercase tracking-wider font-semibold">
+        <div className="p-5 sm:p-6 rounded-2xl bg-[#FFFCF6] dark:bg-[#2E1F1E] border border-[#EAD2B0] dark:border-[#4D3331] space-y-2 shadow-xs">
+          <span className="text-[#7D6B63] dark:text-[#D4C3B7] text-xs uppercase tracking-wider font-semibold">
             Gross Bookings Value
           </span>
-          <div className="text-2xl sm:text-3xl font-serif font-bold text-[#173F35] dark:text-[#D4B77D]">
+          <div className="text-2xl sm:text-3xl font-serif font-bold text-[#681B1D] dark:text-[#D4B77D]">
             {formatINR(grossValuePaise / 100)}
           </div>
-          <div className="text-[11px] text-[#173F35] dark:text-[#A9C7B2] flex items-center gap-1 font-semibold">
+          <div className="text-[11px] text-[#681B1D] dark:text-[#EAD2B0] flex items-center gap-1 font-semibold">
             <TrendingUp className="w-3.5 h-3.5" />
             <span>{bookings.length} active client orders</span>
           </div>
         </div>
 
-        <div className="p-5 sm:p-6 rounded-2xl bg-white dark:bg-[#232F28] border border-[#E8E2D7] dark:border-[#344139] space-y-2 shadow-xs">
-          <span className="text-[#77746D] dark:text-[#B5B5AA] text-xs uppercase tracking-wider font-semibold">
+        <div className="p-5 sm:p-6 rounded-2xl bg-[#FFFCF6] dark:bg-[#2E1F1E] border border-[#EAD2B0] dark:border-[#4D3331] space-y-2 shadow-xs">
+          <span className="text-[#7D6B63] dark:text-[#D4C3B7] text-xs uppercase tracking-wider font-semibold">
             Advance Escrow Received
           </span>
-          <div className="text-2xl sm:text-3xl font-serif font-bold text-emerald-600 dark:text-emerald-400">
+          <div className="text-2xl sm:text-3xl font-serif font-bold text-rose-800 dark:text-amber-700">
             {formatINR(totalPaidPaise / 100)}
           </div>
-          <span className="text-[11px] text-[#77746D] dark:text-[#B5B5AA] block">
+          <span className="text-[11px] text-[#7D6B63] dark:text-[#D4C3B7] block">
             Verified via Razorpay Gateway
           </span>
         </div>
 
-        <div className="p-5 sm:p-6 rounded-2xl bg-white dark:bg-[#232F28] border border-[#E8E2D7] dark:border-[#344139] space-y-2 shadow-xs">
-          <span className="text-[#77746D] dark:text-[#B5B5AA] text-xs uppercase tracking-wider font-semibold">
+        <div className="p-5 sm:p-6 rounded-2xl bg-[#FFFCF6] dark:bg-[#2E1F1E] border border-[#EAD2B0] dark:border-[#4D3331] space-y-2 shadow-xs">
+          <span className="text-[#7D6B63] dark:text-[#D4C3B7] text-xs uppercase tracking-wider font-semibold">
             Pending Client Receivables
           </span>
           <div className="text-2xl sm:text-3xl font-serif font-bold text-amber-600 dark:text-amber-400">
             {formatINR(pendingReceivablesPaise / 100)}
           </div>
-          <span className="text-[11px] text-[#77746D] dark:text-[#B5B5AA] block">
+          <span className="text-[11px] text-[#7D6B63] dark:text-[#D4C3B7] block">
             Due pre-event delivery
           </span>
         </div>
 
-        <div className="p-5 sm:p-6 rounded-2xl bg-white dark:bg-[#232F28] border border-[#E8E2D7] dark:border-[#344139] space-y-2 shadow-xs">
-          <span className="text-[#77746D] dark:text-[#B5B5AA] text-xs uppercase tracking-wider font-semibold">
+        <div className="p-5 sm:p-6 rounded-2xl bg-[#FFFCF6] dark:bg-[#2E1F1E] border border-[#EAD2B0] dark:border-[#4D3331] space-y-2 shadow-xs">
+          <span className="text-[#7D6B63] dark:text-[#D4C3B7] text-xs uppercase tracking-wider font-semibold">
             Confirmed Celebrations
           </span>
-          <div className="text-2xl sm:text-3xl font-serif font-bold text-[#173F35] dark:text-[#F4F0E7] flex items-center gap-1.5">
+          <div className="text-2xl sm:text-3xl font-serif font-bold text-[#681B1D] dark:text-[#F4F0E7] flex items-center gap-1.5">
             <span>{confirmedCount} Dates</span>
           </div>
-          <span className="text-[11px] text-[#77746D] dark:text-[#B5B5AA] block">
+          <span className="text-[11px] text-[#7D6B63] dark:text-[#D4C3B7] block">
             Scheduled across 2026-2027 season
           </span>
         </div>
       </div>
 
       {/* Tabs */}
-      <div className="flex items-center gap-2 border-b border-[#E8E2D7] dark:border-[#344139] pb-3">
+      <div className="flex items-center gap-2 border-b border-[#EAD2B0] dark:border-[#4D3331] pb-3">
         {(["bookings", "payments", "packages", "reviews"] as const).map((tab) => (
           <button
             key={tab}
             onClick={() => setActiveTab(tab)}
             className={`px-4 py-2 rounded-xl text-xs font-semibold capitalize transition-all cursor-pointer ${
               activeTab === tab
-                ? "bg-[#173F35] text-[#FAF8F3] dark:bg-[#232F28] dark:text-[#A9C7B2] shadow-xs"
-                : "text-[#77746D] dark:text-[#B5B5AA] hover:text-[#173F35] dark:hover:text-[#F4F0E7] hover:bg-[#E7EFEA]/50 dark:hover:bg-[#1C2520]"
+                ? "bg-[#681B1D] text-[#FFF3E3] dark:bg-[#2E1F1E] dark:text-[#EAD2B0] shadow-xs"
+                : "text-[#7D6B63] dark:text-[#D4C3B7] hover:text-[#681B1D] dark:hover:text-[#F4F0E7] hover:bg-[#EAD2B0]/50 dark:hover:bg-[#241918]"
             }`}
           >
             {tab === "bookings" ? "Booking Requests & Orders" : tab === "payments" ? "Escrow & Settlements" : tab}
@@ -209,25 +209,25 @@ export default function VendorDashboardPage() {
       {activeTab === "bookings" && (
         <div className="space-y-4">
           <div className="flex items-center justify-between">
-            <h2 className="text-lg font-serif font-bold text-[#173F35] dark:text-[#F4F0E7]">
+            <h2 className="text-lg font-serif font-bold text-[#681B1D] dark:text-[#F4F0E7]">
               Client Bookings & Orders
             </h2>
-            <span className="text-xs text-[#77746D] dark:text-[#B5B5AA]">
+            <span className="text-xs text-[#7D6B63] dark:text-[#D4C3B7]">
               {bookings.length} client booking(s) recorded
             </span>
           </div>
 
           {loading ? (
-            <div className="p-8 text-center text-xs text-[#77746D] dark:text-[#B5B5AA]">
+            <div className="p-8 text-center text-xs text-[#7D6B63] dark:text-[#D4C3B7]">
               Loading artisan bookings...
             </div>
           ) : bookings.length === 0 ? (
-            <div className="p-12 text-center rounded-3xl bg-white dark:bg-[#232F28] border border-[#E8E2D7] dark:border-[#344139] space-y-3">
-              <Store className="w-8 h-8 text-[#77746D]/50 mx-auto" />
-              <h3 className="text-sm font-bold text-[#252522] dark:text-[#F4F0E7]">
+            <div className="p-12 text-center rounded-3xl bg-[#FFFCF6] dark:bg-[#2E1F1E] border border-[#EAD2B0] dark:border-[#4D3331] space-y-3">
+              <Store className="w-8 h-8 text-[#7D6B63]/50 mx-auto" />
+              <h3 className="text-sm font-bold text-[#30221D] dark:text-[#F4F0E7]">
                 No Bookings Received Yet
               </h3>
-              <p className="text-xs text-[#77746D] dark:text-[#B5B5AA] max-w-sm mx-auto">
+              <p className="text-xs text-[#7D6B63] dark:text-[#D4C3B7] max-w-sm mx-auto">
                 When customers book your packages or services from your profile, bookings and payment locks will appear here.
               </p>
             </div>
@@ -241,18 +241,18 @@ export default function VendorDashboardPage() {
                 return (
                   <div
                     key={booking.id}
-                    className="p-6 rounded-3xl bg-white dark:bg-[#232F28] border border-[#E8E2D7] dark:border-[#344139] space-y-4 shadow-xs"
+                    className="p-6 rounded-3xl bg-[#FFFCF6] dark:bg-[#2E1F1E] border border-[#EAD2B0] dark:border-[#4D3331] space-y-4 shadow-xs"
                   >
-                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-[#E8E2D7] dark:border-[#344139] pb-3">
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-[#EAD2B0] dark:border-[#4D3331] pb-3">
                       <div className="space-y-0.5">
                         <div className="flex items-center gap-2">
-                          <span className="font-mono text-xs font-bold text-[#173F35] dark:text-[#A9C7B2]">
+                          <span className="font-mono text-xs font-bold text-[#681B1D] dark:text-[#EAD2B0]">
                             {booking.booking_reference}
                           </span>
                           <span
                             className={`text-[10px] font-bold px-2.5 py-0.5 rounded-full uppercase ${
                               booking.status === "confirmed"
-                                ? "bg-[#E7EFEA] text-[#173F35] dark:bg-[#173F35]/50 dark:text-[#A9C7B2]"
+                                ? "bg-[#EAD2B0] text-[#681B1D] dark:bg-[#681B1D]/50 dark:text-[#EAD2B0]"
                                 : booking.status === "awaiting_payment"
                                 ? "bg-amber-100 text-amber-700 dark:bg-amber-950/40 dark:text-amber-300"
                                 : booking.status === "pending_vendor_confirmation"
@@ -263,29 +263,29 @@ export default function VendorDashboardPage() {
                             {booking.status.replace(/_/g, " ")}
                           </span>
                         </div>
-                        <h3 className="text-base font-serif font-bold text-[#252522] dark:text-[#F4F0E7]">
+                        <h3 className="text-base font-serif font-bold text-[#30221D] dark:text-[#F4F0E7]">
                           Client: {booking.profiles?.full_name || "Private Client"}
                         </h3>
-                        <p className="text-xs text-[#77746D] dark:text-[#B5B5AA]">
+                        <p className="text-xs text-[#7D6B63] dark:text-[#D4C3B7]">
                           {booking.package_name || "Custom Service"} • {booking.event_city} • {booking.guest_count || 100} Guests
                         </p>
                       </div>
 
                       <div className="text-right">
-                        <span className="text-[10px] uppercase font-bold text-[#77746D] dark:text-[#B5B5AA] block">
+                        <span className="text-[10px] uppercase font-bold text-[#7D6B63] dark:text-[#D4C3B7] block">
                           Agreed Contract
                         </span>
-                        <div className="text-xl font-serif font-bold text-[#173F35] dark:text-[#F4F0E7]">
+                        <div className="text-xl font-serif font-bold text-[#681B1D] dark:text-[#F4F0E7]">
                           {formatINR(totalINR)}
                         </div>
-                        <span className="text-[11px] text-emerald-600 dark:text-emerald-400 font-semibold block">
+                        <span className="text-[11px] text-rose-800 dark:text-amber-700 font-semibold block">
                           Paid: {formatINR(paidINR)} | Due: {formatINR(balanceINR)}
                         </span>
                       </div>
                     </div>
 
                     {booking.requirements && (
-                      <p className="text-xs text-[#77746D] dark:text-[#B5B5AA] bg-[#FAF8F3] dark:bg-[#1C2520] p-3.5 rounded-xl border border-[#E8E2D7] dark:border-[#344139]">
+                      <p className="text-xs text-[#7D6B63] dark:text-[#D4C3B7] bg-[#FFF3E3] dark:bg-[#241918] p-3.5 rounded-xl border border-[#EAD2B0] dark:border-[#4D3331]">
                         <strong>Notes from Client:</strong> {booking.requirements}
                       </p>
                     )}
@@ -296,14 +296,14 @@ export default function VendorDashboardPage() {
                         <button
                           disabled={actionInProgress === booking.id}
                           onClick={() => handleUpdateBookingStatus(booking.id, "cancelled")}
-                          className="px-4 py-2 rounded-xl bg-[#FAF8F3] hover:bg-rose-50 text-rose-700 border border-rose-200 text-xs font-semibold cursor-pointer"
+                          className="px-4 py-2 rounded-xl bg-[#FFF3E3] hover:bg-rose-50 text-rose-700 border border-rose-200 text-xs font-semibold cursor-pointer"
                         >
                           Decline Request
                         </button>
                         <button
                           disabled={actionInProgress === booking.id}
                           onClick={() => handleUpdateBookingStatus(booking.id, "awaiting_payment")}
-                          className="px-4 py-2 rounded-xl bg-[#173F35] hover:bg-[#0F2B24] text-[#FAF8F3] text-xs font-bold uppercase tracking-wider cursor-pointer shadow-xs"
+                          className="px-4 py-2 rounded-xl bg-[#681B1D] hover:bg-[#4B1117] text-[#FFF3E3] text-xs font-bold uppercase tracking-wider cursor-pointer shadow-xs"
                         >
                           Accept & Enable Customer Payment
                         </button>
@@ -319,29 +319,29 @@ export default function VendorDashboardPage() {
 
       {/* Escrow & Payments Tab */}
       {activeTab === "payments" && (
-        <div className="p-8 rounded-3xl bg-white dark:bg-[#232F28] border border-[#E8E2D7] dark:border-[#344139] space-y-6 shadow-xs">
+        <div className="p-8 rounded-3xl bg-[#FFFCF6] dark:bg-[#2E1F1E] border border-[#EAD2B0] dark:border-[#4D3331] space-y-6 shadow-xs">
           <div className="space-y-1">
-            <span className="text-[10px] uppercase font-bold tracking-widest text-[#C6A66B] dark:text-[#D4B77D]">
+            <span className="text-[10px] uppercase font-bold tracking-widest text-[#B77A36] dark:text-[#D4B77D]">
               Merchant Model Notice
             </span>
-            <h2 className="text-xl font-serif font-bold text-[#173F35] dark:text-[#F4F0E7]">
+            <h2 className="text-xl font-serif font-bold text-[#681B1D] dark:text-[#F4F0E7]">
               Escrow Payouts & Settlement Intelligence
             </h2>
-            <p className="text-xs text-[#77746D] dark:text-[#B5B5AA] leading-relaxed max-w-2xl">
+            <p className="text-xs text-[#7D6B63] dark:text-[#D4C3B7] leading-relaxed max-w-2xl">
               Evntora acts as the primary merchant collector via Razorpay. Customer advance deposits are held under platform escrow safeguards until verified performance delivery. Direct automated marketplace split settlements via Razorpay Route can be enabled upon completing regulatory bank account verification.
             </p>
           </div>
 
-          <div className="p-5 rounded-2xl bg-[#FAF8F3] dark:bg-[#1C2520] border border-[#E8E2D7] dark:border-[#344139] space-y-3">
-            <div className="flex items-center justify-between text-xs font-semibold text-[#252522] dark:text-[#F4F0E7]">
+          <div className="p-5 rounded-2xl bg-[#FFF3E3] dark:bg-[#241918] border border-[#EAD2B0] dark:border-[#4D3331] space-y-3">
+            <div className="flex items-center justify-between text-xs font-semibold text-[#30221D] dark:text-[#F4F0E7]">
               <span>Verified Customer Advance Deposits in Escrow:</span>
-              <span className="font-serif font-bold text-lg text-emerald-600 dark:text-emerald-400">
+              <span className="font-serif font-bold text-lg text-rose-800 dark:text-amber-700">
                 {formatINR(totalPaidPaise / 100)}
               </span>
             </div>
-            <div className="flex items-center justify-between text-xs text-[#77746D] dark:text-[#B5B5AA]">
+            <div className="flex items-center justify-between text-xs text-[#7D6B63] dark:text-[#D4C3B7]">
               <span>Artisan Bank Account Status:</span>
-              <span className="text-emerald-600 dark:text-emerald-400 font-semibold flex items-center gap-1">
+              <span className="text-rose-800 dark:text-amber-700 font-semibold flex items-center gap-1">
                 <ShieldCheck className="w-3.5 h-3.5" /> Verified for Escrow Disbursements
               </span>
             </div>
@@ -351,23 +351,23 @@ export default function VendorDashboardPage() {
 
       {/* Packages Tab */}
       {activeTab === "packages" && (
-        <div className="p-6 rounded-3xl bg-white dark:bg-[#232F28] border border-[#E8E2D7] dark:border-[#344139] space-y-4 shadow-xs">
-          <h2 className="text-lg font-serif font-bold text-[#173F35] dark:text-[#F4F0E7]">Services, packages and portfolio</h2>
-          {vendorProfile ? <><VendorProfileEditor profile={vendorProfile} onSaved={() => void refreshProfile()} /><VendorCatalogManager vendorId={vendorProfile.id} /></> : <p className="text-sm text-[#77746D]">Your business profile will appear here after registration is saved.</p>}
+        <div className="p-6 rounded-3xl bg-[#FFFCF6] dark:bg-[#2E1F1E] border border-[#EAD2B0] dark:border-[#4D3331] space-y-4 shadow-xs">
+          <h2 className="text-lg font-serif font-bold text-[#681B1D] dark:text-[#F4F0E7]">Services, packages and portfolio</h2>
+          {vendorProfile ? <><VendorProfileEditor profile={vendorProfile} onSaved={() => void refreshProfile()} /><VendorCatalogManager vendorId={vendorProfile.id} /></> : <p className="text-sm text-[#7D6B63]">Your business profile will appear here after registration is saved.</p>}
         </div>
       )}
 
       {/* Reviews Tab */}
       {activeTab === "reviews" && (
-        <div className="p-8 rounded-3xl bg-white dark:bg-[#232F28] border border-[#E8E2D7] dark:border-[#344139] space-y-4 shadow-xs">
-          <h2 className="text-lg font-serif font-bold text-[#173F35] dark:text-[#F4F0E7]">
+        <div className="p-8 rounded-3xl bg-[#FFFCF6] dark:bg-[#2E1F1E] border border-[#EAD2B0] dark:border-[#4D3331] space-y-4 shadow-xs">
+          <h2 className="text-lg font-serif font-bold text-[#681B1D] dark:text-[#F4F0E7]">
             Client Reviews
           </h2>
           <div className="flex items-center gap-2">
-            <span className="text-3xl font-serif font-bold text-[#173F35] dark:text-[#F4F0E7]">
+            <span className="text-3xl font-serif font-bold text-[#681B1D] dark:text-[#F4F0E7]">
               —
             </span>
-            <span className="text-xs text-[#77746D] dark:text-[#B5B5AA]">
+            <span className="text-xs text-[#7D6B63] dark:text-[#D4C3B7]">
               Reviews are not connected yet.
             </span>
           </div>

@@ -60,7 +60,7 @@ export const EVENT_CATEGORIES: EventCategoryInfo[] = [
     image: "https://images.unsplash.com/photo-1532712938310-34cb3982ef74?auto=format&fit=crop&w=1200&q=80",
     avgBudgetRange: "₹5 Lakhs - ₹30 Lakhs",
     typicalGuestRange: "75 - 300 Guests",
-    accentColor: "from-emerald-500/20 to-emerald-700/30",
+    accentColor: "from-[#B77A36]/20 to-[#681B1D]/30",
   },
   {
     id: "Private parties",
@@ -70,7 +70,7 @@ export const EVENT_CATEGORIES: EventCategoryInfo[] = [
     image: "https://images.unsplash.com/photo-1470225620780-dba8ba36b745?auto=format&fit=crop&w=1200&q=80",
     avgBudgetRange: "₹2 Lakhs - ₹10 Lakhs",
     typicalGuestRange: "30 - 120 Guests",
-    accentColor: "from-teal-500/20 to-teal-700/30",
+    accentColor: "from-[#EAD2B0]/35 to-[#681B1D]/30",
   },
 ];
 

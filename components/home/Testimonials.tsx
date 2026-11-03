@@ -69,7 +69,7 @@ export function Testimonials() {
                     <div className="w-10 h-10 rounded-2xl bg-[#EAD2B0]/40 dark:bg-[#3D2624] flex items-center justify-center text-[#681B1D] dark:text-[#EAD2B0]">
                       <Icon className="w-5 h-5 text-[#B77A36]" />
                     </div>
-                    <span className="text-[10px] uppercase font-bold tracking-wider px-2.5 py-1 rounded-full bg-white dark:bg-[#1A1211] text-[#681B1D] dark:text-[#EAD2B0] border border-[#EAD2B0] dark:border-[#4D3331]">
+                    <span className="text-[10px] uppercase font-bold tracking-wider px-2.5 py-1 rounded-full bg-[#FFFCF6] dark:bg-[#1A1211] text-[#681B1D] dark:text-[#EAD2B0] border border-[#EAD2B0] dark:border-[#4D3331]">
                       {pillar.badge}
                     </span>
                   </div>

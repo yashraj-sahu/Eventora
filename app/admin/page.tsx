@@ -42,22 +42,22 @@ export default function AdminOverviewPage() {
 
   return (
     <div className="space-y-8 animate-in fade-in duration-200">
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-[#E8E2D7] dark:border-[#344139] pb-6">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-[#EAD2B0] dark:border-[#4D3331] pb-6">
         <div className="space-y-1">
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#E7EFEA] dark:bg-[#173F35]/50 text-[#173F35] dark:text-[#A9C7B2] text-xs font-semibold border border-[#173F35]/20 dark:border-[#A9C7B2]/30">
-            <ShieldCheck className="w-3.5 h-3.5 text-[#C6A66B] dark:text-[#D4B77D]" />
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#EAD2B0] dark:bg-[#681B1D]/50 text-[#681B1D] dark:text-[#EAD2B0] text-xs font-semibold border border-[#681B1D]/20 dark:border-[#EAD2B0]/30">
+            <ShieldCheck className="w-3.5 h-3.5 text-[#B77A36] dark:text-[#D4B77D]" />
             <span>Evntora Platform Governance</span>
           </div>
-          <h1 className="text-2xl sm:text-4xl font-serif font-bold text-[#173F35] dark:text-[#F4F0E7]">
+          <h1 className="text-2xl sm:text-4xl font-serif font-bold text-[#681B1D] dark:text-[#F4F0E7]">
             Admin Master Console
           </h1>
-          <p className="text-xs text-[#77746D] dark:text-[#B5B5AA]">
+          <p className="text-xs text-[#7D6B63] dark:text-[#D4C3B7]">
             Nationwide operational telemetry, artisan compliance auditing, and celebration oversight
           </p>
         </div>
 
         <div className="flex items-center gap-2">
-          <span className="px-3 py-1.5 rounded-xl bg-[#FAF8F3] dark:bg-[#232F28] border border-[#E8E2D7] dark:border-[#344139] text-[#173F35] dark:text-[#A9C7B2] text-xs font-mono font-semibold">
+          <span className="px-3 py-1.5 rounded-xl bg-[#FFF3E3] dark:bg-[#2E1F1E] border border-[#EAD2B0] dark:border-[#4D3331] text-[#681B1D] dark:text-[#EAD2B0] text-xs font-mono font-semibold">
             Vendor records: {pendingVendors.length}
           </span>
         </div>
@@ -65,65 +65,65 @@ export default function AdminOverviewPage() {
 
       {/* 4 Core Metrics */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <div className="p-5 sm:p-6 rounded-2xl bg-white dark:bg-[#232F28] border border-[#E8E2D7] dark:border-[#344139] space-y-2 shadow-xs">
-          <span className="text-[#77746D] dark:text-[#B5B5AA] text-xs uppercase tracking-wider font-semibold">
+        <div className="p-5 sm:p-6 rounded-2xl bg-[#FFFCF6] dark:bg-[#2E1F1E] border border-[#EAD2B0] dark:border-[#4D3331] space-y-2 shadow-xs">
+          <span className="text-[#7D6B63] dark:text-[#D4C3B7] text-xs uppercase tracking-wider font-semibold">
             Gross Merchandise Value (GMV)
           </span>
-          <div className="text-2xl sm:text-3xl font-serif font-bold text-[#173F35] dark:text-[#D4B77D]">
+          <div className="text-2xl sm:text-3xl font-serif font-bold text-[#681B1D] dark:text-[#D4B77D]">
             —
           </div>
-          <div className="text-[11px] text-[#173F35] dark:text-[#A9C7B2] flex items-center gap-1 font-semibold">
+          <div className="text-[11px] text-[#681B1D] dark:text-[#EAD2B0] flex items-center gap-1 font-semibold">
             <span>Payment reporting is not connected here.</span>
           </div>
         </div>
 
-        <div className="p-5 sm:p-6 rounded-2xl bg-white dark:bg-[#232F28] border border-[#E8E2D7] dark:border-[#344139] space-y-2 shadow-xs">
-          <span className="text-[#77746D] dark:text-[#B5B5AA] text-xs uppercase tracking-wider font-semibold">
+        <div className="p-5 sm:p-6 rounded-2xl bg-[#FFFCF6] dark:bg-[#2E1F1E] border border-[#EAD2B0] dark:border-[#4D3331] space-y-2 shadow-xs">
+          <span className="text-[#7D6B63] dark:text-[#D4C3B7] text-xs uppercase tracking-wider font-semibold">
             Active Celebrations
           </span>
-          <div className="text-2xl sm:text-3xl font-serif font-bold text-[#173F35] dark:text-[#F4F0E7]">
+          <div className="text-2xl sm:text-3xl font-serif font-bold text-[#681B1D] dark:text-[#F4F0E7]">
             —
           </div>
-          <span className="text-[11px] text-[#77746D] dark:text-[#B5B5AA] block">
+          <span className="text-[11px] text-[#7D6B63] dark:text-[#D4C3B7] block">
             Across 14 royal hubs
           </span>
         </div>
 
-        <div className="p-5 sm:p-6 rounded-2xl bg-white dark:bg-[#232F28] border border-[#E8E2D7] dark:border-[#344139] space-y-2 shadow-xs">
-          <span className="text-[#77746D] dark:text-[#B5B5AA] text-xs uppercase tracking-wider font-semibold">
+        <div className="p-5 sm:p-6 rounded-2xl bg-[#FFFCF6] dark:bg-[#2E1F1E] border border-[#EAD2B0] dark:border-[#4D3331] space-y-2 shadow-xs">
+          <span className="text-[#7D6B63] dark:text-[#D4C3B7] text-xs uppercase tracking-wider font-semibold">
             Verified Artisans
           </span>
-          <div className="text-2xl sm:text-3xl font-serif font-bold text-[#173F35] dark:text-[#F4F0E7]">
+          <div className="text-2xl sm:text-3xl font-serif font-bold text-[#681B1D] dark:text-[#F4F0E7]">
             {pendingVendors.filter((v) => v.approval_status === "approved" && v.is_published).length} Partners
           </div>
-          <span className="text-[11px] text-[#173F35] dark:text-[#A9C7B2] block font-semibold">
+          <span className="text-[11px] text-[#681B1D] dark:text-[#EAD2B0] block font-semibold">
             Approved and published listings
           </span>
         </div>
 
-        <div className="p-5 sm:p-6 rounded-2xl bg-white dark:bg-[#232F28] border border-[#E8E2D7] dark:border-[#344139] space-y-2 shadow-xs">
-          <span className="text-[#77746D] dark:text-[#B5B5AA] text-xs uppercase tracking-wider font-semibold">
+        <div className="p-5 sm:p-6 rounded-2xl bg-[#FFFCF6] dark:bg-[#2E1F1E] border border-[#EAD2B0] dark:border-[#4D3331] space-y-2 shadow-xs">
+          <span className="text-[#7D6B63] dark:text-[#D4C3B7] text-xs uppercase tracking-wider font-semibold">
             Pending Verifications
           </span>
-          <div className="text-2xl sm:text-3xl font-serif font-bold text-[#C6A66B] dark:text-[#D4B77D]">
+          <div className="text-2xl sm:text-3xl font-serif font-bold text-[#B77A36] dark:text-[#D4B77D]">
             {pendingVendors.filter((v) => v.approval_status === "pending").length}
           </div>
-          <span className="text-[11px] text-[#77746D] dark:text-[#B5B5AA] block">
+          <span className="text-[11px] text-[#7D6B63] dark:text-[#D4C3B7] block">
             Requires compliance audit
           </span>
         </div>
       </div>
 
       {/* Tabs */}
-      <div className="flex items-center gap-2 border-b border-[#E8E2D7] dark:border-[#344139] pb-3">
+      <div className="flex items-center gap-2 border-b border-[#EAD2B0] dark:border-[#4D3331] pb-3">
         {(["vendors", "events", "users"] as const).map((tab) => (
           <button
             key={tab}
             onClick={() => setActiveTab(tab)}
             className={`px-4 py-2 rounded-xl text-xs font-semibold capitalize transition-all cursor-pointer ${
               activeTab === tab
-                ? "bg-[#173F35] text-[#FAF8F3] dark:bg-[#232F28] dark:text-[#A9C7B2] shadow-xs"
-                : "text-[#77746D] dark:text-[#B5B5AA] hover:text-[#173F35] dark:hover:text-[#F4F0E7] hover:bg-[#E7EFEA]/50 dark:hover:bg-[#1C2520]"
+                ? "bg-[#681B1D] text-[#FFF3E3] dark:bg-[#2E1F1E] dark:text-[#EAD2B0] shadow-xs"
+                : "text-[#7D6B63] dark:text-[#D4C3B7] hover:text-[#681B1D] dark:hover:text-[#F4F0E7] hover:bg-[#EAD2B0]/50 dark:hover:bg-[#241918]"
             }`}
           >
             {tab === "vendors"
@@ -138,41 +138,41 @@ export default function AdminOverviewPage() {
       {/* Pending Vendors Tab */}
       {activeTab === "vendors" && (
         <div className="space-y-4">
-          <form onSubmit={createListing} className="grid gap-3 rounded-2xl border border-[#E8E2D7] dark:border-[#344139] bg-white dark:bg-[#232F28] p-5 sm:grid-cols-2 lg:grid-cols-4">
-            <input required maxLength={160} placeholder="Business name" value={newListing.business_name} onChange={(e) => setNewListing({ ...newListing, business_name: e.target.value })} className="rounded-xl border border-[#E8E2D7] bg-[#FAF8F3] px-3 py-2 text-sm" />
-            <input required maxLength={80} placeholder="Category (custom allowed)" value={newListing.business_category} onChange={(e) => setNewListing({ ...newListing, business_category: e.target.value })} className="rounded-xl border border-[#E8E2D7] bg-[#FAF8F3] px-3 py-2 text-sm" />
-            <input required maxLength={120} placeholder="City / region" value={newListing.city} onChange={(e) => setNewListing({ ...newListing, city: e.target.value })} className="rounded-xl border border-[#E8E2D7] bg-[#FAF8F3] px-3 py-2 text-sm" />
-            <input maxLength={300} placeholder="Business address" value={newListing.address} onChange={(e) => setNewListing({ ...newListing, address: e.target.value })} className="rounded-xl border border-[#E8E2D7] bg-[#FAF8F3] px-3 py-2 text-sm" />
-            <input type="email" placeholder="Verified business email (for claims)" value={newListing.contact_email} onChange={(e) => setNewListing({ ...newListing, contact_email: e.target.value })} className="rounded-xl border border-[#E8E2D7] bg-[#FAF8F3] px-3 py-2 text-sm" />
-            <input placeholder="Phone" value={newListing.contact_phone} onChange={(e) => setNewListing({ ...newListing, contact_phone: e.target.value })} className="rounded-xl border border-[#E8E2D7] bg-[#FAF8F3] px-3 py-2 text-sm" />
-            <textarea maxLength={5000} placeholder="Business description" value={newListing.business_description} onChange={(e) => setNewListing({ ...newListing, business_description: e.target.value })} className="rounded-xl border border-[#E8E2D7] bg-[#FAF8F3] px-3 py-2 text-sm lg:col-span-2" />
-            <button className="rounded-xl bg-[#173F35] px-3 py-2 text-xs font-semibold text-white">Add unclaimed listing</button>
+          <form onSubmit={createListing} className="grid gap-3 rounded-2xl border border-[#EAD2B0] dark:border-[#4D3331] bg-[#FFFCF6] dark:bg-[#2E1F1E] p-5 sm:grid-cols-2 lg:grid-cols-4">
+            <input required maxLength={160} placeholder="Business name" value={newListing.business_name} onChange={(e) => setNewListing({ ...newListing, business_name: e.target.value })} className="rounded-xl border border-[#EAD2B0] bg-[#FFF3E3] px-3 py-2 text-sm" />
+            <input required maxLength={80} placeholder="Category (custom allowed)" value={newListing.business_category} onChange={(e) => setNewListing({ ...newListing, business_category: e.target.value })} className="rounded-xl border border-[#EAD2B0] bg-[#FFF3E3] px-3 py-2 text-sm" />
+            <input required maxLength={120} placeholder="City / region" value={newListing.city} onChange={(e) => setNewListing({ ...newListing, city: e.target.value })} className="rounded-xl border border-[#EAD2B0] bg-[#FFF3E3] px-3 py-2 text-sm" />
+            <input maxLength={300} placeholder="Business address" value={newListing.address} onChange={(e) => setNewListing({ ...newListing, address: e.target.value })} className="rounded-xl border border-[#EAD2B0] bg-[#FFF3E3] px-3 py-2 text-sm" />
+            <input type="email" placeholder="Verified business email (for claims)" value={newListing.contact_email} onChange={(e) => setNewListing({ ...newListing, contact_email: e.target.value })} className="rounded-xl border border-[#EAD2B0] bg-[#FFF3E3] px-3 py-2 text-sm" />
+            <input placeholder="Phone" value={newListing.contact_phone} onChange={(e) => setNewListing({ ...newListing, contact_phone: e.target.value })} className="rounded-xl border border-[#EAD2B0] bg-[#FFF3E3] px-3 py-2 text-sm" />
+            <textarea maxLength={5000} placeholder="Business description" value={newListing.business_description} onChange={(e) => setNewListing({ ...newListing, business_description: e.target.value })} className="rounded-xl border border-[#EAD2B0] bg-[#FFF3E3] px-3 py-2 text-sm lg:col-span-2" />
+            <button className="rounded-xl bg-[#681B1D] px-3 py-2 text-xs font-semibold text-white">Add unclaimed listing</button>
           </form>
           <div className="flex items-center justify-between">
-            <h2 className="text-lg font-serif font-bold text-[#173F35] dark:text-[#F4F0E7]">
+            <h2 className="text-lg font-serif font-bold text-[#681B1D] dark:text-[#F4F0E7]">
               Artisan Verification Desk
             </h2>
-            <span className="text-xs text-[#77746D] dark:text-[#B5B5AA]">
+            <span className="text-xs text-[#7D6B63] dark:text-[#D4C3B7]">
               {pendingVendors.length} listings logged
             </span>
           </div>
 
           <div className="space-y-3">
-            {queueLoading ? <p className="p-8 text-center">Loading vendor listings…</p> : queueError ? <p className="p-8 text-center text-rose-600">{queueError}</p> : pendingVendors.length === 0 ? <p className="p-8 text-center text-[#77746D]">No vendor listings yet.</p> : pendingVendors.map((vendor) => (
+            {queueLoading ? <p className="p-8 text-center">Loading vendor listings…</p> : queueError ? <p className="p-8 text-center text-rose-600">{queueError}</p> : pendingVendors.length === 0 ? <p className="p-8 text-center text-[#7D6B63]">No vendor listings yet.</p> : pendingVendors.map((vendor) => (
               <div
                 key={vendor.id}
-                className="p-5 sm:p-6 rounded-2xl bg-white dark:bg-[#232F28] border border-[#E8E2D7] dark:border-[#344139] flex flex-col sm:flex-row sm:items-center justify-between gap-4 shadow-xs"
+                className="p-5 sm:p-6 rounded-2xl bg-[#FFFCF6] dark:bg-[#2E1F1E] border border-[#EAD2B0] dark:border-[#4D3331] flex flex-col sm:flex-row sm:items-center justify-between gap-4 shadow-xs"
               >
                 <div className="space-y-1">
                   <div className="flex items-center gap-2">
-                    <h3 className="text-base font-serif font-bold text-[#173F35] dark:text-[#F4F0E7]">
+                    <h3 className="text-base font-serif font-bold text-[#681B1D] dark:text-[#F4F0E7]">
                       {vendor.business_name}
                     </h3>
-                    <span className="text-[10px] px-2 py-0.5 rounded-full bg-[#E7EFEA] dark:bg-[#173F35]/50 text-[#173F35] dark:text-[#A9C7B2] font-semibold">
+                    <span className="text-[10px] px-2 py-0.5 rounded-full bg-[#EAD2B0] dark:bg-[#681B1D]/50 text-[#681B1D] dark:text-[#EAD2B0] font-semibold">
                       {vendor.business_category}
                     </span>
                   </div>
-                  <div className="flex flex-wrap items-center gap-4 text-xs text-[#77746D] dark:text-[#B5B5AA]">
+                  <div className="flex flex-wrap items-center gap-4 text-xs text-[#7D6B63] dark:text-[#D4C3B7]">
                     <span>Location: {vendor.city}</span>
                     <span>•</span>
                     <span>Applied: {new Date(vendor.created_at).toLocaleDateString()}</span>
@@ -185,9 +185,9 @@ export default function AdminOverviewPage() {
                   {vendor.approval_status === "approved" ? <button onClick={() => void updateVendor(vendor.id, "suspend")} className="px-3.5 py-1.5 rounded-xl text-rose-600 text-xs font-medium">Suspend listing</button> : <>
                       <button
                         onClick={() => void updateVendor(vendor.id, "approve")}
-                        className="px-3.5 py-1.5 rounded-xl bg-[#173F35] hover:bg-[#0F2B24] text-[#FAF8F3] text-xs font-semibold transition-all flex items-center gap-1.5 cursor-pointer"
+                        className="px-3.5 py-1.5 rounded-xl bg-[#681B1D] hover:bg-[#4B1117] text-[#FFF3E3] text-xs font-semibold transition-all flex items-center gap-1.5 cursor-pointer"
                       >
-                        <Check className="w-3.5 h-3.5 text-[#C6A66B]" />
+                        <Check className="w-3.5 h-3.5 text-[#B77A36]" />
                         <span>Approve Partner</span>
                       </button>
                       <button
@@ -206,11 +206,11 @@ export default function AdminOverviewPage() {
 
       {/* Events Tab */}
       {activeTab === "events" && (
-        <div className="p-6 rounded-2xl bg-white dark:bg-[#232F28] border border-[#E8E2D7] dark:border-[#344139] space-y-4">
-          <h2 className="text-lg font-serif font-bold text-[#173F35] dark:text-[#F4F0E7]">
+        <div className="p-6 rounded-2xl bg-[#FFFCF6] dark:bg-[#2E1F1E] border border-[#EAD2B0] dark:border-[#4D3331] space-y-4">
+          <h2 className="text-lg font-serif font-bold text-[#681B1D] dark:text-[#F4F0E7]">
             Nationwide Event Blueprint Telemetry
           </h2>
-          <p className="text-xs text-[#77746D] dark:text-[#B5B5AA]">
+          <p className="text-xs text-[#7D6B63] dark:text-[#D4C3B7]">
             Monitoring real-time milestones, venue locks, and culinary vendor contracts across India.
           </p>
         </div>
@@ -218,11 +218,11 @@ export default function AdminOverviewPage() {
 
       {/* Users Tab */}
       {activeTab === "users" && (
-        <div className="p-6 rounded-2xl bg-white dark:bg-[#232F28] border border-[#E8E2D7] dark:border-[#344139] space-y-4">
-          <h2 className="text-lg font-serif font-bold text-[#173F35] dark:text-[#F4F0E7]">
+        <div className="p-6 rounded-2xl bg-[#FFFCF6] dark:bg-[#2E1F1E] border border-[#EAD2B0] dark:border-[#4D3331] space-y-4">
+          <h2 className="text-lg font-serif font-bold text-[#681B1D] dark:text-[#F4F0E7]">
             Platform Member Accounts
           </h2>
-          <p className="text-xs text-[#77746D] dark:text-[#B5B5AA]">
+          <p className="text-xs text-[#7D6B63] dark:text-[#D4C3B7]">
             Supabase Auth synchronized user records with role-based access control.
           </p>
         </div>

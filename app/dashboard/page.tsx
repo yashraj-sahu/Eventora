@@ -40,28 +40,28 @@ export default function DashboardOverviewPage() {
   return (
     <div className="space-y-8 animate-in fade-in duration-200">
       {/* Top Banner with Active Celebration */}
-      <div className="p-6 sm:p-8 rounded-3xl bg-gradient-to-br from-[#173F35] to-[#0F2B24] text-[#FAF8F3] border border-[#C6A66B]/30 shadow-xl relative overflow-hidden flex flex-col md:flex-row md:items-center justify-between gap-6">
+      <div className="p-6 sm:p-8 rounded-3xl bg-gradient-to-br from-[#681B1D] to-[#4B1117] text-[#FFF3E3] border border-[#B77A36]/30 shadow-xl relative overflow-hidden flex flex-col md:flex-row md:items-center justify-between gap-6">
         <div className="space-y-2 z-10">
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#FAF8F3]/10 text-[#C6A66B] text-xs font-semibold border border-[#C6A66B]/30 backdrop-blur-xs">
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#FFF3E3]/10 text-[#B77A36] text-xs font-semibold border border-[#B77A36]/30 backdrop-blur-xs">
             <Sparkles className="w-3.5 h-3.5" />
             <span>Active Celebration Workspace</span>
           </div>
-          <h1 className="text-2xl sm:text-4xl font-serif font-bold text-[#FAF8F3] tracking-tight">
+          <h1 className="text-2xl sm:text-4xl font-serif font-bold text-[#FFF3E3] tracking-tight">
             {activeEvent?.title || "Royal Indian Celebration"}
           </h1>
-          <div className="flex flex-wrap items-center gap-4 text-xs text-[#E7EFEA]/80">
+          <div className="flex flex-wrap items-center gap-4 text-xs text-[#EAD2B0]/80">
             <span className="flex items-center gap-1.5">
-              <MapPin className="w-3.5 h-3.5 text-[#C6A66B]" />
+              <MapPin className="w-3.5 h-3.5 text-[#B77A36]" />
               {activeEvent?.city || "Rajasthan"}
             </span>
             <span>•</span>
             <span className="flex items-center gap-1.5">
-              <Calendar className="w-3.5 h-3.5 text-[#C6A66B]" />
+              <Calendar className="w-3.5 h-3.5 text-[#B77A36]" />
               {activeEvent?.date || "November 2026"}
             </span>
             <span>•</span>
             <span className="flex items-center gap-1.5">
-              <Users className="w-3.5 h-3.5 text-[#C6A66B]" />
+              <Users className="w-3.5 h-3.5 text-[#B77A36]" />
               {activeEvent?.guestCount || 350} Expected Guests
             </span>
           </div>
@@ -70,7 +70,7 @@ export default function DashboardOverviewPage() {
         <div className="flex items-center gap-3 z-10 shrink-0">
           <Link
             href="/dashboard/workspace"
-            className="px-5 py-2.5 rounded-xl bg-[#C6A66B] hover:bg-[#D4B77D] text-[#173F35] font-bold text-xs tracking-wide shadow-md transition-all flex items-center gap-1.5 cursor-pointer"
+            className="px-5 py-2.5 rounded-xl bg-[#B77A36] hover:bg-[#D4B77D] text-[#681B1D] font-bold text-xs tracking-wide shadow-md transition-all flex items-center gap-1.5 cursor-pointer"
           >
             <span>View Full Blueprint</span>
             <ArrowRight className="w-3.5 h-3.5" />
@@ -81,24 +81,24 @@ export default function DashboardOverviewPage() {
       {/* 4 Metric Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         {/* Total Budget Card */}
-        <div className="p-5 sm:p-6 rounded-2xl bg-white dark:bg-[#232F28] border border-[#E8E2D7] dark:border-[#344139] space-y-3 shadow-xs">
-          <div className="flex items-center justify-between text-[#77746D] dark:text-[#B5B5AA] text-xs">
+        <div className="p-5 sm:p-6 rounded-2xl bg-[#FFFCF6] dark:bg-[#2E1F1E] border border-[#EAD2B0] dark:border-[#4D3331] space-y-3 shadow-xs">
+          <div className="flex items-center justify-between text-[#7D6B63] dark:text-[#D4C3B7] text-xs">
             <span className="font-semibold uppercase tracking-wider">Committed Budget</span>
-            <Coins className="w-4 h-4 text-[#C6A66B] dark:text-[#D4B77D]" />
+            <Coins className="w-4 h-4 text-[#B77A36] dark:text-[#D4B77D]" />
           </div>
-          <div className="text-2xl font-serif font-bold text-[#173F35] dark:text-[#F4F0E7]">
+          <div className="text-2xl font-serif font-bold text-[#681B1D] dark:text-[#F4F0E7]">
             {formatINR(totalSpent)}
           </div>
           <div className="space-y-1.5">
-            <div className="flex items-center justify-between text-[11px] text-[#77746D] dark:text-[#B5B5AA]">
+            <div className="flex items-center justify-between text-[11px] text-[#7D6B63] dark:text-[#D4C3B7]">
               <span>{budgetSpentPct}% of {formatINR(totalBudget)}</span>
-              <span className="text-[#173F35] dark:text-[#A9C7B2] font-semibold">
+              <span className="text-[#681B1D] dark:text-[#EAD2B0] font-semibold">
                 {formatINR(remainingBudget)} left
               </span>
             </div>
-            <div className="w-full h-1.5 bg-[#F0EDE5] dark:bg-[#1C2520] rounded-full overflow-hidden">
+            <div className="w-full h-1.5 bg-[#F0EDE5] dark:bg-[#241918] rounded-full overflow-hidden">
               <div
-                className="h-full bg-[#173F35] dark:bg-[#A9C7B2] rounded-full transition-all duration-300"
+                className="h-full bg-[#681B1D] dark:bg-[#EAD2B0] rounded-full transition-all duration-300"
                 style={{ width: `${Math.min(budgetSpentPct, 100)}%` }}
               ></div>
             </div>
@@ -106,25 +106,25 @@ export default function DashboardOverviewPage() {
         </div>
 
         {/* Guest RSVP Card */}
-        <div className="p-5 sm:p-6 rounded-2xl bg-white dark:bg-[#232F28] border border-[#E8E2D7] dark:border-[#344139] space-y-3 shadow-xs">
-          <div className="flex items-center justify-between text-[#77746D] dark:text-[#B5B5AA] text-xs">
+        <div className="p-5 sm:p-6 rounded-2xl bg-[#FFFCF6] dark:bg-[#2E1F1E] border border-[#EAD2B0] dark:border-[#4D3331] space-y-3 shadow-xs">
+          <div className="flex items-center justify-between text-[#7D6B63] dark:text-[#D4C3B7] text-xs">
             <span className="font-semibold uppercase tracking-wider">RSVP Progress</span>
-            <Users className="w-4 h-4 text-[#173F35] dark:text-[#A9C7B2]" />
+            <Users className="w-4 h-4 text-[#681B1D] dark:text-[#EAD2B0]" />
           </div>
-          <div className="text-2xl font-serif font-bold text-[#173F35] dark:text-[#F4F0E7]">
+          <div className="text-2xl font-serif font-bold text-[#681B1D] dark:text-[#F4F0E7]">
             {confirmedGuests}{" "}
-            <span className="text-sm font-sans text-[#77746D] dark:text-[#B5B5AA] font-normal">
+            <span className="text-sm font-sans text-[#7D6B63] dark:text-[#D4C3B7] font-normal">
               Confirmed
             </span>
           </div>
           <div className="space-y-1.5">
-            <div className="flex items-center justify-between text-[11px] text-[#77746D] dark:text-[#B5B5AA]">
+            <div className="flex items-center justify-between text-[11px] text-[#7D6B63] dark:text-[#D4C3B7]">
               <span>{pendingGuests} Pending</span>
               <span>{activeGuests.length} Total</span>
             </div>
-            <div className="w-full h-1.5 bg-[#F0EDE5] dark:bg-[#1C2520] rounded-full overflow-hidden">
+            <div className="w-full h-1.5 bg-[#F0EDE5] dark:bg-[#241918] rounded-full overflow-hidden">
               <div
-                className="h-full bg-[#C6A66B] dark:bg-[#D4B77D] rounded-full transition-all duration-300"
+                className="h-full bg-[#B77A36] dark:bg-[#D4B77D] rounded-full transition-all duration-300"
                 style={{
                   width: `${
                     activeGuests.length
@@ -138,22 +138,22 @@ export default function DashboardOverviewPage() {
         </div>
 
         {/* Checklist Completion */}
-        <div className="p-5 sm:p-6 rounded-2xl bg-white dark:bg-[#232F28] border border-[#E8E2D7] dark:border-[#344139] space-y-3 shadow-xs">
-          <div className="flex items-center justify-between text-[#77746D] dark:text-[#B5B5AA] text-xs">
+        <div className="p-5 sm:p-6 rounded-2xl bg-[#FFFCF6] dark:bg-[#2E1F1E] border border-[#EAD2B0] dark:border-[#4D3331] space-y-3 shadow-xs">
+          <div className="flex items-center justify-between text-[#7D6B63] dark:text-[#D4C3B7] text-xs">
             <span className="font-semibold uppercase tracking-wider">Checklist Tasks</span>
-            <CheckSquare className="w-4 h-4 text-[#173F35] dark:text-[#A9C7B2]" />
+            <CheckSquare className="w-4 h-4 text-[#681B1D] dark:text-[#EAD2B0]" />
           </div>
-          <div className="text-2xl font-serif font-bold text-[#173F35] dark:text-[#F4F0E7]">
+          <div className="text-2xl font-serif font-bold text-[#681B1D] dark:text-[#F4F0E7]">
             {completedTasks} / {activeChecklist.length}
           </div>
           <div className="space-y-1.5">
-            <div className="flex items-center justify-between text-[11px] text-[#77746D] dark:text-[#B5B5AA]">
+            <div className="flex items-center justify-between text-[11px] text-[#7D6B63] dark:text-[#D4C3B7]">
               <span>{checklistPct}% Completed</span>
               <span>{activeChecklist.length - completedTasks} Pending</span>
             </div>
-            <div className="w-full h-1.5 bg-[#F0EDE5] dark:bg-[#1C2520] rounded-full overflow-hidden">
+            <div className="w-full h-1.5 bg-[#F0EDE5] dark:bg-[#241918] rounded-full overflow-hidden">
               <div
-                className="h-full bg-[#173F35] dark:bg-[#A9C7B2] rounded-full transition-all duration-300"
+                className="h-full bg-[#681B1D] dark:bg-[#EAD2B0] rounded-full transition-all duration-300"
                 style={{ width: `${checklistPct}%` }}
               ></div>
             </div>
@@ -161,22 +161,22 @@ export default function DashboardOverviewPage() {
         </div>
 
         {/* Active Enquiries */}
-        <div className="p-5 sm:p-6 rounded-2xl bg-white dark:bg-[#232F28] border border-[#E8E2D7] dark:border-[#344139] space-y-3 shadow-xs">
-          <div className="flex items-center justify-between text-[#77746D] dark:text-[#B5B5AA] text-xs">
+        <div className="p-5 sm:p-6 rounded-2xl bg-[#FFFCF6] dark:bg-[#2E1F1E] border border-[#EAD2B0] dark:border-[#4D3331] space-y-3 shadow-xs">
+          <div className="flex items-center justify-between text-[#7D6B63] dark:text-[#D4C3B7] text-xs">
             <span className="font-semibold uppercase tracking-wider">Vendor Enquiries</span>
-            <Sparkles className="w-4 h-4 text-[#C6A66B] dark:text-[#D4B77D]" />
+            <Sparkles className="w-4 h-4 text-[#B77A36] dark:text-[#D4B77D]" />
           </div>
-          <div className="text-2xl font-serif font-bold text-[#173F35] dark:text-[#F4F0E7]">
+          <div className="text-2xl font-serif font-bold text-[#681B1D] dark:text-[#F4F0E7]">
             {state.enquiries.length}{" "}
-            <span className="text-sm font-sans text-[#77746D] dark:text-[#B5B5AA] font-normal">
+            <span className="text-sm font-sans text-[#7D6B63] dark:text-[#D4C3B7] font-normal">
               Active
             </span>
           </div>
-          <div className="flex items-center justify-between text-[11px] text-[#77746D] dark:text-[#B5B5AA] pt-1">
+          <div className="flex items-center justify-between text-[11px] text-[#7D6B63] dark:text-[#D4C3B7] pt-1">
             <span>Direct artisan quotes</span>
             <Link
               href="/dashboard/enquiries"
-              className="text-[#173F35] dark:text-[#A9C7B2] font-semibold hover:underline"
+              className="text-[#681B1D] dark:text-[#EAD2B0] font-semibold hover:underline"
             >
               View Status →
             </Link>
@@ -187,19 +187,19 @@ export default function DashboardOverviewPage() {
       {/* Main Grid: Recent Expenses & Key Tasks */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
         {/* Left: Recent Expenses */}
-        <div className="lg:col-span-7 p-6 sm:p-8 rounded-3xl bg-white dark:bg-[#232F28] border border-[#E8E2D7] dark:border-[#344139] space-y-6 shadow-xs">
+        <div className="lg:col-span-7 p-6 sm:p-8 rounded-3xl bg-[#FFFCF6] dark:bg-[#2E1F1E] border border-[#EAD2B0] dark:border-[#4D3331] space-y-6 shadow-xs">
           <div className="flex items-center justify-between">
             <div className="space-y-1">
-              <h2 className="text-lg font-serif font-bold text-[#173F35] dark:text-[#F4F0E7]">
+              <h2 className="text-lg font-serif font-bold text-[#681B1D] dark:text-[#F4F0E7]">
                 Recent Committed Expenses
               </h2>
-              <p className="text-xs text-[#77746D] dark:text-[#B5B5AA]">
+              <p className="text-xs text-[#7D6B63] dark:text-[#D4C3B7]">
                 Tracked payments against celebration milestones
               </p>
             </div>
             <Link
               href="/dashboard/budget"
-              className="text-xs text-[#173F35] dark:text-[#A9C7B2] font-semibold hover:underline flex items-center gap-1"
+              className="text-xs text-[#681B1D] dark:text-[#EAD2B0] font-semibold hover:underline flex items-center gap-1"
             >
               <span>Manage Budget</span>
               <ArrowRight className="w-3.5 h-3.5" />
@@ -210,25 +210,25 @@ export default function DashboardOverviewPage() {
             {activeExpenses.slice(0, 4).map((exp) => (
               <div
                 key={exp.id}
-                className="p-4 rounded-xl bg-[#FAF8F3] dark:bg-[#1C2520] border border-[#E8E2D7] dark:border-[#344139] flex items-center justify-between text-xs transition-colors"
+                className="p-4 rounded-xl bg-[#FFF3E3] dark:bg-[#241918] border border-[#EAD2B0] dark:border-[#4D3331] flex items-center justify-between text-xs transition-colors"
               >
                 <div>
-                  <h4 className="font-semibold text-[#252522] dark:text-[#F4F0E7]">
+                  <h4 className="font-semibold text-[#30221D] dark:text-[#F4F0E7]">
                     {exp.title}
                   </h4>
-                  <span className="text-[11px] text-[#77746D] dark:text-[#B5B5AA]">
+                  <span className="text-[11px] text-[#7D6B63] dark:text-[#D4C3B7]">
                     {exp.category} • {exp.vendorName || "General Vendor"}
                   </span>
                 </div>
                 <div className="text-right">
-                  <span className="font-serif font-bold text-[#173F35] dark:text-[#F4F0E7] block text-sm">
+                  <span className="font-serif font-bold text-[#681B1D] dark:text-[#F4F0E7] block text-sm">
                     {formatINR(exp.amount)}
                   </span>
                   <span
                     className={`text-[10px] font-semibold px-2 py-0.5 rounded-full inline-block ${
                       exp.status === "paid"
-                        ? "bg-[#E7EFEA] dark:bg-[#173F35]/50 text-[#173F35] dark:text-[#A9C7B2]"
-                        : "bg-[#F4EBD9] dark:bg-[#C6A66B]/20 text-[#C6A66B] dark:text-[#D4B77D]"
+                        ? "bg-[#EAD2B0] dark:bg-[#681B1D]/50 text-[#681B1D] dark:text-[#EAD2B0]"
+                        : "bg-[#F4EBD9] dark:bg-[#B77A36]/20 text-[#B77A36] dark:text-[#D4B77D]"
                     }`}
                   >
                     {exp.status.toUpperCase()}
@@ -240,19 +240,19 @@ export default function DashboardOverviewPage() {
         </div>
 
         {/* Right: Urgent Planning Tasks */}
-        <div className="lg:col-span-5 p-6 sm:p-8 rounded-3xl bg-white dark:bg-[#232F28] border border-[#E8E2D7] dark:border-[#344139] space-y-6 shadow-xs">
+        <div className="lg:col-span-5 p-6 sm:p-8 rounded-3xl bg-[#FFFCF6] dark:bg-[#2E1F1E] border border-[#EAD2B0] dark:border-[#4D3331] space-y-6 shadow-xs">
           <div className="flex items-center justify-between">
             <div className="space-y-1">
-              <h2 className="text-lg font-serif font-bold text-[#173F35] dark:text-[#F4F0E7]">
+              <h2 className="text-lg font-serif font-bold text-[#681B1D] dark:text-[#F4F0E7]">
                 Milestone Checklist
               </h2>
-              <p className="text-xs text-[#77746D] dark:text-[#B5B5AA]">
+              <p className="text-xs text-[#7D6B63] dark:text-[#D4C3B7]">
                 Tasks approaching planning deadline
               </p>
             </div>
             <Link
               href="/dashboard/checklist"
-              className="text-xs text-[#173F35] dark:text-[#A9C7B2] font-semibold hover:underline flex items-center gap-1"
+              className="text-xs text-[#681B1D] dark:text-[#EAD2B0] font-semibold hover:underline flex items-center gap-1"
             >
               <span>All Tasks</span>
               <ArrowRight className="w-3.5 h-3.5" />
@@ -263,13 +263,13 @@ export default function DashboardOverviewPage() {
             {activeChecklist.slice(0, 4).map((chk) => (
               <div
                 key={chk.id}
-                className="p-3.5 rounded-xl bg-[#FAF8F3] dark:bg-[#1C2520] border border-[#E8E2D7] dark:border-[#344139] flex items-start gap-3 text-xs"
+                className="p-3.5 rounded-xl bg-[#FFF3E3] dark:bg-[#241918] border border-[#EAD2B0] dark:border-[#4D3331] flex items-start gap-3 text-xs"
               >
                 <div
                   className={`w-4 h-4 rounded mt-0.5 border flex items-center justify-center shrink-0 ${
                     chk.completed
-                      ? "bg-[#173F35] border-[#173F35] text-[#FAF8F3]"
-                      : "border-[#E8E2D7] dark:border-[#344139]"
+                      ? "bg-[#681B1D] border-[#681B1D] text-[#FFF3E3]"
+                      : "border-[#EAD2B0] dark:border-[#4D3331]"
                   }`}
                 >
                   {chk.completed && "✓"}
@@ -278,13 +278,13 @@ export default function DashboardOverviewPage() {
                   <h4
                     className={`text-xs ${
                       chk.completed
-                        ? "line-through text-[#77746D] dark:text-[#B5B5AA]"
-                        : "text-[#252522] dark:text-[#F4F0E7] font-medium"
+                        ? "line-through text-[#7D6B63] dark:text-[#D4C3B7]"
+                        : "text-[#30221D] dark:text-[#F4F0E7] font-medium"
                     }`}
                   >
                     {chk.task}
                   </h4>
-                  <span className="text-[10px] text-[#C6A66B] dark:text-[#D4B77D] font-mono block">
+                  <span className="text-[10px] text-[#B77A36] dark:text-[#D4B77D] font-mono block">
                     {chk.timelineStage}
                   </span>
                 </div>

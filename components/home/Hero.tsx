@@ -6,7 +6,6 @@ import { useRouter } from "next/navigation";
 import {
   Sparkles,
   ArrowRight,
-  ChevronDown,
   Calendar,
   MapPin,
   Users,
@@ -14,10 +13,10 @@ import {
 } from "lucide-react";
 import { CITIES } from "@/data/cities";
 import { EVENT_CATEGORIES } from "@/data/categories";
-import { SearchableSelect, type SelectOption } from "@/components/ui/SearchableSelect";
+import { EditableCombobox, type ComboboxOption } from "@/components/ui/EditableCombobox";
 
 /* Traditional Indian Heritage SVG Motifs */
-function RoyalLotusIcon({ className = "w-5 h-5" }: { className?: string }) {
+function RoyalLotusIcon({ className = "w-4 h-4" }: { className?: string }) {
   return (
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" className={className}>
       <path d="M12 3C12 7.5 9 11.5 6 13C6 9 8 5 12 3Z" fill="currentColor" fillOpacity="0.15" />
@@ -29,7 +28,7 @@ function RoyalLotusIcon({ className = "w-5 h-5" }: { className?: string }) {
   );
 }
 
-function RoyalHaveliIcon({ className = "w-5 h-5" }: { className?: string }) {
+function RoyalHaveliIcon({ className = "w-4 h-4" }: { className?: string }) {
   return (
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" className={className}>
       <path d="M4 20V9L12 4L20 9V20" />
@@ -43,7 +42,7 @@ function RoyalHaveliIcon({ className = "w-5 h-5" }: { className?: string }) {
   );
 }
 
-function RoyalScalesIcon({ className = "w-5 h-5" }: { className?: string }) {
+function RoyalScalesIcon({ className = "w-4 h-4" }: { className?: string }) {
   return (
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" className={className}>
       <path d="M12 3V20" />
@@ -55,7 +54,7 @@ function RoyalScalesIcon({ className = "w-5 h-5" }: { className?: string }) {
   );
 }
 
-function RoyalKnotIcon({ className = "w-5 h-5" }: { className?: string }) {
+function RoyalKnotIcon({ className = "w-4 h-4" }: { className?: string }) {
   return (
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" className={className}>
       <path d="M8 12C8 9.79086 9.79086 8 12 8C14.2091 8 16 9.79086 16 12C16 14.2091 14.2091 16 12 16C9.79086 16 8 14.2091 8 12Z" />
@@ -67,9 +66,9 @@ function RoyalKnotIcon({ className = "w-5 h-5" }: { className?: string }) {
 
 function RoyalFlourishMotif() {
   return (
-    <div className="flex items-center justify-center gap-2.5 my-1">
+    <div className="flex items-center justify-center gap-2.5 my-0.5">
       <div className="h-[1px] w-8 sm:w-16 bg-gradient-to-r from-transparent via-[#B77A36] to-transparent" />
-      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" className="text-[#B77A36]">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" className="text-[#B77A36]">
         <path
           d="M12 2C12 7 7 12 2 12C7 12 12 17 12 22C12 17 17 12 22 12C17 12 12 7 12 2Z"
           fill="currentColor"
@@ -89,64 +88,111 @@ export function Hero() {
   const [selectedType, setSelectedType] = useState("Weddings & Royal Celebrations");
   const [selectedCity, setSelectedCity] = useState("Udaipur");
   const [guestCount, setGuestCount] = useState("350");
-  const [budgetINR, setBudgetINR] = useState("4500000");
+  const [budgetINR, setBudgetINR] = useState("₹45,00,000");
+  const [quickPlanError, setQuickPlanError] = useState("");
 
-  const categoryOptions: SelectOption[] = EVENT_CATEGORIES.map((category) => ({
+  const categoryOptions: ComboboxOption[] = EVENT_CATEGORIES.map((category) => ({
     value: category.name,
     label: category.name,
+    description: category.tagline,
   }));
-  const cityOptions: SelectOption[] = CITIES.map((city) => ({
+
+  const cityOptions: ComboboxOption[] = CITIES.map((city) => ({
     value: city.name,
     label: city.name,
     description: city.state,
   }));
 
+  const guestOptions: ComboboxOption[] = [
+    { value: "50", label: "Intimate (50 guests)", description: "Close family & friends" },
+    { value: "150", label: "Classic (150 guests)", description: "Standard celebration" },
+    { value: "350", label: "Grand (350 guests)", description: "Multi-ceremony wedding" },
+    { value: "600", label: "Royal (600+ guests)", description: "Extravagant gala" },
+    { value: "1000", label: "Monumental (1,000+)", description: "Palace spectacle" },
+  ];
+
+  const budgetOptions: ComboboxOption[] = [
+    { value: "1000000", label: "₹10 Lakhs", description: "Boutique private event" },
+    { value: "2500000", label: "₹25 Lakhs", description: "Premium wedding celebration" },
+    { value: "4500000", label: "₹45 Lakhs", description: "Luxury destination wedding" },
+    { value: "8500000", label: "₹85 Lakhs", description: "Grand heritage palace spectacle" },
+    { value: "15000000", label: "₹1.5+ Crores", description: "Bespoke royal extravaganza" },
+  ];
+
   const handleQuickPlan = (e: React.FormEvent) => {
     e.preventDefault();
+    const cleanBudget = budgetINR.replace(/[^\d]/g, "");
+    const cleanGuests = guestCount.replace(/[^\d]/g, "");
+    const guestsNumber = Number(cleanGuests);
+    const budgetNumber = Number(cleanBudget);
+    if (!selectedType.trim() || selectedType.trim().length < 2 || selectedType.length > 80) {
+      setQuickPlanError("Enter a celebration type between 2 and 80 characters.");
+      return;
+    }
+    if (!selectedCity.trim() || selectedCity.trim().length < 2 || selectedCity.length > 100) {
+      setQuickPlanError("Enter a destination between 2 and 100 characters.");
+      return;
+    }
+    if (!Number.isInteger(guestsNumber) || guestsNumber < 1 || guestsNumber > 5000) {
+      setQuickPlanError("Enter a guest count from 1 to 5,000.");
+      return;
+    }
+    if (!Number.isSafeInteger(budgetNumber) || budgetNumber < 500 || budgetNumber > 100000000) {
+      setQuickPlanError("Enter a budget from ₹500 to ₹10,00,00,000.");
+      return;
+    }
+    setQuickPlanError("");
+
     router.push(
       `/planner?type=${encodeURIComponent(selectedType)}&city=${encodeURIComponent(
         selectedCity
-      )}&guests=${guestCount}&budget=${budgetINR}`
+      )}&guests=${encodeURIComponent(cleanGuests)}&budget=${encodeURIComponent(cleanBudget)}`
     );
   };
 
   return (
-    <section className="relative overflow-hidden w-full min-h-[92vh] flex flex-col justify-between pt-6 pb-8 lg:pt-10 lg:pb-12">
-      {/* ── BACKGROUND PHOTOGRAPHIC HERITAGE SCENE ── */}
-      <div className="absolute inset-0 -z-20 w-full h-full overflow-hidden">
+    <section className="relative isolate w-full min-h-[72vh] lg:min-h-[76vh] flex flex-col justify-between pt-2 pb-6 lg:pt-4 lg:pb-8 overflow-visible">
+      {/* ── BACKGROUND PHOTOGRAPHIC HERITAGE SCENE WITH NATURAL MULTI-LAYER BLEND ── */}
+      <div className="absolute inset-0 z-0 overflow-hidden pointer-events-none">
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
           src="/images/hero-palace-heritage.jpg"
           alt="Royal Udaipur Palace lake terrace at sunset"
-          className="w-full h-full object-cover object-center filter brightness-[0.98] contrast-[1.02]"
+          className="w-full h-full object-cover object-center filter brightness-[1.0] contrast-[1.02]"
         />
 
-        {/* Soft, delicate warm overlay preserving text readability while letting the architectural palace shine */}
-        <div className="absolute inset-0 bg-gradient-to-b from-[#FFF3E3]/40 via-[#FFF3E3]/20 to-[#FFF3E3]/95 dark:from-[#1A1211]/55 dark:via-[#1A1211]/45 dark:to-[#1A1211]/95" />
-        
-        {/* Subtle royal vignette */}
-        <div className="absolute inset-0 bg-radial-at-c from-transparent via-[#681B1D]/5 to-[#4B1117]/25 pointer-events-none" />
+        {/* Layer 1: Seamless top transition from navbar warm ivory background */}
+        <div className="absolute inset-0 bg-gradient-to-b from-[#FFF3E3] via-transparent to-transparent opacity-90 h-32" />
+
+        {/* Layer 2: Focused radial illumination directly behind heading & description for 100% text contrast */}
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_rgba(255,243,227,0.68)_0%,_rgba(255,243,227,0.36)_48%,_rgba(255,243,227,0.12)_72%,_transparent_100%)] dark:bg-[radial-gradient(ellipse_at_center,_rgba(26,18,17,0.76)_0%,_rgba(26,18,17,0.48)_48%,_rgba(26,18,17,0.22)_72%,_transparent_100%)]" />
+
+        {/* Layer 3: Warm golden hour aesthetic tint preserving palace details */}
+        <div className="absolute inset-0 bg-gradient-to-b from-[#FFF3E3]/35 via-transparent to-[#FFF3E3] dark:from-[#1A1211]/45 dark:via-transparent dark:to-[#1A1211]" />
+
+        {/* Layer 4: Flawless bottom blend into website cream background */}
+        <div className="absolute bottom-0 left-0 right-0 h-36 bg-gradient-to-t from-[#FFF3E3] via-[#FFF3E3]/85 to-transparent dark:from-[#1A1211] dark:via-[#1A1211]/85" />
       </div>
 
-      <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full flex-1 flex flex-col justify-center space-y-10 my-auto">
+      <div className="relative z-20 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full flex-1 flex flex-col justify-center space-y-6 lg:space-y-8 my-auto">
         {/* ── CENTER HEADLINE & BRANDING ── */}
-        <div className="text-center space-y-4 max-w-4xl mx-auto pt-2">
+        <div className="text-center space-y-3 max-w-4xl mx-auto pt-1">
           {/* Eyebrow Flourish Badge */}
           <div className="inline-flex flex-col items-center justify-center">
             <RoyalFlourishMotif />
-            <span className="text-[10px] sm:text-[11.5px] uppercase font-bold tracking-[0.28em] text-[#B77A36] dark:text-[#EAD2B0] mt-1 font-sans">
+            <span className="text-[10px] sm:text-[11.5px] uppercase font-bold tracking-[0.28em] text-[#B77A36] dark:text-[#EAD2B0] mt-0.5 font-sans">
               AI-POWERED EVENT PLANNING
             </span>
           </div>
 
           {/* Main Heritage Headline */}
-          <h1 className="text-4xl sm:text-6xl lg:text-7xl font-serif font-bold tracking-tight text-[#30221D] dark:text-[#FFF3E3] leading-[1.12]">
+          <h1 className="text-4xl sm:text-6xl lg:text-7xl font-serif font-bold tracking-tight text-[#2A1810] dark:text-[#FFF3E3] leading-[1.12]">
             Plan Celebrations Rooted <br />
             <span className="relative inline-block font-serif italic font-normal text-[#681B1D] dark:text-[#EAD2B0] mt-1">
               in Tradition
               {/* Calligraphy underline swash */}
               <svg
-                className="absolute -bottom-2 sm:-bottom-3 left-0 w-full h-3 sm:h-4 text-[#B77A36]/80 dark:text-[#EAD2B0]/80 overflow-visible"
+                className="absolute -bottom-2 sm:-bottom-3 left-0 w-full h-3 sm:h-4 text-[#B77A36] dark:text-[#EAD2B0] overflow-visible"
                 viewBox="0 0 260 18"
                 fill="none"
               >
@@ -158,17 +204,17 @@ export function Hero() {
             </span>
           </h1>
 
-          {/* Elegant Subtitle */}
-          <p className="text-sm sm:text-base lg:text-lg text-[#59453E] dark:text-[#D4C3B7] max-w-2xl mx-auto font-sans leading-relaxed pt-2">
+          {/* High-Contrast Description */}
+          <p className="text-sm sm:text-base lg:text-[17px] text-[#3D2C26] dark:text-[#EAD2B0] max-w-2xl mx-auto font-sans font-medium leading-relaxed pt-1">
             From royal weddings to elegant cultural gatherings, EVNTORA blends traditional
             charm with smart planning tools and a trusted vendor network.
           </p>
 
           {/* Dual Action CTAs */}
-          <div className="flex flex-wrap items-center justify-center gap-3.5 pt-4">
+          <div className="flex flex-wrap items-center justify-center gap-3 pt-2">
             <Link
               href="/planner"
-              className="px-6 sm:px-8 py-3.5 rounded-full bg-gradient-to-r from-[#681B1D] to-[#4B1117] hover:from-[#7A2124] hover:to-[#5C151D] text-[#FFF3E3] font-semibold text-xs sm:text-sm tracking-wide shadow-lg hover:shadow-xl transition-all flex items-center gap-2.5 border border-[#B77A36]/50 group cursor-pointer"
+              className="px-6 sm:px-8 py-3 rounded-full bg-gradient-to-r from-[#681B1D] to-[#4B1117] hover:from-[#7A2124] hover:to-[#5C151D] text-[#FFF3E3] font-semibold text-xs sm:text-sm tracking-wide shadow-lg hover:shadow-xl transition-all flex items-center gap-2 border border-[#B77A36]/60 group cursor-pointer"
             >
               <Calendar className="w-4 h-4 text-[#EAD2B0] group-hover:rotate-6 transition-transform" />
               <span>Start Planning My Event</span>
@@ -177,7 +223,7 @@ export function Hero() {
 
             <Link
               href="/vendors"
-              className="px-6 sm:px-7 py-3.5 rounded-full bg-[#FFF3E3]/95 dark:bg-[#2E1F1E]/95 hover:bg-[#FAF3E8] dark:hover:bg-[#3D2624] border border-[#EAD2B0] dark:border-[#4D3331] text-[#30221D] dark:text-[#FFF3E3] font-semibold text-xs sm:text-sm transition-all flex items-center gap-2.5 shadow-sm hover:shadow-md cursor-pointer"
+              className="px-6 sm:px-7 py-3 rounded-full bg-[#FFF3E3]/95 dark:bg-[#2E1F1E]/95 hover:bg-[#FAF3E8] dark:hover:bg-[#3D2624] border border-[#EAD2B0] dark:border-[#4D3331] text-[#30221D] dark:text-[#FFF3E3] font-semibold text-xs sm:text-sm transition-all flex items-center gap-2 shadow-sm hover:shadow-md cursor-pointer"
             >
               <RoyalHaveliIcon className="w-4 h-4 text-[#B77A36]" />
               <span>Explore Verified Vendors</span>
@@ -185,108 +231,88 @@ export function Hero() {
           </div>
         </div>
 
-        {/* ── THE SIGNATURE FLOATING HERITAGE EVENT PLANNER BAR ── */}
-        <div className="max-w-5xl mx-auto w-full pt-2">
-          {/* Ornate Rajasthani Bracket Architecture Silhouette */}
-          <div className="relative p-2.5 sm:p-3 rounded-3xl sm:rounded-[32px] bg-[#FFF3E3]/95 dark:bg-[#2E1F1E]/95 backdrop-blur-md border border-[#EAD2B0] dark:border-[#4D3331] shadow-[0_16px_40px_-8px_rgba(75,17,23,0.15),0_2px_10px_rgba(183,122,54,0.08)]">
-            <form onSubmit={handleQuickPlan} className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-2 sm:gap-3">
-              
-              {/* 1. Celebration Selector */}
-              <div className="p-2.5 sm:p-3 rounded-2xl bg-white/90 dark:bg-[#1A1211]/90 border border-[#EAD2B0]/80 dark:border-[#4D3331] hover:border-[#B77A36] transition-colors">
-                <label className="block text-[10px] uppercase font-bold tracking-wider text-[#B77A36] dark:text-[#EAD2B0] mb-1 flex items-center gap-1.5">
-                  <RoyalLotusIcon className="w-3.5 h-3.5 text-[#681B1D] dark:text-[#EAD2B0]" />
-                  <span>Celebration</span>
-                </label>
-                <SearchableSelect
+        {/* ── SIGNATURE FLOATING QUICK PLANNER BAR WITH GENUINE EDITABLE INPUTS ── */}
+        <div className="max-w-5xl mx-auto w-full pt-1 relative z-30">
+          <div className="relative p-2.5 sm:p-3 rounded-3xl bg-[#FFF3E3]/95 dark:bg-[#2E1F1E]/95 backdrop-blur-md border border-[#EAD2B0] dark:border-[#4D3331] shadow-[0_16px_40px_-8px_rgba(75,17,23,0.18),0_2px_10px_rgba(183,122,54,0.10)]">
+            <form
+              onSubmit={handleQuickPlan}
+              className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-12 gap-2.5 sm:gap-3 items-center"
+            >
+              {/* 1. Celebration Editable Combobox */}
+              <div className="lg:col-span-3">
+                <EditableCombobox
                   label="Celebration"
-                  labelClassName="sr-only"
+                  icon={<RoyalLotusIcon className="w-3.5 h-3.5" />}
                   value={selectedType}
-                  options={categoryOptions}
                   onChange={setSelectedType}
-                  allowCustom
-                  customLabel="Use category"
+                  options={categoryOptions}
+                  placeholder="e.g. Royal Wedding"
                 />
               </div>
 
-              {/* 2. Destination Selector */}
-              <div className="p-2.5 sm:p-3 rounded-2xl bg-white/90 dark:bg-[#1A1211]/90 border border-[#EAD2B0]/80 dark:border-[#4D3331] hover:border-[#B77A36] transition-colors">
-                <label className="block text-[10px] uppercase font-bold tracking-wider text-[#B77A36] dark:text-[#EAD2B0] mb-1 flex items-center gap-1.5">
-                  <MapPin className="w-3.5 h-3.5 text-[#681B1D] dark:text-[#EAD2B0]" />
-                  <span>Destination</span>
-                </label>
-                <SearchableSelect
+              {/* 2. Destination Editable Combobox */}
+              <div className="lg:col-span-3">
+                <EditableCombobox
                   label="Destination"
-                  labelClassName="sr-only"
+                  icon={<MapPin className="w-3.5 h-3.5" />}
                   value={selectedCity}
-                  options={cityOptions}
                   onChange={setSelectedCity}
-                  allowCustom
-                  customLabel="Use city"
+                  options={cityOptions}
+                  placeholder="e.g. Udaipur, Lake Palace"
                 />
               </div>
 
-              {/* 3. Guests Selector */}
-              <div className="p-2.5 sm:p-3 rounded-2xl bg-white/90 dark:bg-[#1A1211]/90 border border-[#EAD2B0]/80 dark:border-[#4D3331] hover:border-[#B77A36] transition-colors">
-                <label className="block text-[10px] uppercase font-bold tracking-wider text-[#B77A36] dark:text-[#EAD2B0] mb-1 flex items-center gap-1.5">
-                  <Users className="w-3.5 h-3.5 text-[#681B1D] dark:text-[#EAD2B0]" />
-                  <span>Guests</span>
-                </label>
-                <SearchableSelect
-                  label="Guest count"
-                  labelClassName="sr-only"
+              {/* 3. Guests Editable Combobox */}
+              <div className="lg:col-span-2">
+                <EditableCombobox
+                  label="Guests"
+                  icon={<Users className="w-3.5 h-3.5" />}
                   value={guestCount}
-                  options={[
-                    { value: "50", label: "Intimate (50 guests)" },
-                    { value: "150", label: "Classic (150 guests)" },
-                    { value: "350", label: "Grand (350 guests)" },
-                    { value: "600", label: "Royal (600+ guests)" },
-                    { value: "1000", label: "Monumental (1,000+)" },
-                  ]}
                   onChange={setGuestCount}
+                  options={guestOptions}
+                  placeholder="e.g. 275"
                 />
               </div>
 
-              {/* 4. Target Budget Selector */}
-              <div className="p-2.5 sm:p-3 rounded-2xl bg-white/90 dark:bg-[#1A1211]/90 border border-[#EAD2B0]/80 dark:border-[#4D3331] hover:border-[#B77A36] transition-colors">
-                <label className="block text-[10px] uppercase font-bold tracking-wider text-[#B77A36] dark:text-[#EAD2B0] mb-1 flex items-center gap-1.5">
-                  <Coins className="w-3.5 h-3.5 text-[#681B1D] dark:text-[#EAD2B0]" />
-                  <span>Target Budget</span>
-                </label>
-                <SearchableSelect
-                  label="Target budget"
-                  labelClassName="sr-only"
+              {/* 4. Target Budget Editable Combobox */}
+              <div className="lg:col-span-2">
+                <EditableCombobox
+                  label="Target Budget"
+                  icon={<Coins className="w-3.5 h-3.5" />}
                   value={budgetINR}
-                  options={[
-                    { value: "1000000", label: "₹10 Lakhs" },
-                    { value: "2500000", label: "₹25 Lakhs" },
-                    { value: "4500000", label: "₹45 Lakhs" },
-                    { value: "8500000", label: "₹85 Lakhs" },
-                    { value: "15000000", label: "₹1.5+ Crores" },
-                  ]}
                   onChange={setBudgetINR}
+                  options={budgetOptions}
+                  placeholder="e.g. ₹18,75,000"
+                  formatAsCurrency
                 />
               </div>
 
               {/* 5. Generate Plan CTA Button */}
-              <button
-                type="submit"
-                className="w-full h-full min-h-[48px] rounded-2xl bg-gradient-to-r from-[#681B1D] to-[#4B1117] hover:from-[#7A2124] hover:to-[#5C151D] text-[#FFF3E3] font-bold text-xs tracking-wider uppercase transition-all shadow-md hover:shadow-lg flex items-center justify-center gap-2 border border-[#B77A36]/60 group cursor-pointer"
-              >
-                <span>Generate Plan</span>
-                <Sparkles className="w-3.5 h-3.5 text-[#EAD2B0] group-hover:rotate-12 transition-transform" />
-              </button>
+              <div className="lg:col-span-2">
+                <button
+                  type="submit"
+                  className="w-full h-[62px] rounded-2xl bg-gradient-to-r from-[#681B1D] to-[#4B1117] hover:from-[#7A2124] hover:to-[#5C151D] text-[#FFF3E3] font-bold text-xs tracking-wider uppercase transition-all shadow-md hover:shadow-lg flex items-center justify-center gap-2 border border-[#B77A36]/60 group cursor-pointer"
+                >
+                  <span>Generate Plan</span>
+                  <Sparkles className="w-3.5 h-3.5 text-[#EAD2B0] group-hover:rotate-12 transition-transform" />
+                </button>
+              </div>
             </form>
+            {quickPlanError && (
+              <p role="alert" className="mt-2 px-2 text-xs font-medium text-[#681B1D] dark:text-[#EAD2B0]">
+                {quickPlanError}
+              </p>
+            )}
           </div>
         </div>
       </div>
 
-      {/* ── BOTTOM HERITAGE VALUE PILLARS & TRUST BAR ── */}
-      <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8">
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 sm:gap-6 py-4 border-t border-b border-[#EAD2B0]/60 dark:border-[#4D3331]/80 bg-[#FFF3E3]/60 dark:bg-[#1A1211]/60 backdrop-blur-sm rounded-2xl px-4">
-          
+      {/* ── BOTTOM HERITAGE VALUE PILLARS & TRUST BAR (LOWER Z-INDEX Z-10) ── */}
+      <div className="relative z-10 w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-4">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 sm:gap-6 py-3.5 border-t border-b border-[#EAD2B0]/70 dark:border-[#4D3331]/80 bg-[#FFF3E3]/70 dark:bg-[#1A1211]/70 backdrop-blur-sm rounded-2xl px-4">
           <div className="flex items-center gap-3">
-            <div className="w-9 h-9 rounded-xl bg-[#EAD2B0]/40 dark:bg-[#3D2624] border border-[#EAD2B0] dark:border-[#4D3331] flex items-center justify-center shrink-0">
-              <RoyalLotusIcon className="w-5 h-5 text-[#681B1D] dark:text-[#EAD2B0]" />
+            <div className="w-8 h-8 rounded-xl bg-[#EAD2B0]/40 dark:bg-[#3D2624] border border-[#EAD2B0] dark:border-[#4D3331] flex items-center justify-center shrink-0">
+              <RoyalLotusIcon className="w-4 h-4 text-[#681B1D] dark:text-[#EAD2B0]" />
             </div>
             <div>
               <p className="text-xs sm:text-[13px] font-semibold text-[#30221D] dark:text-[#FFF3E3] leading-snug">
@@ -299,8 +325,8 @@ export function Hero() {
           </div>
 
           <div className="flex items-center gap-3">
-            <div className="w-9 h-9 rounded-xl bg-[#EAD2B0]/40 dark:bg-[#3D2624] border border-[#EAD2B0] dark:border-[#4D3331] flex items-center justify-center shrink-0">
-              <RoyalHaveliIcon className="w-5 h-5 text-[#681B1D] dark:text-[#EAD2B0]" />
+            <div className="w-8 h-8 rounded-xl bg-[#EAD2B0]/40 dark:bg-[#3D2624] border border-[#EAD2B0] dark:border-[#4D3331] flex items-center justify-center shrink-0">
+              <RoyalHaveliIcon className="w-4 h-4 text-[#681B1D] dark:text-[#EAD2B0]" />
             </div>
             <div>
               <p className="text-xs sm:text-[13px] font-semibold text-[#30221D] dark:text-[#FFF3E3] leading-snug">
@@ -313,8 +339,8 @@ export function Hero() {
           </div>
 
           <div className="flex items-center gap-3">
-            <div className="w-9 h-9 rounded-xl bg-[#EAD2B0]/40 dark:bg-[#3D2624] border border-[#EAD2B0] dark:border-[#4D3331] flex items-center justify-center shrink-0">
-              <RoyalScalesIcon className="w-5 h-5 text-[#681B1D] dark:text-[#EAD2B0]" />
+            <div className="w-8 h-8 rounded-xl bg-[#EAD2B0]/40 dark:bg-[#3D2624] border border-[#EAD2B0] dark:border-[#4D3331] flex items-center justify-center shrink-0">
+              <RoyalScalesIcon className="w-4 h-4 text-[#681B1D] dark:text-[#EAD2B0]" />
             </div>
             <div>
               <p className="text-xs sm:text-[13px] font-semibold text-[#30221D] dark:text-[#FFF3E3] leading-snug">
@@ -327,8 +353,8 @@ export function Hero() {
           </div>
 
           <div className="flex items-center gap-3">
-            <div className="w-9 h-9 rounded-xl bg-[#EAD2B0]/40 dark:bg-[#3D2624] border border-[#EAD2B0] dark:border-[#4D3331] flex items-center justify-center shrink-0">
-              <RoyalKnotIcon className="w-5 h-5 text-[#681B1D] dark:text-[#EAD2B0]" />
+            <div className="w-8 h-8 rounded-xl bg-[#EAD2B0]/40 dark:bg-[#3D2624] border border-[#EAD2B0] dark:border-[#4D3331] flex items-center justify-center shrink-0">
+              <RoyalKnotIcon className="w-4 h-4 text-[#681B1D] dark:text-[#EAD2B0]" />
             </div>
             <div>
               <p className="text-xs sm:text-[13px] font-semibold text-[#30221D] dark:text-[#FFF3E3] leading-snug">
@@ -339,7 +365,6 @@ export function Hero() {
               </p>
             </div>
           </div>
-
         </div>
       </div>
     </section>

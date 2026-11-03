@@ -65,21 +65,21 @@ export default function DashboardLayout({
   ];
 
   return (
-    <RequireRole role="customer"><div className="min-h-screen flex flex-col bg-[#FAF8F3] dark:bg-[#151B18] text-[#252522] dark:text-[#F4F0E7] selection:bg-[#173F35] dark:selection:bg-[#A9C7B2] selection:text-white dark:selection:text-[#151B18] font-sans transition-colors duration-200"><PortalAccessNotice />
+    <RequireRole role="customer"><div className="min-h-screen flex flex-col bg-[#FFF3E3] dark:bg-[#1A1211] text-[#30221D] dark:text-[#FFF3E3] selection:bg-[#681B1D] dark:selection:bg-[#EAD2B0] selection:text-white dark:selection:text-[#1A1211] font-sans transition-colors duration-200"><PortalAccessNotice />
       <div className="flex-1 flex">
         {/* Desktop Sidebar */}
-        <aside className="hidden lg:flex flex-col w-64 bg-white dark:bg-[#1C2520] border-r border-[#E8E2D7] dark:border-[#344139] shrink-0 select-none">
+        <aside className="hidden lg:flex flex-col w-64 bg-[#FFFCF6] dark:bg-[#241918] border-r border-[#EAD2B0] dark:border-[#4D3331] shrink-0 select-none">
           {/* Brand — links back to public site */}
-          <div className="p-5 border-b border-[#E8E2D7] dark:border-[#344139] flex items-center justify-between">
+          <div className="p-5 border-b border-[#EAD2B0] dark:border-[#4D3331] flex items-center justify-between">
             <Link href="/" className="flex items-center gap-2.5 group">
-              <div className="w-8 h-8 rounded-xl bg-[#173F35] flex items-center justify-center font-serif font-bold text-[#C6A66B] text-lg shadow-xs group-hover:bg-[#0F2B24] transition-colors">
+              <div className="w-8 h-8 rounded-xl bg-[#681B1D] flex items-center justify-center font-serif font-bold text-[#B77A36] text-lg shadow-xs group-hover:bg-[#4B1117] transition-colors">
                 E
               </div>
               <div className="flex flex-col">
-                <span className="font-serif tracking-widest text-lg font-bold text-[#173F35] dark:text-[#A9C7B2] leading-none">
+                <span className="font-serif tracking-widest text-lg font-bold text-[#681B1D] dark:text-[#EAD2B0] leading-none">
                   EVNTORA
                 </span>
-                <span className="text-[9px] uppercase tracking-widest text-[#C6A66B] dark:text-[#D4B77D] font-semibold mt-0.5">
+                <span className="text-[9px] uppercase tracking-widest text-[#B77A36] dark:text-[#D4B77D] font-semibold mt-0.5">
                   Customer Workspace
                 </span>
               </div>
@@ -88,27 +88,27 @@ export default function DashboardLayout({
           </div>
 
           {/* Active Event Selector */}
-          <div className="p-3.5 border-b border-[#E8E2D7] dark:border-[#344139]">
+          <div className="p-3.5 border-b border-[#EAD2B0] dark:border-[#4D3331]">
             <div className="relative">
               <button
                 onClick={() => setEventDropdownOpen(!eventDropdownOpen)}
-                className="w-full p-2.5 rounded-xl bg-[#FAF8F3] dark:bg-[#232F28] border border-[#E8E2D7] dark:border-[#344139] hover:border-[#173F35] dark:hover:border-[#A9C7B2] flex items-center justify-between text-left transition-colors cursor-pointer shadow-2xs"
+                className="w-full p-2.5 rounded-xl bg-[#FFF3E3] dark:bg-[#2E1F1E] border border-[#EAD2B0] dark:border-[#4D3331] hover:border-[#681B1D] dark:hover:border-[#EAD2B0] flex items-center justify-between text-left transition-colors cursor-pointer shadow-2xs"
               >
                 <div className="truncate">
-                  <span className="text-[9px] uppercase tracking-wider text-[#77746D] dark:text-[#B5B5AA] font-bold block">
+                  <span className="text-[9px] uppercase tracking-wider text-[#7D6B63] dark:text-[#D4C3B7] font-bold block">
                     Active Celebration
                   </span>
-                  <span className="text-xs font-semibold text-[#252522] dark:text-[#F4F0E7] truncate block">
+                  <span className="text-xs font-semibold text-[#30221D] dark:text-[#F4F0E7] truncate block">
                     {activeEvent?.title || "Select Event"}
                   </span>
                 </div>
-                <ChevronDown className="w-4 h-4 text-[#77746D] dark:text-[#B5B5AA] shrink-0 ml-1" />
+                <ChevronDown className="w-4 h-4 text-[#7D6B63] dark:text-[#D4C3B7] shrink-0 ml-1" />
               </button>
 
               {eventDropdownOpen && (
-                <div className="absolute top-full left-0 right-0 mt-1.5 bg-white dark:bg-[#232F28] rounded-xl border border-[#E8E2D7] dark:border-[#344139] shadow-xl py-1.5 z-50 animate-in fade-in zoom-in-95 duration-150">
-                  <div className="px-3 py-1 border-b border-[#E8E2D7] dark:border-[#344139] mb-1">
-                    <p className="text-[9px] uppercase font-bold text-[#77746D] dark:text-[#B5B5AA]">
+                <div className="absolute top-full left-0 right-0 mt-1.5 bg-[#FFFCF6] dark:bg-[#2E1F1E] rounded-xl border border-[#EAD2B0] dark:border-[#4D3331] shadow-xl py-1.5 z-50 animate-in fade-in zoom-in-95 duration-150">
+                  <div className="px-3 py-1 border-b border-[#EAD2B0] dark:border-[#4D3331] mb-1">
+                    <p className="text-[9px] uppercase font-bold text-[#7D6B63] dark:text-[#D4C3B7]">
                       Your Events
                     </p>
                   </div>
@@ -121,21 +121,21 @@ export default function DashboardLayout({
                       }}
                       className={`w-full text-left px-3 py-2 text-xs transition-colors flex items-center justify-between cursor-pointer ${
                         evt.id === activeEvent?.id
-                          ? "bg-[#E7EFEA] dark:bg-[#173F35]/40 text-[#173F35] dark:text-[#A9C7B2] font-semibold"
-                          : "text-[#252522] dark:text-[#F4F0E7] hover:bg-[#FAF8F3] dark:hover:bg-[#1C2520]"
+                          ? "bg-[#EAD2B0] dark:bg-[#681B1D]/40 text-[#681B1D] dark:text-[#EAD2B0] font-semibold"
+                          : "text-[#30221D] dark:text-[#F4F0E7] hover:bg-[#FFF3E3] dark:hover:bg-[#241918]"
                       }`}
                     >
                       <span className="truncate">{evt.title}</span>
-                      <span className="text-[10px] text-[#77746D] dark:text-[#B5B5AA] ml-2 shrink-0">
+                      <span className="text-[10px] text-[#7D6B63] dark:text-[#D4C3B7] ml-2 shrink-0">
                         {evt.city}
                       </span>
                     </button>
                   ))}
-                  <div className="border-t border-[#E8E2D7] dark:border-[#344139] pt-1 mt-1">
+                  <div className="border-t border-[#EAD2B0] dark:border-[#4D3331] pt-1 mt-1">
                     <Link
                       href="/planner"
                       onClick={() => setEventDropdownOpen(false)}
-                      className="block px-3 py-1.5 text-xs text-[#173F35] dark:text-[#A9C7B2] font-semibold hover:bg-[#E7EFEA]/50 dark:hover:bg-[#1C2520] text-center"
+                      className="block px-3 py-1.5 text-xs text-[#681B1D] dark:text-[#EAD2B0] font-semibold hover:bg-[#EAD2B0]/50 dark:hover:bg-[#241918] text-center"
                     >
                       + Plan New Celebration
                     </Link>
@@ -156,11 +156,11 @@ export default function DashboardLayout({
                   href={item.href}
                   className={`flex items-center gap-3 px-3 py-2 rounded-xl text-xs font-medium transition-all ${
                     isActive
-                      ? "bg-[#173F35] text-[#FAF8F3] dark:bg-[#232F28] dark:text-[#A9C7B2] font-semibold shadow-xs"
-                      : "text-[#77746D] dark:text-[#B5B5AA] hover:text-[#173F35] dark:hover:text-[#F4F0E7] hover:bg-[#E7EFEA]/60 dark:hover:bg-[#232F28]"
+                      ? "bg-[#681B1D] text-[#FFF3E3] dark:bg-[#2E1F1E] dark:text-[#EAD2B0] font-semibold shadow-xs"
+                      : "text-[#7D6B63] dark:text-[#D4C3B7] hover:text-[#681B1D] dark:hover:text-[#F4F0E7] hover:bg-[#EAD2B0]/60 dark:hover:bg-[#2E1F1E]"
                   }`}
                 >
-                  <Icon className={`w-4 h-4 ${isActive ? "text-[#C6A66B] dark:text-[#D4B77D]" : ""}`} />
+                  <Icon className={`w-4 h-4 ${isActive ? "text-[#B77A36] dark:text-[#D4B77D]" : ""}`} />
                   <span>{item.label}</span>
                 </Link>
               );
@@ -168,25 +168,25 @@ export default function DashboardLayout({
           </nav>
 
           {/* Sidebar Footer — Back to Website & User Info */}
-          <div className="p-3.5 border-t border-[#E8E2D7] dark:border-[#344139] space-y-2.5">
+          <div className="p-3.5 border-t border-[#EAD2B0] dark:border-[#4D3331] space-y-2.5">
             <Link
               href="/"
-              className="flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-medium text-[#77746D] dark:text-[#B5B5AA] hover:text-[#173F35] dark:hover:text-[#A9C7B2] hover:bg-[#E7EFEA]/50 dark:hover:bg-[#232F28] transition-all w-full"
+              className="flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-medium text-[#7D6B63] dark:text-[#D4C3B7] hover:text-[#681B1D] dark:hover:text-[#EAD2B0] hover:bg-[#EAD2B0]/50 dark:hover:bg-[#2E1F1E] transition-all w-full"
             >
               <ArrowLeft className="w-3.5 h-3.5" />
               <span>Back to Evntora Website</span>
             </Link>
 
-            <div className="flex items-center justify-between gap-2 p-2 rounded-xl bg-[#FAF8F3] dark:bg-[#232F28] border border-[#E8E2D7] dark:border-[#344139]">
+            <div className="flex items-center justify-between gap-2 p-2 rounded-xl bg-[#FFF3E3] dark:bg-[#2E1F1E] border border-[#EAD2B0] dark:border-[#4D3331]">
               <div className="flex items-center gap-2 min-w-0">
-                <div className="w-7 h-7 rounded-full bg-[#173F35] text-[#FAF8F3] flex items-center justify-center font-bold text-xs shrink-0">
+                <div className="w-7 h-7 rounded-full bg-[#681B1D] text-[#FFF3E3] flex items-center justify-center font-bold text-xs shrink-0">
                   {displayName.charAt(0).toUpperCase()}
                 </div>
                 <div className="truncate">
-                  <span className="text-xs font-semibold text-[#252522] dark:text-[#F4F0E7] block truncate leading-tight">
+                  <span className="text-xs font-semibold text-[#30221D] dark:text-[#F4F0E7] block truncate leading-tight">
                     {displayName}
                   </span>
-                  <span className="text-[10px] text-[#77746D] dark:text-[#B5B5AA] block truncate leading-tight">
+                  <span className="text-[10px] text-[#7D6B63] dark:text-[#D4C3B7] block truncate leading-tight">
                     {displayEmail}
                   </span>
                 </div>
@@ -194,7 +194,7 @@ export default function DashboardLayout({
               <button
                 onClick={handleSignOut}
                 title="Sign out"
-                className="p-1.5 text-[#77746D] dark:text-[#B5B5AA] hover:text-rose-600 dark:hover:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/20 rounded-lg transition-colors shrink-0 cursor-pointer"
+                className="p-1.5 text-[#7D6B63] dark:text-[#D4C3B7] hover:text-rose-600 dark:hover:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/20 rounded-lg transition-colors shrink-0 cursor-pointer"
               >
                 <LogOut className="w-3.5 h-3.5" />
               </button>
@@ -209,14 +209,14 @@ export default function DashboardLayout({
               className="fixed inset-0 bg-black/60 backdrop-blur-sm"
               onClick={() => setSidebarOpen(false)}
             />
-            <div className="relative w-72 max-w-[80vw] bg-white dark:bg-[#1C2520] h-full flex flex-col z-50 p-5 space-y-4 border-r border-[#E8E2D7] dark:border-[#344139]">
-              <div className="flex items-center justify-between border-b border-[#E8E2D7] dark:border-[#344139] pb-3">
+            <div className="relative w-72 max-w-[80vw] bg-[#FFFCF6] dark:bg-[#241918] h-full flex flex-col z-50 p-5 space-y-4 border-r border-[#EAD2B0] dark:border-[#4D3331]">
+              <div className="flex items-center justify-between border-b border-[#EAD2B0] dark:border-[#4D3331] pb-3">
                 <Link
                   href="/"
                   onClick={() => setSidebarOpen(false)}
-                  className="flex items-center gap-2 font-serif text-lg font-bold text-[#173F35] dark:text-[#A9C7B2]"
+                  className="flex items-center gap-2 font-serif text-lg font-bold text-[#681B1D] dark:text-[#EAD2B0]"
                 >
-                  <div className="w-7 h-7 rounded-lg bg-[#173F35] text-[#C6A66B] flex items-center justify-center text-sm font-bold">
+                  <div className="w-7 h-7 rounded-lg bg-[#681B1D] text-[#B77A36] flex items-center justify-center text-sm font-bold">
                     E
                   </div>
                   <span>EVNTORA</span>
@@ -225,7 +225,7 @@ export default function DashboardLayout({
                   <ThemeToggle />
                   <button
                     onClick={() => setSidebarOpen(false)}
-                    className="p-1 rounded-lg text-[#77746D] dark:text-[#B5B5AA] hover:bg-[#F0EDE5] dark:hover:bg-[#232F28]"
+                    className="p-1 rounded-lg text-[#7D6B63] dark:text-[#D4C3B7] hover:bg-[#F0EDE5] dark:hover:bg-[#2E1F1E]"
                   >
                     <X className="w-5 h-5" />
                   </button>
@@ -240,8 +240,8 @@ export default function DashboardLayout({
                     onClick={() => setSidebarOpen(false)}
                     className={`flex items-center gap-3 px-3 py-2 rounded-xl text-xs font-medium ${
                       pathname === item.href
-                        ? "bg-[#173F35] text-[#FAF8F3] dark:bg-[#232F28] dark:text-[#A9C7B2] font-semibold"
-                        : "text-[#252522] dark:text-[#F4F0E7] hover:bg-[#E7EFEA] dark:hover:bg-[#232F28]"
+                        ? "bg-[#681B1D] text-[#FFF3E3] dark:bg-[#2E1F1E] dark:text-[#EAD2B0] font-semibold"
+                        : "text-[#30221D] dark:text-[#F4F0E7] hover:bg-[#EAD2B0] dark:hover:bg-[#2E1F1E]"
                     }`}
                   >
                     <item.icon className="w-4 h-4" />
@@ -250,11 +250,11 @@ export default function DashboardLayout({
                 ))}
               </nav>
 
-              <div className="border-t border-[#E8E2D7] dark:border-[#344139] pt-3 space-y-2">
+              <div className="border-t border-[#EAD2B0] dark:border-[#4D3331] pt-3 space-y-2">
                 <Link
                   href="/"
                   onClick={() => setSidebarOpen(false)}
-                  className="flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-medium text-[#77746D] dark:text-[#B5B5AA] hover:text-[#173F35] dark:hover:text-[#A9C7B2]"
+                  className="flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-medium text-[#7D6B63] dark:text-[#D4C3B7] hover:text-[#681B1D] dark:hover:text-[#EAD2B0]"
                 >
                   <ArrowLeft className="w-3.5 h-3.5" />
                   <span>Back to Evntora Website</span>
@@ -274,21 +274,21 @@ export default function DashboardLayout({
         {/* Main Canvas */}
         <div className="flex-1 flex flex-col min-w-0">
           {/* Mobile Top Bar */}
-          <header className="lg:hidden bg-white dark:bg-[#1C2520] border-b border-[#E8E2D7] dark:border-[#344139] px-4 py-3 flex items-center justify-between">
+          <header className="lg:hidden bg-[#FFFCF6] dark:bg-[#241918] border-b border-[#EAD2B0] dark:border-[#4D3331] px-4 py-3 flex items-center justify-between">
             <button
               onClick={() => setSidebarOpen(true)}
-              className="p-2 rounded-lg bg-[#FAF8F3] dark:bg-[#232F28] border border-[#E8E2D7] dark:border-[#344139] text-[#252522] dark:text-[#F4F0E7]"
+              className="p-2 rounded-lg bg-[#FFF3E3] dark:bg-[#2E1F1E] border border-[#EAD2B0] dark:border-[#4D3331] text-[#30221D] dark:text-[#F4F0E7]"
             >
               <Menu className="w-4 h-4" />
             </button>
-            <span className="font-serif text-base font-bold text-[#173F35] dark:text-[#A9C7B2]">
+            <span className="font-serif text-base font-bold text-[#681B1D] dark:text-[#EAD2B0]">
               Customer Workspace
             </span>
             <div className="flex items-center gap-2">
               <ThemeToggle />
               <Link
                 href="/"
-                className="text-xs text-[#173F35] dark:text-[#A9C7B2] font-semibold flex items-center gap-1"
+                className="text-xs text-[#681B1D] dark:text-[#EAD2B0] font-semibold flex items-center gap-1"
               >
                 <ArrowLeft className="w-3 h-3" />
                 <span>Site</span>

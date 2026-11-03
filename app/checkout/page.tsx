@@ -140,8 +140,8 @@ function CheckoutContent() {
   if (loading || authLoading) {
     return (
       <div className="min-h-[60vh] flex flex-col items-center justify-center space-y-4">
-        <div className="w-10 h-10 border-4 border-[#173F35] border-t-[#C6A66B] rounded-full animate-spin" />
-        <p className="text-sm font-serif text-[#173F35] dark:text-[#A9C7B2]">
+        <div className="w-10 h-10 border-4 border-[#681B1D] border-t-[#B77A36] rounded-full animate-spin" />
+        <p className="text-sm font-serif text-[#681B1D] dark:text-[#EAD2B0]">
           Securing your luxury booking session...
         </p>
       </div>
@@ -154,16 +154,16 @@ function CheckoutContent() {
         <div className="w-14 h-14 rounded-full bg-rose-100 dark:bg-rose-950/40 text-rose-600 dark:text-rose-400 flex items-center justify-center mx-auto">
           <AlertCircle className="w-7 h-7" />
         </div>
-        <h2 className="text-2xl font-serif font-bold text-[#173F35] dark:text-[#F4F0E7]">
+        <h2 className="text-2xl font-serif font-bold text-[#681B1D] dark:text-[#FFF3E3]">
           Unable to Open Checkout
         </h2>
-        <p className="text-xs text-[#77746D] dark:text-[#B5B5AA] leading-relaxed">
+        <p className="text-xs text-[#30221D]/70 dark:text-[#FFF3E3]/70 leading-relaxed">
           {error || "The requested booking could not be verified or has expired."}
         </p>
         <div className="pt-2">
           <Link
             href="/vendors"
-            className="px-6 py-2.5 rounded-xl bg-[#173F35] text-[#FAF8F3] text-xs font-bold uppercase tracking-wider inline-block"
+            className="px-6 py-2.5 rounded-xl bg-[#681B1D] hover:bg-[#4B1117] text-[#FFF3E3] text-xs font-bold uppercase tracking-wider inline-block transition-colors"
           >
             Return to Vendor Marketplace
           </Link>
@@ -233,7 +233,7 @@ function CheckoutContent() {
           bookingReference: orderData.bookingReference,
         },
         theme: {
-          color: "#173F35",
+          color: "#681B1D",
         },
         handler: async function (response: {
           razorpay_order_id: string;
@@ -305,57 +305,57 @@ function CheckoutContent() {
 
       {/* Verified Success Receipt Screen */}
       {verifiedPayment ? (
-        <div className="max-w-2xl mx-auto p-8 sm:p-12 rounded-3xl bg-white dark:bg-[#1E2621] border-2 border-[#173F35] dark:border-[#A9C7B2] shadow-2xl space-y-8 animate-in zoom-in-95">
+        <div className="max-w-2xl mx-auto p-8 sm:p-12 rounded-3xl bg-[#FFFDF9] dark:bg-[#231715] border-2 border-[#681B1D] dark:border-[#B77A36] shadow-2xl space-y-8 animate-in zoom-in-95">
           <div className="text-center space-y-3">
-            <div className="w-16 h-16 rounded-full bg-[#E7EFEA] dark:bg-[#173F35]/50 border border-[#173F35]/30 text-[#173F35] dark:text-[#A9C7B2] flex items-center justify-center mx-auto shadow-sm">
+            <div className="w-16 h-16 rounded-full bg-[#681B1D]/10 dark:bg-[#681B1D]/30 border border-[#B77A36]/30 text-[#681B1D] dark:text-[#EAD2B0] flex items-center justify-center mx-auto shadow-sm">
               <CheckCircle2 className="w-10 h-10" />
             </div>
-            <span className="text-[10px] font-bold uppercase tracking-widest text-[#C6A66B] dark:text-[#D4B77D] block">
+            <span className="text-[10px] font-bold uppercase tracking-widest text-[#B77A36] dark:text-[#EAD2B0] block">
               Official Tax & Booking Transaction Receipt
             </span>
-            <h1 className="text-3xl font-serif font-bold text-[#173F35] dark:text-[#F4F0E7]">
+            <h1 className="text-3xl font-serif font-bold text-[#681B1D] dark:text-[#FFF3E3]">
               Payment Verified & Secured!
             </h1>
-            <p className="text-xs text-[#77746D] dark:text-[#B5B5AA]">
+            <p className="text-xs text-[#30221D]/70 dark:text-[#FFF3E3]/70">
               Your transaction has been securely captured on Razorpay and registered with {booking.vendor_name}.
             </p>
           </div>
 
           {/* Receipt Details Box */}
-          <div className="p-6 rounded-2xl bg-[#FAF8F3] dark:bg-[#151B18] border border-[#E8E2D7] dark:border-[#344139] space-y-4 text-xs">
-            <div className="flex items-center justify-between border-b border-[#E8E2D7] dark:border-[#344139] pb-3">
-              <span className="text-[#77746D] dark:text-[#B5B5AA]">Booking Reference:</span>
-              <span className="font-mono font-bold text-[#173F35] dark:text-[#A9C7B2] text-sm">
+          <div className="p-6 rounded-2xl bg-[#FFF3E3]/50 dark:bg-[#1A1211] border border-[#EAD2B0] dark:border-[#4D3331] space-y-4 text-xs">
+            <div className="flex items-center justify-between border-b border-[#EAD2B0] dark:border-[#4D3331] pb-3">
+              <span className="text-[#30221D]/70 dark:text-[#FFF3E3]/70">Booking Reference:</span>
+              <span className="font-mono font-bold text-[#681B1D] dark:text-[#EAD2B0] text-sm">
                 {verifiedPayment.bookingRef}
               </span>
             </div>
 
-            <div className="flex items-center justify-between border-b border-[#E8E2D7] dark:border-[#344139] pb-3">
-              <span className="text-[#77746D] dark:text-[#B5B5AA]">Razorpay Transaction ID:</span>
-              <span className="font-mono font-semibold text-[#252522] dark:text-[#F4F0E7]">
+            <div className="flex items-center justify-between border-b border-[#EAD2B0] dark:border-[#4D3331] pb-3">
+              <span className="text-[#30221D]/70 dark:text-[#FFF3E3]/70">Razorpay Transaction ID:</span>
+              <span className="font-mono font-semibold text-[#30221D] dark:text-[#FFF3E3]">
                 {verifiedPayment.razorpayPaymentId}
               </span>
             </div>
 
-            <div className="flex items-center justify-between border-b border-[#E8E2D7] dark:border-[#344139] pb-3">
-              <span className="text-[#77746D] dark:text-[#B5B5AA]">Verified Date & Time:</span>
-              <span className="text-[#252522] dark:text-[#F4F0E7]">
+            <div className="flex items-center justify-between border-b border-[#EAD2B0] dark:border-[#4D3331] pb-3">
+              <span className="text-[#30221D]/70 dark:text-[#FFF3E3]/70">Verified Date & Time:</span>
+              <span className="text-[#30221D] dark:text-[#FFF3E3]">
                 {new Date(verifiedPayment.verifiedAt).toLocaleString("en-IN", {
                   timeZone: "Asia/Kolkata",
                 })}
               </span>
             </div>
 
-            <div className="flex items-center justify-between border-b border-[#E8E2D7] dark:border-[#344139] pb-3">
-              <span className="text-[#77746D] dark:text-[#B5B5AA]">Booked Artisan / Venue:</span>
-              <span className="font-bold text-[#252522] dark:text-[#F4F0E7]">
+            <div className="flex items-center justify-between border-b border-[#EAD2B0] dark:border-[#4D3331] pb-3">
+              <span className="text-[#30221D]/70 dark:text-[#FFF3E3]/70">Booked Artisan / Venue:</span>
+              <span className="font-bold text-[#30221D] dark:text-[#FFF3E3]">
                 {booking.vendor_name} ({booking.vendor_category})
               </span>
             </div>
 
             <div className="flex items-center justify-between pt-1 text-sm font-bold">
-              <span className="text-[#173F35] dark:text-[#A9C7B2]">Amount Paid:</span>
-              <span className="text-xl font-serif text-[#173F35] dark:text-[#A9C7B2]">
+              <span className="text-[#681B1D] dark:text-[#EAD2B0]">Amount Paid:</span>
+              <span className="text-xl font-serif text-[#681B1D] dark:text-[#EAD2B0]">
                 {formatINR(verifiedPayment.amountPaid)}
               </span>
             </div>
@@ -365,7 +365,7 @@ function CheckoutContent() {
           <div className="flex flex-col sm:flex-row items-center gap-3 pt-2">
             <button
               onClick={() => window.print()}
-              className="w-full sm:w-auto flex-1 py-3 px-4 rounded-xl bg-[#FAF8F3] dark:bg-[#232F28] hover:bg-[#E8E2D7] text-[#173F35] dark:text-[#A9C7B2] border border-[#E8E2D7] dark:border-[#344139] font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-2 cursor-pointer transition-all"
+              className="w-full sm:w-auto flex-1 py-3 px-4 rounded-xl bg-[#FFF3E3] dark:bg-[#1A1211] hover:bg-[#FFF3E3]/80 text-[#681B1D] dark:text-[#EAD2B0] border border-[#EAD2B0] dark:border-[#4D3331] font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-2 cursor-pointer transition-all"
             >
               <Printer className="w-4 h-4" />
               <span>Print Tax Receipt</span>
@@ -373,7 +373,7 @@ function CheckoutContent() {
 
             <Link
               href="/dashboard/payments"
-              className="w-full sm:w-auto flex-1 py-3 px-4 rounded-xl bg-[#173F35] hover:bg-[#0F2B24] text-[#FAF8F3] font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-2 shadow-sm transition-all"
+              className="w-full sm:w-auto flex-1 py-3 px-4 rounded-xl bg-[#681B1D] hover:bg-[#4B1117] text-[#FFF3E3] font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-2 shadow-sm transition-all"
             >
               <span>View Payment Ledger</span>
               <ArrowRight className="w-4 h-4" />
@@ -385,27 +385,27 @@ function CheckoutContent() {
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 max-w-7xl mx-auto">
           {/* Left Column: Booking & Artisan Summary */}
           <div className="lg:col-span-7 space-y-6">
-            <div className="p-6 sm:p-8 rounded-3xl bg-white dark:bg-[#1E2621] border border-[#E8E2D7] dark:border-[#344139] shadow-sm space-y-6">
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-[#E8E2D7] dark:border-[#344139] pb-4">
+            <div className="p-6 sm:p-8 rounded-3xl bg-[#FFFDF9] dark:bg-[#231715] border border-[#EAD2B0] dark:border-[#4D3331] shadow-sm space-y-6">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-[#EAD2B0] dark:border-[#4D3331] pb-4">
                 <div className="space-y-1">
                   <div className="flex items-center gap-2">
-                    <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-[#E7EFEA] text-[#173F35] dark:bg-[#173F35]/50 dark:text-[#A9C7B2] border border-[#173F35]/20">
+                    <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-[#681B1D]/10 text-[#681B1D] dark:bg-[#681B1D]/30 dark:text-[#EAD2B0] border border-[#681B1D]/20">
                       {booking.vendor_category}
                     </span>
-                    <span className="text-[11px] font-mono text-[#77746D] dark:text-[#B5B5AA]">
+                    <span className="text-[11px] font-mono text-[#30221D]/70 dark:text-[#FFF3E3]/70">
                       {booking.booking_reference}
                     </span>
                   </div>
-                  <h2 className="text-2xl font-serif font-bold text-[#173F35] dark:text-[#F4F0E7]">
+                  <h2 className="text-2xl font-serif font-bold text-[#681B1D] dark:text-[#FFF3E3]">
                     {booking.vendor_name}
                   </h2>
                 </div>
 
                 <div className="text-right">
-                  <span className="text-[10px] uppercase font-bold text-[#77746D] dark:text-[#B5B5AA] block">
+                  <span className="text-[10px] uppercase font-bold text-[#30221D]/70 dark:text-[#FFF3E3]/70 block">
                     Agreed Contract
                   </span>
-                  <span className="text-xl font-serif font-bold text-[#173F35] dark:text-[#A9C7B2]">
+                  <span className="text-xl font-serif font-bold text-[#681B1D] dark:text-[#EAD2B0]">
                     {formatINR(totalINR)}
                   </span>
                 </div>
@@ -413,32 +413,32 @@ function CheckoutContent() {
 
               {/* Event Metadata Cards */}
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs">
-                <div className="p-3.5 rounded-2xl bg-[#FAF8F3] dark:bg-[#151B18] border border-[#E8E2D7] dark:border-[#344139] space-y-1">
-                  <div className="flex items-center gap-1.5 text-[#77746D] dark:text-[#B5B5AA]">
-                    <Calendar className="w-3.5 h-3.5 text-[#C6A66B]" />
+                <div className="p-3.5 rounded-2xl bg-[#FFF3E3]/50 dark:bg-[#1A1211] border border-[#EAD2B0] dark:border-[#4D3331] space-y-1">
+                  <div className="flex items-center gap-1.5 text-[#30221D]/70 dark:text-[#FFF3E3]/70">
+                    <Calendar className="w-3.5 h-3.5 text-[#B77A36]" />
                     <span>Event Date</span>
                   </div>
-                  <div className="font-bold text-[#252522] dark:text-[#F4F0E7]">
+                  <div className="font-bold text-[#30221D] dark:text-[#FFF3E3]">
                     {booking.event_date}
                   </div>
                 </div>
 
-                <div className="p-3.5 rounded-2xl bg-[#FAF8F3] dark:bg-[#151B18] border border-[#E8E2D7] dark:border-[#344139] space-y-1">
-                  <div className="flex items-center gap-1.5 text-[#77746D] dark:text-[#B5B5AA]">
-                    <MapPin className="w-3.5 h-3.5 text-[#C6A66B]" />
+                <div className="p-3.5 rounded-2xl bg-[#FFF3E3]/50 dark:bg-[#1A1211] border border-[#EAD2B0] dark:border-[#4D3331] space-y-1">
+                  <div className="flex items-center gap-1.5 text-[#30221D]/70 dark:text-[#FFF3E3]/70">
+                    <MapPin className="w-3.5 h-3.5 text-[#B77A36]" />
                     <span>Destination</span>
                   </div>
-                  <div className="font-bold text-[#252522] dark:text-[#F4F0E7]">
+                  <div className="font-bold text-[#30221D] dark:text-[#FFF3E3]">
                     {booking.event_city}
                   </div>
                 </div>
 
-                <div className="p-3.5 rounded-2xl bg-[#FAF8F3] dark:bg-[#151B18] border border-[#E8E2D7] dark:border-[#344139] space-y-1">
-                  <div className="flex items-center gap-1.5 text-[#77746D] dark:text-[#B5B5AA]">
-                    <Users className="w-3.5 h-3.5 text-[#C6A66B]" />
+                <div className="p-3.5 rounded-2xl bg-[#FFF3E3]/50 dark:bg-[#1A1211] border border-[#EAD2B0] dark:border-[#4D3331] space-y-1">
+                  <div className="flex items-center gap-1.5 text-[#30221D]/70 dark:text-[#FFF3E3]/70">
+                    <Users className="w-3.5 h-3.5 text-[#B77A36]" />
                     <span>Guests</span>
                   </div>
-                  <div className="font-bold text-[#252522] dark:text-[#F4F0E7]">
+                  <div className="font-bold text-[#30221D] dark:text-[#FFF3E3]">
                     {booking.guest_count || 100} Attendees
                   </div>
                 </div>
@@ -446,11 +446,11 @@ function CheckoutContent() {
 
               {/* Package Included */}
               {booking.package_name && (
-                <div className="p-4 rounded-2xl bg-[#FAF8F3] dark:bg-[#151B18] border border-[#E8E2D7] dark:border-[#344139] space-y-1 text-xs">
-                  <span className="text-[10px] uppercase font-bold text-[#C6A66B] dark:text-[#D4B77D] block">
+                <div className="p-4 rounded-2xl bg-[#FFF3E3]/50 dark:bg-[#1A1211] border border-[#EAD2B0] dark:border-[#4D3331] space-y-1 text-xs">
+                  <span className="text-[10px] uppercase font-bold text-[#B77A36] dark:text-[#EAD2B0] block">
                     Contracted Service / Package
                   </span>
-                  <div className="font-bold text-[#252522] dark:text-[#F4F0E7]">
+                  <div className="font-bold text-[#30221D] dark:text-[#FFF3E3]">
                     {booking.package_name}
                   </div>
                 </div>
@@ -458,18 +458,18 @@ function CheckoutContent() {
 
               {/* Terms & Guarantees */}
               <div className="space-y-3 pt-2">
-                <h3 className="text-xs uppercase font-bold tracking-wider text-[#77746D] dark:text-[#B5B5AA]">
+                <h3 className="text-xs uppercase font-bold tracking-wider text-[#30221D]/70 dark:text-[#FFF3E3]/70">
                   Luxury Cancellation & Protection Terms
                 </h3>
-                <div className="p-4 rounded-2xl bg-[#FAF8F3] dark:bg-[#151B18] border border-[#E8E2D7] dark:border-[#344139] space-y-2 text-[11px] text-[#77746D] dark:text-[#B5B5AA] leading-relaxed">
+                <div className="p-4 rounded-2xl bg-[#FFF3E3]/50 dark:bg-[#1A1211] border border-[#EAD2B0] dark:border-[#4D3331] space-y-2 text-[11px] text-[#30221D]/70 dark:text-[#FFF3E3]/70 leading-relaxed">
                   <div className="flex items-start gap-2">
-                    <ShieldCheck className="w-4 h-4 text-[#173F35] dark:text-[#A9C7B2] shrink-0 mt-0.5" />
+                    <ShieldCheck className="w-4 h-4 text-[#681B1D] dark:text-[#EAD2B0] shrink-0 mt-0.5" />
                     <span>
                       <strong>Evntora Artisan Guarantee:</strong> Funds are held under standard merchant escrow until verified performance delivery.
                     </span>
                   </div>
                   <div className="flex items-start gap-2">
-                    <Clock className="w-4 h-4 text-[#C6A66B] shrink-0 mt-0.5" />
+                    <Clock className="w-4 h-4 text-[#B77A36] shrink-0 mt-0.5" />
                     <span>
                       {booking.cancellation_terms ||
                         "Full refund up to 30 days prior to event; 50% refund up to 14 days prior to event date."}
@@ -482,12 +482,12 @@ function CheckoutContent() {
 
           {/* Right Column: Payment Ledger & Razorpay Trigger */}
           <div className="lg:col-span-5 space-y-6">
-            <div className="p-6 sm:p-8 rounded-3xl bg-white dark:bg-[#1E2621] border border-[#E8E2D7] dark:border-[#344139] shadow-lg space-y-6">
-              <div className="space-y-1 border-b border-[#E8E2D7] dark:border-[#344139] pb-4">
-                <span className="text-[10px] uppercase font-bold tracking-widest text-[#C6A66B] dark:text-[#D4B77D]">
+            <div className="p-6 sm:p-8 rounded-3xl bg-[#FFFDF9] dark:bg-[#231715] border border-[#EAD2B0] dark:border-[#4D3331] shadow-lg space-y-6">
+              <div className="space-y-1 border-b border-[#EAD2B0] dark:border-[#4D3331] pb-4">
+                <span className="text-[10px] uppercase font-bold tracking-widest text-[#B77A36] dark:text-[#EAD2B0]">
                   Checkout Breakdown
                 </span>
-                <h3 className="text-xl font-serif font-bold text-[#173F35] dark:text-[#F4F0E7]">
+                <h3 className="text-xl font-serif font-bold text-[#681B1D] dark:text-[#FFF3E3]">
                   Payment Schedule
                 </h3>
               </div>
@@ -495,7 +495,7 @@ function CheckoutContent() {
               {/* Payment Option Selector */}
               {paidINR === 0 ? (
                 <div className="space-y-2 text-xs">
-                  <label className="block text-[#77746D] dark:text-[#B5B5AA] font-bold uppercase tracking-wider text-[11px]">
+                  <label className="block text-[#30221D]/70 dark:text-[#FFF3E3]/70 font-bold uppercase tracking-wider text-[11px]">
                     Choose Payment Option
                   </label>
                   <div className="grid grid-cols-2 gap-2">
@@ -504,14 +504,14 @@ function CheckoutContent() {
                       onClick={() => setPaymentPurpose("advance")}
                       className={`p-3 rounded-2xl border text-left transition-all cursor-pointer ${
                         paymentPurpose === "advance"
-                          ? "bg-[#E7EFEA] dark:bg-[#173F35]/40 border-[#173F35] dark:border-[#A9C7B2] shadow-xs"
-                          : "bg-[#FAF8F3] dark:bg-[#151B18] border-[#E8E2D7] dark:border-[#344139]"
+                          ? "bg-[#681B1D]/10 dark:bg-[#681B1D]/30 border-[#681B1D] dark:border-[#B77A36] shadow-xs"
+                          : "bg-[#FFF3E3]/50 dark:bg-[#1A1211] border-[#EAD2B0] dark:border-[#4D3331]"
                       }`}
                     >
-                      <span className="font-bold block text-[#252522] dark:text-[#F4F0E7]">
+                      <span className="font-bold block text-[#30221D] dark:text-[#FFF3E3]">
                         Pay Advance Lock
                       </span>
-                      <span className="font-serif font-bold text-[#173F35] dark:text-[#A9C7B2] text-sm">
+                      <span className="font-serif font-bold text-[#681B1D] dark:text-[#EAD2B0] text-sm">
                         {formatINR(advanceINR)}
                       </span>
                     </button>
@@ -521,21 +521,21 @@ function CheckoutContent() {
                       onClick={() => setPaymentPurpose("full")}
                       className={`p-3 rounded-2xl border text-left transition-all cursor-pointer ${
                         paymentPurpose === "full"
-                          ? "bg-[#E7EFEA] dark:bg-[#173F35]/40 border-[#173F35] dark:border-[#A9C7B2] shadow-xs"
-                          : "bg-[#FAF8F3] dark:bg-[#151B18] border-[#E8E2D7] dark:border-[#344139]"
+                          ? "bg-[#681B1D]/10 dark:bg-[#681B1D]/30 border-[#681B1D] dark:border-[#B77A36] shadow-xs"
+                          : "bg-[#FFF3E3]/50 dark:bg-[#1A1211] border-[#EAD2B0] dark:border-[#4D3331]"
                       }`}
                     >
-                      <span className="font-bold block text-[#252522] dark:text-[#F4F0E7]">
+                      <span className="font-bold block text-[#30221D] dark:text-[#FFF3E3]">
                         Pay Full Amount
                       </span>
-                      <span className="font-serif font-bold text-[#173F35] dark:text-[#A9C7B2] text-sm">
+                      <span className="font-serif font-bold text-[#681B1D] dark:text-[#EAD2B0] text-sm">
                         {formatINR(totalINR)}
                       </span>
                     </button>
                   </div>
                 </div>
               ) : (
-                <div className="p-3.5 rounded-xl bg-[#E7EFEA] dark:bg-[#173F35]/40 border border-[#173F35]/30 text-xs text-[#173F35] dark:text-[#A9C7B2] space-y-1">
+                <div className="p-3.5 rounded-xl bg-[#681B1D]/10 dark:bg-[#681B1D]/30 border border-[#B77A36]/30 text-xs text-[#681B1D] dark:text-[#EAD2B0] space-y-1">
                   <div className="font-bold">Advance Payment Received</div>
                   <div>You have already settled {formatINR(paidINR)}. Paying remaining balance now.</div>
                 </div>
@@ -543,39 +543,39 @@ function CheckoutContent() {
 
               {/* Itemized Calculation */}
               <div className="space-y-2.5 pt-2 text-xs">
-                <div className="flex items-center justify-between text-[#77746D] dark:text-[#B5B5AA]">
+                <div className="flex items-center justify-between text-[#30221D]/70 dark:text-[#FFF3E3]/70">
                   <span>Total Agreed Fee:</span>
-                  <span className="font-semibold text-[#252522] dark:text-[#F4F0E7]">
+                  <span className="font-semibold text-[#30221D] dark:text-[#FFF3E3]">
                     {formatINR(totalINR)}
                   </span>
                 </div>
 
                 {paidINR > 0 && (
-                  <div className="flex items-center justify-between text-emerald-600 dark:text-emerald-400">
+                  <div className="flex items-center justify-between text-rose-800 dark:text-amber-700">
                     <span>Already Settled:</span>
                     <span>- {formatINR(paidINR)}</span>
                   </div>
                 )}
 
-                <div className="flex items-center justify-between text-[#77746D] dark:text-[#B5B5AA]">
+                <div className="flex items-center justify-between text-[#30221D]/70 dark:text-[#FFF3E3]/70">
                   <span>Platform Processing & GST:</span>
-                  <span className="font-semibold text-[#252522] dark:text-[#F4F0E7]">
+                  <span className="font-semibold text-[#30221D] dark:text-[#FFF3E3]">
                     Included (0% Surcharge)
                   </span>
                 </div>
 
-                <div className="pt-3 border-t border-[#E8E2D7] dark:border-[#344139] flex items-center justify-between">
+                <div className="pt-3 border-t border-[#EAD2B0] dark:border-[#4D3331] flex items-center justify-between">
                   <div>
-                    <span className="text-[10px] uppercase font-bold tracking-wider text-[#77746D] dark:text-[#B5B5AA] block">
+                    <span className="text-[10px] uppercase font-bold tracking-wider text-[#30221D]/70 dark:text-[#FFF3E3]/70 block">
                       Payable Now via Razorpay
                     </span>
-                    <span className="text-2xl font-serif font-bold text-[#173F35] dark:text-[#A9C7B2]">
+                    <span className="text-2xl font-serif font-bold text-[#681B1D] dark:text-[#EAD2B0]">
                       {formatINR(payableINR)}
                     </span>
                   </div>
 
                   {paymentPurpose === "advance" && remainingINR > 0 && (
-                    <div className="text-right text-[11px] text-[#77746D] dark:text-[#B5B5AA]">
+                    <div className="text-right text-[11px] text-[#30221D]/70 dark:text-[#FFF3E3]/70">
                       <span>Balance Later:</span>
                       <div className="font-semibold">{formatINR(totalINR - advanceINR)}</div>
                     </div>
@@ -584,18 +584,18 @@ function CheckoutContent() {
               </div>
 
               {/* Supported Payment Badges */}
-              <div className="pt-2 border-t border-[#E8E2D7] dark:border-[#344139] space-y-2">
-                <span className="text-[10px] uppercase font-bold text-[#77746D] dark:text-[#B5B5AA] block">
+              <div className="pt-2 border-t border-[#EAD2B0] dark:border-[#4D3331] space-y-2">
+                <span className="text-[10px] uppercase font-bold text-[#30221D]/70 dark:text-[#FFF3E3]/70 block">
                   Supported Methods
                 </span>
-                <div className="flex flex-wrap items-center gap-2 text-[11px] text-[#77746D] dark:text-[#B5B5AA]">
-                  <span className="px-2 py-1 rounded-lg bg-[#FAF8F3] dark:bg-[#151B18] border border-[#E8E2D7] dark:border-[#344139]">
+                <div className="flex flex-wrap items-center gap-2 text-[11px] text-[#30221D]/70 dark:text-[#FFF3E3]/70">
+                  <span className="px-2 py-1 rounded-lg bg-[#FFF3E3]/50 dark:bg-[#1A1211] border border-[#EAD2B0] dark:border-[#4D3331]">
                     UPI (Google Pay, PhonePe, Paytm)
                   </span>
-                  <span className="px-2 py-1 rounded-lg bg-[#FAF8F3] dark:bg-[#151B18] border border-[#E8E2D7] dark:border-[#344139]">
+                  <span className="px-2 py-1 rounded-lg bg-[#FFF3E3]/50 dark:bg-[#1A1211] border border-[#EAD2B0] dark:border-[#4D3331]">
                     All Indian Credit & Debit Cards
                   </span>
-                  <span className="px-2 py-1 rounded-lg bg-[#FAF8F3] dark:bg-[#151B18] border border-[#E8E2D7] dark:border-[#344139]">
+                  <span className="px-2 py-1 rounded-lg bg-[#FFF3E3]/50 dark:bg-[#1A1211] border border-[#EAD2B0] dark:border-[#4D3331]">
                     NetBanking (50+ Banks)
                   </span>
                 </div>
@@ -606,21 +606,21 @@ function CheckoutContent() {
                 type="button"
                 onClick={handleLaunchRazorpay}
                 disabled={isProcessing || payableINR <= 0}
-                className="w-full py-4 rounded-2xl bg-[#173F35] hover:bg-[#0F2B24] text-[#FAF8F3] text-xs font-bold uppercase tracking-wider shadow-lg transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
+                className="w-full py-4 rounded-2xl bg-[#681B1D] hover:bg-[#4B1117] text-[#FFF3E3] text-xs font-bold uppercase tracking-wider shadow-lg transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
               >
                 {isProcessing ? (
                   <span>Opening Razorpay Secure Gateway...</span>
                 ) : (
                   <>
-                    <Lock className="w-4 h-4 text-[#C6A66B]" />
+                    <Lock className="w-4 h-4 text-[#EAD2B0]" />
                     <span>Pay {formatINR(payableINR)} Securely</span>
-                    <Sparkles className="w-4 h-4 text-[#C6A66B]" />
+                    <Sparkles className="w-4 h-4 text-[#EAD2B0]" />
                   </>
                 )}
               </button>
 
-              <div className="text-center text-[10px] text-[#77746D] dark:text-[#B5B5AA] flex items-center justify-center gap-1.5">
-                <Lock className="w-3 h-3 text-[#C6A66B]" />
+              <div className="text-center text-[10px] text-[#30221D]/70 dark:text-[#FFF3E3]/70 flex items-center justify-center gap-1.5">
+                <Lock className="w-3 h-3 text-[#B77A36]" />
                 <span>PCI-DSS Level 1 Compliant • 256-bit SSL Secure Checkout</span>
               </div>
             </div>
@@ -633,7 +633,7 @@ function CheckoutContent() {
 
 export default function CheckoutPage() {
   return (
-    <div className="min-h-screen flex flex-col bg-[#FAF8F3] dark:bg-[#151B18] text-[#252522] dark:text-[#F4F0E7] transition-colors duration-200">
+    <div className="min-h-screen flex flex-col bg-[#FFF3E3] dark:bg-[#1A1211] text-[#30221D] dark:text-[#F4F0E7] transition-colors duration-200">
       <Navbar />
 
       <main className="flex-1 py-12 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full">
@@ -641,15 +641,15 @@ export default function CheckoutPage() {
         <div className="mb-8 flex items-center justify-between">
           <Link
             href="/vendors"
-            className="inline-flex items-center gap-2 text-xs font-semibold text-[#77746D] dark:text-[#B5B5AA] hover:text-[#173F35] dark:hover:text-[#A9C7B2] transition-colors"
+            className="inline-flex items-center gap-2 text-xs font-semibold text-[#7D6B63] dark:text-[#D4C3B7] hover:text-[#681B1D] dark:hover:text-[#EAD2B0] transition-colors"
           >
             <ArrowLeft className="w-3.5 h-3.5" />
             <span>Back to Marketplace</span>
           </Link>
 
           <div className="flex items-center gap-2">
-            <span className="px-3 py-1 rounded-full text-xs font-semibold bg-[#E7EFEA] text-[#173F35] dark:bg-[#173F35]/50 dark:text-[#A9C7B2] border border-[#173F35]/20 flex items-center gap-1.5">
-              <ShieldCheck className="w-3.5 h-3.5 text-[#C6A66B]" />
+            <span className="px-3 py-1 rounded-full text-xs font-semibold bg-[#EAD2B0] text-[#681B1D] dark:bg-[#681B1D]/50 dark:text-[#EAD2B0] border border-[#681B1D]/20 flex items-center gap-1.5">
+              <ShieldCheck className="w-3.5 h-3.5 text-[#B77A36]" />
               <span>Razorpay Verified Gateway</span>
             </span>
           </div>
@@ -657,7 +657,7 @@ export default function CheckoutPage() {
 
         <Suspense
           fallback={
-            <div className="min-h-[50vh] flex items-center justify-center text-sm font-serif text-[#173F35]">
+            <div className="min-h-[50vh] flex items-center justify-center text-sm font-serif text-[#681B1D]">
               Loading Checkout...
             </div>
           }

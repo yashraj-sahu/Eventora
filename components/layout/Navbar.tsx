@@ -4,7 +4,6 @@ import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
-  Sparkles,
   Menu,
   X,
   ArrowRight,
@@ -16,6 +15,7 @@ import {
   Building2,
   ShieldCheck,
   CalendarCheck,
+  Sparkles,
 } from "lucide-react";
 import { useAuth } from "@/lib/auth-context";
 import { ThemeToggle } from "@/components/ui/ThemeToggle";
@@ -23,9 +23,7 @@ import { ThemeToggle } from "@/components/ui/ThemeToggle";
 const navLinks = [
   { href: "/events", label: "Explore Events" },
   { href: "/vendors", label: "Find Vendors" },
-  { href: "/planner", label: "AI Planner", badge: "AI" },
-  { href: "/ai-assistant", label: "Ask AI" },
-  { href: "/how-it-works", label: "How It Works" },
+  { href: "/planner", label: "AI Planner" },
   { href: "/about", label: "About" },
 ];
 
@@ -208,47 +206,47 @@ export function Navbar() {
   const isAuthenticated = Boolean(user);
 
   return (
-    <header className="sticky top-0 z-40 w-full transition-all duration-300 py-3 px-3 sm:px-6 lg:px-8">
+    <header className="sticky top-0 z-50 w-full transition-all duration-300 py-2.5 px-3 sm:px-6 lg:px-8">
       <div
-        className={`max-w-7xl mx-auto rounded-full transition-all duration-300 px-4 sm:px-6 py-2 border ${
+        className={`max-w-7xl mx-auto rounded-full transition-all duration-300 px-4 sm:px-6 py-1.5 border ${
           scrolled
-            ? "bg-[#FFF3E3]/95 dark:bg-[#1A1211]/95 backdrop-blur-md border-[#EAD2B0] dark:border-[#4D3331] shadow-[0_8px_30px_rgba(75,17,23,0.12)]"
+            ? "bg-[#FFF3E3]/98 dark:bg-[#1A1211]/98 backdrop-blur-md border-[#EAD2B0] dark:border-[#4D3331] shadow-[0_8px_30px_rgba(75,17,23,0.12)]"
             : "bg-[#FFF3E3]/92 dark:bg-[#1A1211]/92 backdrop-blur-sm border-[#EAD2B0]/90 dark:border-[#4D3331]/90 shadow-[0_4px_24px_rgba(75,17,23,0.06)]"
         }`}
       >
-        <div className="flex items-center justify-between h-[54px] gap-2 lg:gap-4">
-          {/* ── BRAND LOGO WITH ROYAL SCALLOPED CREST ── */}
+        <div className="flex items-center justify-between h-[52px] gap-2 lg:gap-6">
+          {/* ── 1. BRAND LOGO ── */}
           <Link href="/" className="flex items-center gap-2.5 group shrink-0 pl-1">
-            <div className="relative w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-gradient-to-br from-[#681B1D] to-[#4B1117] border border-[#B77A36]/70 flex items-center justify-center font-serif font-bold text-[#EAD2B0] text-xl shadow-xs group-hover:from-[#7A2124] group-hover:to-[#5C151D] transition-all">
+            <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-gradient-to-br from-[#681B1D] to-[#4B1117] border border-[#B77A36]/70 flex items-center justify-center font-serif font-bold text-[#EAD2B0] text-xl shadow-xs group-hover:from-[#7A2124] group-hover:to-[#5C151D] transition-all">
               <span>E</span>
             </div>
             <div className="flex flex-col">
-              <span className="font-serif tracking-widest text-[19px] sm:text-[21px] font-bold text-[#30221D] dark:text-[#FFF3E3] group-hover:text-[#681B1D] dark:group-hover:text-[#EAD2B0] transition-colors leading-none">
+              <span className="font-serif tracking-widest text-[18px] sm:text-[20px] font-bold text-[#30221D] dark:text-[#FFF3E3] group-hover:text-[#681B1D] dark:group-hover:text-[#EAD2B0] transition-colors leading-none">
                 EVNTORA
               </span>
-              <span className="text-[8.5px] tracking-wider uppercase text-[#B77A36] dark:text-[#EAD2B0] font-sans mt-0.5 hidden xl:block">
+              <span className="text-[8px] sm:text-[8.5px] tracking-[0.16em] uppercase text-[#B77A36] dark:text-[#EAD2B0] font-sans mt-0.5 hidden md:block">
                 Luxury Event Planning
               </span>
             </div>
           </Link>
 
-          {/* ── DESKTOP NAVIGATION ── */}
-          <nav className="hidden lg:flex items-center gap-1 xl:gap-2 min-w-0">
+          {/* ── 2. CENTER NAVIGATION ITEMS (PROPORTIONAL, BALANCED) ── */}
+          <nav className="hidden xl:flex items-center gap-5 2xl:gap-7">
             {navLinks.map((link) => {
               const isActive = pathname === link.href;
               return (
                 <Link
                   key={link.href}
                   href={link.href}
-                  className={`px-3 py-1.5 rounded-full text-xs xl:text-[13px] font-medium transition-colors flex items-center gap-1.5 whitespace-nowrap ${
+                  className={`text-xs xl:text-[13px] font-semibold transition-colors py-1.5 px-1 relative ${
                     isActive
-                      ? "text-[#681B1D] dark:text-[#FFF3E3] bg-[#EAD2B0]/45 dark:bg-[#3D2624] font-semibold shadow-2xs"
-                      : "text-[#30221D] dark:text-[#FFF3E3] hover:text-[#681B1D] dark:hover:text-[#EAD2B0] hover:bg-[#EAD2B0]/25 dark:hover:bg-[#2E1F1E]"
+                      ? "text-[#681B1D] dark:text-[#EAD2B0]"
+                      : "text-[#59453E] dark:text-[#D4C3B7] hover:text-[#681B1D] dark:hover:text-[#FFF3E3]"
                   }`}
                 >
                   <span>{link.label}</span>
-                  {link.badge && (
-                    <Sparkles className="w-3 h-3 text-[#B77A36]" />
+                  {isActive && (
+                    <span className="absolute bottom-0 left-0 right-0 h-[2px] bg-[#681B1D] dark:bg-[#EAD2B0] rounded-full" />
                   )}
                 </Link>
               );
@@ -257,13 +255,14 @@ export function Navbar() {
             {/* Portals Dropdown Trigger */}
             <div className="relative" ref={portalsMenuRef}>
               <button
+                type="button"
                 onClick={() => setPortalsMenuOpen(!portalsMenuOpen)}
-                className={`px-3 py-1.5 rounded-full text-xs xl:text-[13px] font-medium transition-colors flex items-center gap-1 whitespace-nowrap cursor-pointer ${
+                className={`text-xs xl:text-[13px] font-semibold transition-colors flex items-center gap-1 py-1.5 px-1 cursor-pointer ${
                   pathname.startsWith("/dashboard") ||
                   pathname.startsWith("/vendor-portal") ||
                   pathname.startsWith("/admin")
-                    ? "text-[#681B1D] dark:text-[#FFF3E3] bg-[#EAD2B0]/45 dark:bg-[#3D2624] font-semibold"
-                    : "text-[#7D6B63] dark:text-[#D4C3B7] hover:text-[#681B1D] dark:hover:text-[#EAD2B0] hover:bg-[#EAD2B0]/25 dark:hover:bg-[#2E1F1E]"
+                    ? "text-[#681B1D] dark:text-[#EAD2B0]"
+                    : "text-[#59453E] dark:text-[#D4C3B7] hover:text-[#681B1D] dark:hover:text-[#FFF3E3]"
                 }`}
               >
                 <span>Portals</span>
@@ -279,26 +278,27 @@ export function Navbar() {
             </div>
           </nav>
 
-          {/* ── RIGHT ACTION CTAs ── */}
-          <div className="hidden md:flex items-center gap-2 xl:gap-3 shrink-0 pr-1">
-            {/* Functional Theme Switcher */}
+          {/* ── 3. RIGHT ACTION CLUSTER ── */}
+          <div className="hidden xl:flex items-center gap-3 2xl:gap-4 shrink-0 pr-1">
+            {/* Theme Selector */}
             <ThemeToggle />
 
             {!isLoading && (
               <>
                 {isAuthenticated ? (
-                  /* Account Dropdown */
+                  /* Account Menu */
                   <div className="relative" ref={accountMenuRef}>
                     <button
+                      type="button"
                       onClick={() => setAccountMenuOpen(!accountMenuOpen)}
-                      className="flex items-center gap-1.5 xl:gap-2 px-3 py-1.5 rounded-full bg-white/80 dark:bg-[#2E1F1E] hover:bg-[#FAF3E8] dark:hover:bg-[#3D2624] border border-[#EAD2B0] dark:border-[#4D3331] transition-all text-xs cursor-pointer shadow-xs"
+                      className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-[#FFFCF6]/80 dark:bg-[#2E1F1E] hover:bg-[#FAF3E8] dark:hover:bg-[#3D2624] border border-[#EAD2B0] dark:border-[#4D3331] transition-all text-xs cursor-pointer shadow-xs"
                     >
-                      <div className="w-6 h-6 rounded-full bg-[#681B1D] flex items-center justify-center text-[#FFF3E3] font-bold text-xs shrink-0">
+                      <div className="w-5 h-5 rounded-full bg-[#681B1D] flex items-center justify-center text-[#FFF3E3] font-bold text-[11px] shrink-0">
                         {profile?.full_name?.charAt(0)?.toUpperCase() ?? (
                           <User className="w-3 h-3" />
                         )}
                       </div>
-                      <span className="text-[#30221D] dark:text-[#FFF3E3] font-semibold max-w-[80px] xl:max-w-[100px] truncate">
+                      <span className="text-[#30221D] dark:text-[#FFF3E3] font-semibold max-w-[90px] truncate">
                         {profile?.full_name?.split(" ")[0] ?? "Account"}
                       </span>
                       <ChevronDown
@@ -315,7 +315,7 @@ export function Navbar() {
                   /* Sign In */
                   <Link
                     href="/signin"
-                    className="px-4 py-2 rounded-full text-xs font-semibold text-[#30221D] dark:text-[#FFF3E3] hover:text-[#681B1D] dark:hover:text-[#EAD2B0] hover:bg-[#EAD2B0]/30 transition-all whitespace-nowrap"
+                    className="px-3.5 py-1.5 text-xs font-semibold text-[#30221D] dark:text-[#FFF3E3] hover:text-[#681B1D] dark:hover:text-[#EAD2B0] transition-colors whitespace-nowrap"
                   >
                     Sign In
                   </Link>
@@ -326,7 +326,7 @@ export function Navbar() {
             {/* Prominent Royal Maroon Start Planning CTA */}
             <Link
               href="/planner"
-              className="px-4 xl:px-5 py-2.5 rounded-full bg-gradient-to-r from-[#681B1D] to-[#4B1117] hover:from-[#7A2124] hover:to-[#5C151D] text-[#FFF3E3] text-xs font-bold tracking-wide shadow-md hover:shadow-lg transition-all flex items-center gap-1.5 xl:gap-2 whitespace-nowrap cursor-pointer shrink-0 border border-[#B77A36]/40"
+              className="px-4 sm:px-5 py-2.5 rounded-full bg-gradient-to-r from-[#681B1D] to-[#4B1117] hover:from-[#7A2124] hover:to-[#5C151D] text-[#FFF3E3] text-xs font-bold tracking-wide shadow-md hover:shadow-lg transition-all flex items-center gap-1.5 whitespace-nowrap cursor-pointer shrink-0 border border-[#B77A36]/50"
             >
               <span>Start Planning</span>
               <ArrowRight className="w-3.5 h-3.5 text-[#EAD2B0]" />
@@ -334,7 +334,7 @@ export function Navbar() {
           </div>
 
           {/* ── MOBILE MENU TRIGGER ── */}
-          <div className="flex lg:hidden items-center gap-2">
+          <div className="flex xl:hidden items-center gap-2">
             <ThemeToggle />
             <Link
               href="/planner"
@@ -343,6 +343,7 @@ export function Navbar() {
               Plan
             </Link>
             <button
+              type="button"
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
               className="p-2 rounded-lg text-[#30221D] dark:text-[#FFF3E3] hover:bg-[#EAD2B0]/30 border border-[#EAD2B0] dark:border-[#4D3331] cursor-pointer"
               aria-label="Toggle navigation menu"
@@ -359,7 +360,7 @@ export function Navbar() {
 
       {/* ── MOBILE DRAWER ── */}
       {mobileMenuOpen && (
-        <div className="lg:hidden mt-2 rounded-2xl bg-[#FFF3E3] dark:bg-[#1A1211] border border-[#EAD2B0] dark:border-[#4D3331] px-5 py-5 space-y-4 shadow-xl animate-in slide-in-from-top-4 duration-200">
+        <div className="xl:hidden mt-2 max-w-7xl mx-auto rounded-2xl bg-[#FFF3E3] dark:bg-[#1A1211] border border-[#EAD2B0] dark:border-[#4D3331] px-5 py-5 space-y-4 shadow-xl animate-in slide-in-from-top-4 duration-200">
           <div className="space-y-0.5">
             <Link
               href="/"
@@ -376,11 +377,6 @@ export function Navbar() {
                 className="flex items-center justify-between px-3 py-2.5 rounded-lg text-sm font-medium text-[#30221D] dark:text-[#FFF3E3] hover:bg-[#EAD2B0]/30 hover:text-[#681B1D] transition-colors"
               >
                 <span>{link.label}</span>
-                {link.badge && (
-                  <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-[#681B1D] text-[#FFF3E3] font-bold">
-                    {link.badge}
-                  </span>
-                )}
               </Link>
             ))}
           </div>
@@ -397,7 +393,7 @@ export function Navbar() {
                     key={portal.href}
                     href={portal.href}
                     onClick={() => setMobileMenuOpen(false)}
-                    className="flex items-center gap-3 px-3 py-2 rounded-xl text-xs font-semibold text-[#681B1D] dark:text-[#EAD2B0] bg-white dark:bg-[#2E1F1E] hover:bg-[#EAD2B0]/30 transition-colors border border-[#EAD2B0] dark:border-[#4D3331]"
+                    className="flex items-center gap-3 px-3 py-2 rounded-xl text-xs font-semibold text-[#681B1D] dark:text-[#EAD2B0] bg-[#FFFCF6] dark:bg-[#2E1F1E] hover:bg-[#EAD2B0]/30 transition-colors border border-[#EAD2B0] dark:border-[#4D3331]"
                   >
                     <Icon className="w-4 h-4 text-[#B77A36]" />
                     <div>
@@ -414,7 +410,7 @@ export function Navbar() {
 
           <div className="pt-3 border-t border-[#EAD2B0] dark:border-[#4D3331] space-y-2">
             {isAuthenticated ? (
-              <div className="flex items-center justify-between px-3 py-2.5 rounded-xl bg-white dark:bg-[#2E1F1E] border border-[#EAD2B0] dark:border-[#4D3331]">
+              <div className="flex items-center justify-between px-3 py-2.5 rounded-xl bg-[#FFFCF6] dark:bg-[#2E1F1E] border border-[#EAD2B0] dark:border-[#4D3331]">
                 <div className="flex items-center gap-2">
                   <div className="w-7 h-7 rounded-full bg-[#681B1D] flex items-center justify-center text-[#FFF3E3] font-bold text-xs">
                     {profile?.full_name?.charAt(0)?.toUpperCase() ?? "U"}
@@ -429,6 +425,7 @@ export function Navbar() {
                   </div>
                 </div>
                 <button
+                  type="button"
                   onClick={handleMobileSignOut}
                   className="text-xs text-rose-600 dark:text-rose-400 font-medium hover:underline cursor-pointer"
                 >
@@ -439,7 +436,7 @@ export function Navbar() {
               <Link
                 href="/signin"
                 onClick={() => setMobileMenuOpen(false)}
-                className="flex items-center justify-center w-full px-4 py-2.5 rounded-xl border border-[#681B1D] text-xs font-bold text-[#681B1D] dark:text-[#EAD2B0] bg-white dark:bg-[#2E1F1E] hover:bg-[#EAD2B0]/30 transition-colors"
+                className="flex items-center justify-center w-full px-4 py-2.5 rounded-xl border border-[#681B1D] text-xs font-bold text-[#681B1D] dark:text-[#EAD2B0] bg-[#FFFCF6] dark:bg-[#2E1F1E] hover:bg-[#EAD2B0]/30 transition-colors"
               >
                 Sign In
               </Link>
@@ -450,7 +447,7 @@ export function Navbar() {
               onClick={() => setMobileMenuOpen(false)}
               className="flex items-center justify-center gap-2 w-full px-4 py-2.5 rounded-xl bg-gradient-to-r from-[#681B1D] to-[#4B1117] text-[#FFF3E3] text-xs font-bold shadow-md hover:from-[#7A2124] hover:to-[#5C151D] border border-[#B77A36]/40"
             >
-              <Sparkles className="w-3.5 h-3.5 text-[#B77A36]" />
+              <Sparkles className="w-3.5 h-3.5 text-[#EAD2B0]" />
               <span>Start Planning My Event</span>
             </Link>
           </div>

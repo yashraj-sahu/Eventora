@@ -91,7 +91,7 @@ export function BudgetShowcase() {
             return (
               <div
                 key={i}
-                className="p-4 rounded-2xl bg-white/90 dark:bg-[#1A1211]/90 border border-[#EAD2B0] dark:border-[#4D3331] space-y-1.5"
+                className="p-4 rounded-2xl bg-[#FFFCF6]/90 dark:bg-[#1A1211]/90 border border-[#EAD2B0] dark:border-[#4D3331] space-y-1.5"
               >
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">

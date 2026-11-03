@@ -48,6 +48,7 @@ export function SearchableSelect({
   const generatedId = useId();
   const controlId = id ?? generatedId;
   const [open, setOpen] = useState(false);
+  const [openAbove, setOpenAbove] = useState(false);
   const [query, setQuery] = useState("");
   const [active, setActive] = useState(0);
   const root = useRef<HTMLDivElement>(null);
@@ -72,12 +73,23 @@ export function SearchableSelect({
 
   useEffect(() => {
     if (!open) return;
+    const position = () => {
+      const rect = trigger.current?.getBoundingClientRect();
+      if (rect) setOpenAbove(window.innerHeight - rect.bottom < 300 && rect.top > 300);
+    };
     const close = (event: MouseEvent) => {
       if (!root.current?.contains(event.target as Node)) setOpen(false);
     };
+    position();
+    window.addEventListener("resize", position);
+    document.addEventListener("scroll", position, true);
     document.addEventListener("mousedown", close);
-    input.current?.focus();
-    return () => document.removeEventListener("mousedown", close);
+    input.current?.focus({ preventScroll: true });
+    return () => {
+      window.removeEventListener("resize", position);
+      document.removeEventListener("scroll", position, true);
+      document.removeEventListener("mousedown", close);
+    };
   }, [open]);
 
   const choose = (next: string) => {
@@ -115,7 +127,7 @@ export function SearchableSelect({
       >
         {label}
       </label>
-      <div className="flex items-center w-full min-h-10 rounded-xl bg-transparent border-0 focus-within:ring-0">
+      <div className="flex items-center w-full min-h-10 rounded-xl bg-[#FFFCF6]/90 dark:bg-[#1A1211] border border-[#EAD2B0] dark:border-[#4D3331] px-3 py-1 focus-within:border-[#B77A36] focus-within:ring-2 focus-within:ring-[#B77A36]/15 transition-colors">
         <button
           ref={trigger}
           id={`${controlId}-trigger`}
@@ -124,11 +136,12 @@ export function SearchableSelect({
           aria-haspopup="listbox"
           aria-expanded={open}
           aria-label={label}
+          title={selected?.label ?? value}
           onClick={() => {
             setOpen((v) => !v);
             setQuery("");
           }}
-          className="flex-1 min-w-0 py-1 text-left text-[#30221D] dark:text-[#FFF3E3] font-semibold text-xs sm:text-[13px] disabled:opacity-50 cursor-pointer truncate"
+          className="flex-1 min-w-0 py-1 text-left text-[#30221D] dark:text-[#FFF3E3] font-semibold text-xs sm:text-[13px] disabled:opacity-50 cursor-pointer truncate focus:outline-none"
         >
           <span className={selected || value ? "" : "text-[#7D6B63] dark:text-[#9E897F]"}>
             {selected?.label ?? (value || placeholder)}
@@ -165,7 +178,7 @@ export function SearchableSelect({
         </p>
       )}
       {open && (
-        <div className="absolute z-50 left-0 right-0 mt-2 overflow-hidden rounded-2xl border border-[#EAD2B0] dark:border-[#4D3331] bg-[#FFF3E3] dark:bg-[#2E1F1E] shadow-2xl animate-in fade-in zoom-in-95 duration-150 min-w-[220px]">
+        <div className={`absolute z-[100] left-0 right-0 ${openAbove ? "bottom-full mb-2" : "top-full mt-2"} overflow-hidden rounded-2xl border border-[#EAD2B0] dark:border-[#4D3331] bg-[#FFF3E3] dark:bg-[#2E1F1E] shadow-2xl animate-in fade-in zoom-in-95 duration-150 flex flex-col`}>
           <div className="flex items-center gap-2 px-3 border-b border-[#EAD2B0]/80 dark:border-[#4D3331]">
             <Search className="w-3.5 h-3.5 text-[#B77A36]" />
             <input
@@ -190,7 +203,7 @@ export function SearchableSelect({
             id={`${controlId}-options`}
             role="listbox"
             aria-label={label}
-            className="max-h-60 overflow-y-auto p-1.5"
+            className="min-h-0 max-h-[min(15rem,calc(100dvh-5rem))] overflow-y-auto overscroll-contain p-1.5"
           >
             {loading ? (
               <li className="px-3 py-3 text-xs text-[#7D6B63]" role="status">
@@ -282,6 +295,7 @@ export function SearchableMultiSelect({
   const generatedId = useId();
   const controlId = id ?? generatedId;
   const [open, setOpen] = useState(false);
+  const [openAbove, setOpenAbove] = useState(false);
   const [query, setQuery] = useState("");
   const [active, setActive] = useState(0);
   const root = useRef<HTMLDivElement>(null);
@@ -299,18 +313,30 @@ export function SearchableMultiSelect({
   const canUseCustom =
     allowCustom &&
     query.trim() &&
+    !value.includes(query.trim()) &&
     !options.some(
       (option) => option.value.toLowerCase() === query.trim().toLowerCase()
     );
 
   useEffect(() => {
     if (!open) return;
+    const position = () => {
+      const rect = trigger.current?.getBoundingClientRect();
+      if (rect) setOpenAbove(window.innerHeight - rect.bottom < 300 && rect.top > 300);
+    };
     const close = (event: MouseEvent) => {
       if (!root.current?.contains(event.target as Node)) setOpen(false);
     };
+    position();
+    window.addEventListener("resize", position);
+    document.addEventListener("scroll", position, true);
     document.addEventListener("mousedown", close);
-    input.current?.focus();
-    return () => document.removeEventListener("mousedown", close);
+    input.current?.focus({ preventScroll: true });
+    return () => {
+      window.removeEventListener("resize", position);
+      document.removeEventListener("scroll", position, true);
+      document.removeEventListener("mousedown", close);
+    };
   }, [open]);
 
   const toggle = (option: string) =>
@@ -358,7 +384,7 @@ export function SearchableMultiSelect({
         aria-expanded={open}
         aria-label={label}
         onClick={() => setOpen((current) => !current)}
-        className="w-full min-h-10 px-3 py-2 rounded-xl bg-white/80 dark:bg-[#1A1211]/80 border border-[#EAD2B0] dark:border-[#4D3331] text-left text-xs text-[#30221D] dark:text-[#FFF3E3] cursor-pointer"
+        className="w-full min-h-10 px-3 py-2 rounded-xl bg-[#FFFCF6]/80 dark:bg-[#1A1211]/80 border border-[#EAD2B0] dark:border-[#4D3331] text-left text-xs text-[#30221D] dark:text-[#FFF3E3] cursor-pointer"
       >
         {value.length ? value.join(", ") : placeholder}
       </button>
@@ -374,7 +400,7 @@ export function SearchableMultiSelect({
       )}
       {error && <p role="alert" className="mt-1 text-xs text-rose-600">{error}</p>}
       {open && (
-        <div className="absolute z-50 mt-2 w-full overflow-hidden rounded-2xl border border-[#EAD2B0] dark:border-[#4D3331] bg-[#FFF3E3] dark:bg-[#2E1F1E] shadow-2xl">
+        <div className={`absolute z-[100] left-0 right-0 ${openAbove ? "bottom-full mb-2" : "top-full mt-2"} w-full overflow-hidden rounded-2xl border border-[#EAD2B0] dark:border-[#4D3331] bg-[#FFF3E3] dark:bg-[#2E1F1E] shadow-2xl flex flex-col`}>
           <div className="flex items-center gap-2 px-3 border-b border-[#EAD2B0] dark:border-[#4D3331]">
             <Search className="w-3.5 h-3.5 text-[#B77A36]" />
             <input
@@ -399,7 +425,7 @@ export function SearchableMultiSelect({
             role="listbox"
             aria-label={label}
             aria-multiselectable="true"
-            className="max-h-60 overflow-y-auto p-1.5"
+            className="min-h-0 max-h-[min(15rem,calc(100dvh-5rem))] overflow-y-auto overscroll-contain p-1.5"
           >
             {loading ? (
               <li className="px-3 py-3 text-xs text-[#7D6B63]">Loading options…</li>

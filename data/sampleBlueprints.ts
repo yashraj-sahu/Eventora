@@ -13,6 +13,11 @@ interface GenerateBlueprintParams {
 
 export function generateAIBlueprint(params: GenerateBlueprintParams): AIEventBlueprint {
   const { category, city, date, guestCount, totalBudget, styleTheme, venuePreference } = params;
+  const blueprintSeed = `${category}|${city}|${date}|${guestCount}|${totalBudget}`;
+  const blueprintHash = Array.from(blueprintSeed).reduce(
+    (hash, character) => (Math.imul(hash, 31) + character.charCodeAt(0)) | 0,
+    0
+  );
 
   // Calculate intelligent budget allocation percentages based on Indian event standards
   let venuePct = 0.35;
@@ -82,7 +87,7 @@ export function generateAIBlueprint(params: GenerateBlueprintParams): AIEventBlu
         { name: "Mewari Gold", hex: "#D4AF37" },
         { name: "Deep Ruby", hex: "#881337" },
         { name: "Ivory Silk", hex: "#FFFBEB" },
-        { name: "Emerald Accent", hex: "#065F46" },
+        { name: "Soft Champagne", hex: "#EAD2B0" },
       ]
     : styleTheme?.toLowerCase().includes("beach") || city.toLowerCase() === "goa"
     ? [
@@ -99,7 +104,7 @@ export function generateAIBlueprint(params: GenerateBlueprintParams): AIEventBlu
       ];
 
   return {
-    blueprintId: `EVN-BP-${Date.now().toString().slice(-6)}`,
+    blueprintId: `EVN-BP-${Math.abs(blueprintHash).toString().padStart(6, "0").slice(-6)}`,
     title: `${category} in ${city} for ${guestCount} Guests`,
     executiveSummary: `An intelligently calibrated ${category.toLowerCase()} blueprint tailored for ${guestCount} distinguished guests in ${city} on ${date || "the selected date"}. Designed to maximize attendee enchantment while enforcing strict fiscal discipline within your ₹${(totalBudget / 100000).toFixed(1)} Lakh budget allocation.`,
     themeAndAtmosphere: {

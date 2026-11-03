@@ -10,7 +10,7 @@ export function FinalCTA() {
           <div className="absolute top-0 right-0 w-64 h-64 bg-radial from-[#B77A36]/20 to-transparent blur-3xl pointer-events-none" />
           <div className="absolute bottom-0 left-0 w-64 h-64 bg-radial from-[#EAD2B0]/15 to-transparent blur-3xl pointer-events-none" />
 
-          <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-white/10 border border-white/20 text-[#FFF3E3] text-xs font-semibold">
+          <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-[#FFFCF6]/10 border border-white/20 text-[#FFF3E3] text-xs font-semibold">
             <Sparkles className="w-3.5 h-3.5 text-[#EAD2B0]" />
             <span>Begin Your Royal Journey Today</span>
           </div>
@@ -40,7 +40,7 @@ export function FinalCTA() {
 
             <Link
               href="/vendors"
-              className="px-7 py-3.5 rounded-full bg-white/10 hover:bg-white/20 border border-[#EAD2B0]/40 text-[#FFF3E3] font-semibold text-xs transition-all cursor-pointer"
+              className="px-7 py-3.5 rounded-full bg-[#FFFCF6]/10 hover:bg-[#FFFCF6]/20 border border-[#EAD2B0]/40 text-[#FFF3E3] font-semibold text-xs transition-all cursor-pointer"
             >
               <span>Browse Vendor Directory</span>
             </Link>

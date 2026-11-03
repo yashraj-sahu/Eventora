@@ -20,6 +20,15 @@ const nextConfig: NextConfig = {
     config.parallelism = 1;
     return config;
   },
+  async redirects() {
+    return [
+      {
+        source: "/how-it-works",
+        destination: "/#how-it-works",
+        permanent: false,
+      },
+    ];
+  },
 };
 
 export default nextConfig;

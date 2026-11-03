@@ -44,12 +44,12 @@
   :root {
     --background: #FFF3E3;
     --foreground: #30221D;
-    --card: #FFFFFF;
+    --card: #FFFCF6;
     --card-foreground: #30221D;
     --primary: #681B1D;
     --primary-foreground: #FFF3E3;
     --accent: #B77A36;
-    --accent-foreground: #FFFFFF;
+    --accent-foreground: #FFF3E3;
     --muted: #F8EFE4;
     --muted-foreground: #7D6B63;
     --border: #EAD2B0;
@@ -83,7 +83,7 @@
 
 /* Traditional Indian Royal Heritage Surfaces */
 .luxury-card {
-  background: #FFFFFF;
+  background: #FFFCF6;
   border: 1px solid #EAD2B0;
   border-radius: 18px;
   box-shadow: 0 4px 24px -2px rgba(75, 17, 23, 0.05), 0 2px 6px -1px rgba(183, 122, 54, 0.04);
@@ -109,7 +109,7 @@
 }
 
 .luxury-panel {
-  background: #FFFFFF;
+  background: #FFFCF6;
   border: 1px solid #EAD2B0;
 }
 .dark .luxury-panel {

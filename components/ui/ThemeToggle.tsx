@@ -23,7 +23,7 @@ export function ThemeToggle({ className = "" }: { className?: string }) {
 
   if (!mounted) {
     return (
-      <div className={`w-8 h-8 rounded-lg bg-black/5 dark:bg-white/5 animate-pulse ${className}`} />
+      <div className={`w-8 h-8 rounded-full bg-black/5 dark:bg-[#FFFCF6]/5 animate-pulse ${className}`} />
     );
   }
 
@@ -47,16 +47,20 @@ export function ThemeToggle({ className = "" }: { className?: string }) {
       <button
         type="button"
         onClick={() => setDropdownOpen((prev) => !prev)}
-        className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl border border-[#E8E2D7] dark:border-[#344139] bg-white/80 dark:bg-[#232F28]/80 hover:bg-[#F0EDE5] dark:hover:bg-[#1C2520] text-[#252522] dark:text-[#F4F0E7] transition-all text-xs font-medium cursor-pointer shadow-xs"
+        className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-full border border-[#EAD2B0] dark:border-[#4D3331] bg-[#FFFCF6]/90 dark:bg-[#2E1F1E]/90 hover:bg-[#FAF3E8] dark:hover:bg-[#3D2624] text-[#30221D] dark:text-[#FFF3E3] transition-all text-xs font-medium cursor-pointer shadow-xs"
         aria-label="Toggle theme"
         title={`Current theme: ${theme} (${resolvedTheme})`}
       >
-        <IconComponent className="w-3.5 h-3.5 text-[#173F35] dark:text-[#A9C7B2]" />
-        <ChevronDown className={`w-3 h-3 text-[#77746D] dark:text-[#B5B5AA] transition-transform duration-200 ${dropdownOpen ? "rotate-180" : ""}`} />
+        <IconComponent className="w-3.5 h-3.5 text-[#B77A36] dark:text-[#EAD2B0]" />
+        <ChevronDown
+          className={`w-3 h-3 text-[#7D6B63] dark:text-[#D4C3B7] transition-transform duration-200 ${
+            dropdownOpen ? "rotate-180" : ""
+          }`}
+        />
       </button>
 
       {dropdownOpen && (
-        <div className="absolute right-0 mt-1.5 w-32 rounded-xl bg-white dark:bg-[#232F28] border border-[#E8E2D7] dark:border-[#344139] shadow-xl py-1 z-50 animate-in fade-in zoom-in-95 duration-150">
+        <div className="absolute right-0 mt-1.5 w-32 rounded-2xl bg-[#FFF3E3] dark:bg-[#2E1F1E] border border-[#EAD2B0] dark:border-[#4D3331] shadow-xl py-1 z-50 animate-in fade-in zoom-in-95 duration-150">
           {options.map((opt) => {
             const OptIcon = opt.icon;
             const isSelected = theme === opt.value;
@@ -69,13 +73,17 @@ export function ThemeToggle({ className = "" }: { className?: string }) {
                 }}
                 className={`w-full flex items-center gap-2 px-3 py-1.5 text-xs text-left transition-colors cursor-pointer ${
                   isSelected
-                    ? "bg-[#E7EFEA] dark:bg-[#1C2520] text-[#173F35] dark:text-[#A9C7B2] font-semibold"
-                    : "text-[#252522] dark:text-[#F4F0E7] hover:bg-[#F0EDE5] dark:hover:bg-[#1C2520]/70"
+                    ? "bg-[#EAD2B0]/50 dark:bg-[#3D2624] text-[#681B1D] dark:text-[#EAD2B0] font-semibold"
+                    : "text-[#30221D] dark:text-[#FFF3E3] hover:bg-[#EAD2B0]/25 dark:hover:bg-[#1A1211]"
                 }`}
               >
-                <OptIcon className="w-3.5 h-3.5" />
+                <OptIcon className="w-3.5 h-3.5 text-[#B77A36] dark:text-[#EAD2B0]" />
                 <span>{opt.label}</span>
-                {isSelected && <span className="ml-auto text-[10px] text-[#173F35] dark:text-[#A9C7B2]">✓</span>}
+                {isSelected && (
+                  <span className="ml-auto text-[10px] text-[#681B1D] dark:text-[#EAD2B0] font-bold">
+                    ✓
+                  </span>
+                )}
               </button>
             );
           })}
@@ -84,4 +92,3 @@ export function ThemeToggle({ className = "" }: { className?: string }) {
     </div>
   );
 }
-

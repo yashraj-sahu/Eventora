@@ -9,7 +9,8 @@ type PlannerDatePickerProps = {
   requiredAttempted?: boolean;
 };
 
-const fieldClass = "rounded-lg border border-[#E8E2D7] dark:border-[#344139] bg-white dark:bg-[#1C2520] px-2 py-1.5 text-xs text-[#252522] dark:text-[#F4F0E7] focus:border-[#173F35] focus:outline-none dark:focus:border-[#A9C7B2]";
+const fieldClass =
+  "rounded-lg border border-[#EAD2B0] dark:border-[#4D3331] bg-[#FFFCF6] dark:bg-[#1A1211] px-2 py-1.5 text-xs text-[#30221D] dark:text-[#FFF3E3] focus:border-[#B77A36] focus:outline-none";
 
 function localIsoDate(date: Date) {
   return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;
@@ -133,7 +134,7 @@ export function PlannerDatePicker({ value, onChange, requiredAttempted = false }
 
   return (
     <div className="relative" ref={calendarRef}>
-      <label htmlFor="planner-target-date" className="block text-[#77746D] dark:text-[#B5B5AA] mb-1.5 font-bold uppercase tracking-wider">
+      <label htmlFor="planner-target-date" className="block text-[#7D6B63] dark:text-[#D4C3B7] mb-1.5 font-bold uppercase tracking-wider text-[10px]">
         Target Date
       </label>
       <div className="relative">
@@ -148,7 +149,7 @@ export function PlannerDatePicker({ value, onChange, requiredAttempted = false }
           onBlur={() => setShowInputError(Boolean(text))}
           aria-invalid={Boolean(message)}
           aria-describedby={message ? "planner-date-error" : undefined}
-          className="w-full rounded-xl border border-[#E8E2D7] dark:border-[#344139] bg-[#FAF8F3] dark:bg-[#1C2520] py-3 pl-4 pr-12 text-xs font-medium text-[#252522] dark:text-[#F4F0E7] focus:border-[#173F35] focus:outline-none dark:focus:border-[#A9C7B2]"
+          className="w-full rounded-xl border border-[#EAD2B0] dark:border-[#4D3331] bg-[#FFFCF6]/90 dark:bg-[#1A1211] py-3 pl-4 pr-12 text-xs font-medium text-[#30221D] dark:text-[#FFF3E3] focus:border-[#B77A36] focus:outline-none"
         />
         <button
           type="button"
@@ -156,7 +157,7 @@ export function PlannerDatePicker({ value, onChange, requiredAttempted = false }
           aria-label={open ? "Close calendar" : "Open calendar"}
           aria-expanded={open}
           aria-haspopup="dialog"
-          className="absolute inset-y-0 right-0 flex items-center rounded-r-xl px-3 text-[#173F35] transition-colors hover:bg-[#E7EFEA] dark:text-[#A9C7B2] dark:hover:bg-[#344139]"
+          className="absolute inset-y-0 right-0 flex items-center rounded-r-xl px-3 text-[#681B1D] dark:text-[#EAD2B0] transition-colors hover:bg-[#EAD2B0]/30 cursor-pointer"
         >
           <CalendarDays className="h-4 w-4" />
         </button>
@@ -164,9 +165,9 @@ export function PlannerDatePicker({ value, onChange, requiredAttempted = false }
       {message && <p id="planner-date-error" role="alert" className="mt-1.5 text-[11px] text-red-700 dark:text-red-300">{message}</p>}
 
       {open && (
-        <div role="dialog" aria-label="Choose target event date" className="absolute left-0 top-full z-40 mt-2 w-[min(21rem,calc(100vw-2rem))] rounded-2xl border border-[#E8E2D7] bg-white p-4 shadow-xl dark:border-[#344139] dark:bg-[#232F28]">
+        <div role="dialog" aria-label="Choose target event date" className="absolute left-0 top-full z-50 mt-2 w-[min(21rem,calc(100vw-2rem))] rounded-2xl border border-[#EAD2B0] bg-[#FFF3E3] p-4 shadow-2xl dark:border-[#4D3331] dark:bg-[#2E1F1E]">
           <div className="mb-3 flex items-center justify-between gap-2">
-            <button type="button" aria-label="Previous month" onClick={() => setVisibleMonth(new Date(year, month - 1, 1))} className="rounded-lg p-2 text-[#173F35] hover:bg-[#FAF8F3] dark:text-[#A9C7B2] dark:hover:bg-[#1C2520]"><ChevronLeft className="h-4 w-4" /></button>
+            <button type="button" aria-label="Previous month" onClick={() => setVisibleMonth(new Date(year, month - 1, 1))} className="rounded-lg p-2 text-[#681B1D] hover:bg-[#EAD2B0]/40 dark:text-[#EAD2B0] dark:hover:bg-[#3D2624] cursor-pointer"><ChevronLeft className="h-4 w-4" /></button>
             <div className="flex items-center gap-2">
               <select aria-label="Month" value={month} onChange={(event) => setVisibleMonth(new Date(year, Number(event.target.value), 1))} className={fieldClass}>
                 {Array.from({ length: 12 }, (_, index) => <option key={index} value={index}>{new Date(2000, index, 1).toLocaleString("en", { month: "long" })}</option>)}
@@ -175,9 +176,9 @@ export function PlannerDatePicker({ value, onChange, requiredAttempted = false }
                 {Array.from({ length: 101 }, (_, index) => new Date().getFullYear() - 1 + index).map((item) => <option key={item} value={item}>{item}</option>)}
               </select>
             </div>
-            <button type="button" aria-label="Next month" onClick={() => setVisibleMonth(new Date(year, month + 1, 1))} className="rounded-lg p-2 text-[#173F35] hover:bg-[#FAF8F3] dark:text-[#A9C7B2] dark:hover:bg-[#1C2520]"><ChevronRight className="h-4 w-4" /></button>
+            <button type="button" aria-label="Next month" onClick={() => setVisibleMonth(new Date(year, month + 1, 1))} className="rounded-lg p-2 text-[#681B1D] hover:bg-[#EAD2B0]/40 dark:text-[#EAD2B0] dark:hover:bg-[#3D2624] cursor-pointer"><ChevronRight className="h-4 w-4" /></button>
           </div>
-          <div className="mb-1 grid grid-cols-7 text-center text-[10px] font-bold uppercase tracking-wide text-[#77746D] dark:text-[#B5B5AA]">
+          <div className="mb-1 grid grid-cols-7 text-center text-[10px] font-bold uppercase tracking-wide text-[#7D6B63] dark:text-[#D4C3B7]">
             {["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"].map((day) => <span key={day} className="py-2">{day}</span>)}
           </div>
           <div className="grid grid-cols-7 gap-1" role="grid" aria-label={`${visibleMonth.toLocaleString("en", { month: "long" })} ${year}`}>
@@ -186,16 +187,33 @@ export function PlannerDatePicker({ value, onChange, requiredAttempted = false }
               const isDisabled = iso < today;
               const isSelected = iso === selectedDate;
               const inMonth = day.getMonth() === month;
-              return <button key={iso} type="button" role="gridcell" disabled={isDisabled} aria-label={day.toLocaleDateString("en-IN", { dateStyle: "full" })} aria-selected={isSelected} onClick={() => chooseDate(day)} className={`aspect-square rounded-lg text-xs transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-[#C6A66B] ${isSelected ? "bg-[#173F35] font-bold text-white dark:bg-[#A9C7B2] dark:text-[#151B18]" : inMonth ? "text-[#252522] hover:bg-[#E7EFEA] dark:text-[#F4F0E7] dark:hover:bg-[#344139]" : "text-[#B8B3A9] dark:text-[#6E776F]"} ${isDisabled ? "cursor-not-allowed opacity-35" : ""}`}>
-                {day.getDate()}
-              </button>;
+              return (
+                <button
+                  key={iso}
+                  type="button"
+                  role="gridcell"
+                  disabled={isDisabled}
+                  aria-label={day.toLocaleDateString("en-IN", { dateStyle: "full" })}
+                  aria-selected={isSelected}
+                  onClick={() => chooseDate(day)}
+                  className={`aspect-square rounded-xl text-xs transition-colors cursor-pointer ${
+                    isSelected
+                      ? "bg-[#681B1D] font-bold text-[#FFF3E3]"
+                      : inMonth
+                        ? "text-[#30221D] hover:bg-[#EAD2B0]/40 dark:text-[#FFF3E3] dark:hover:bg-[#3D2624]"
+                        : "text-[#9E897F] dark:text-[#7D6B63]"
+                  } ${isDisabled ? "cursor-not-allowed opacity-30" : ""}`}
+                >
+                  {day.getDate()}
+                </button>
+              );
             })}
           </div>
-          <div className="mt-3 flex items-center justify-between border-t border-[#E8E2D7] pt-3 dark:border-[#344139]">
-            <button type="button" onClick={() => chooseDate(new Date())} className="rounded-lg px-3 py-2 text-xs font-semibold text-[#173F35] hover:bg-[#E7EFEA] dark:text-[#A9C7B2] dark:hover:bg-[#344139]">Today</button>
+          <div className="mt-3 flex items-center justify-between border-t border-[#EAD2B0] pt-3 dark:border-[#4D3331]">
+            <button type="button" onClick={() => chooseDate(new Date())} className="rounded-xl px-3 py-1.5 text-xs font-semibold text-[#681B1D] hover:bg-[#EAD2B0]/40 dark:text-[#EAD2B0] dark:hover:bg-[#3D2624] cursor-pointer">Today</button>
             <div className="flex items-center gap-1">
-              <button type="button" onClick={() => { skipNextSyncValue.current = ""; onChange(""); setText(""); setShowInputError(false); }} className="rounded-lg px-3 py-2 text-xs font-semibold text-[#77746D] hover:bg-[#FAF8F3] dark:text-[#B5B5AA] dark:hover:bg-[#1C2520]">Clear</button>
-              <button type="button" aria-label="Close calendar" onClick={() => setOpen(false)} className="rounded-lg p-2 text-[#77746D] hover:bg-[#FAF8F3] dark:text-[#B5B5AA] dark:hover:bg-[#1C2520]"><X className="h-4 w-4" /></button>
+              <button type="button" onClick={() => { skipNextSyncValue.current = ""; onChange(""); setText(""); setShowInputError(false); }} className="rounded-xl px-3 py-1.5 text-xs font-semibold text-[#7D6B63] hover:bg-[#EAD2B0]/30 dark:text-[#D4C3B7] cursor-pointer">Clear</button>
+              <button type="button" aria-label="Close calendar" onClick={() => setOpen(false)} className="rounded-xl p-1.5 text-[#7D6B63] hover:bg-[#EAD2B0]/30 dark:text-[#D4C3B7] cursor-pointer"><X className="h-4 w-4" /></button>
             </div>
           </div>
         </div>

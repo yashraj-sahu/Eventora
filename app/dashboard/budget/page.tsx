@@ -34,11 +34,11 @@ export default function BudgetTrackerPage() {
   // Category breakdown
   const categoryBudgets = [
     { name: "Venue", defaultPct: 35, color: "bg-amber-400" },
-    { name: "Catering", defaultPct: 28, color: "bg-emerald-400" },
+    { name: "Catering", defaultPct: 28, color: "bg-amber-700" },
     { name: "Decor", defaultPct: 16, color: "bg-indigo-400" },
     { name: "Photography", defaultPct: 9, color: "bg-rose-400" },
     { name: "Entertainment", defaultPct: 7, color: "bg-purple-400" },
-    { name: "Logistics & Misc", defaultPct: 5, color: "bg-slate-400" },
+    { name: "Logistics & Misc", defaultPct: 5, color: "bg-[#D4C3B7]" },
   ];
 
   const handleAddExpense = (e: React.FormEvent) => {
@@ -73,14 +73,14 @@ export default function BudgetTrackerPage() {
           <h1 className="text-2xl sm:text-4xl font-serif font-bold text-white">
             Budget Intelligence & Expense Ledger
           </h1>
-          <p className="text-xs text-slate-400">
+          <p className="text-xs text-[#D4C3B7]">
             Real-time tracking of committed contracts, advance deposits, and remaining budget in INR
           </p>
         </div>
 
         <button
           onClick={() => setShowAddModal(true)}
-          className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 font-bold text-xs uppercase tracking-wider transition-all shadow-md flex items-center gap-1.5 cursor-pointer shrink-0"
+          className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-[#1A1211] font-bold text-xs uppercase tracking-wider transition-all shadow-md flex items-center gap-1.5 cursor-pointer shrink-0"
         >
           <Plus className="w-4 h-4" />
           <span>Add Expense Item</span>
@@ -90,30 +90,30 @@ export default function BudgetTrackerPage() {
       {/* Top 3 Summary Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
         <div className="p-6 rounded-2xl glass-card border border-white/10 space-y-2">
-          <span className="text-xs uppercase tracking-wider text-slate-400 font-semibold block">
+          <span className="text-xs uppercase tracking-wider text-[#D4C3B7] font-semibold block">
             Total Allocated Budget
           </span>
           <div className="text-3xl font-serif font-bold text-white">{formatINR(totalBudget)}</div>
-          <p className="text-[11px] text-slate-500">Configured in Event Blueprint</p>
+          <p className="text-[11px] text-[#9E897F]">Configured in Event Blueprint</p>
         </div>
 
         <div className="p-6 rounded-2xl glass-card border border-white/10 space-y-2">
-          <span className="text-xs uppercase tracking-wider text-slate-400 font-semibold block">
+          <span className="text-xs uppercase tracking-wider text-[#D4C3B7] font-semibold block">
             Actual Committed / Spent
           </span>
           <div className="text-3xl font-serif font-bold text-amber-400">{formatINR(totalSpent)}</div>
-          <p className="text-[11px] text-slate-500">
+          <p className="text-[11px] text-[#9E897F]">
             {Math.round((totalSpent / totalBudget) * 100)}% of total funds committed
           </p>
         </div>
 
         <div className="p-6 rounded-2xl glass-card border border-white/10 space-y-2">
-          <span className="text-xs uppercase tracking-wider text-slate-400 font-semibold block">
+          <span className="text-xs uppercase tracking-wider text-[#D4C3B7] font-semibold block">
             Remaining Available Funds
           </span>
           <div
             className={`text-3xl font-serif font-bold ${
-              isOverBudget ? "text-rose-400" : "text-emerald-400"
+              isOverBudget ? "text-rose-400" : "text-amber-700"
             }`}
           >
             {formatINR(remainingBudget)}
@@ -124,7 +124,7 @@ export default function BudgetTrackerPage() {
               <span>Budget exceeded by {formatINR(Math.abs(remainingBudget))}</span>
             </div>
           ) : (
-            <div className="flex items-center gap-1 text-[11px] text-emerald-400 font-medium">
+            <div className="flex items-center gap-1 text-[11px] text-amber-700 font-medium">
               <CheckCircle2 className="w-3.5 h-3.5" />
               <span>Safe operational runway</span>
             </div>
@@ -148,25 +148,25 @@ export default function BudgetTrackerPage() {
             const spentPct = Math.round((catSpent / targetAlloc) * 100);
 
             return (
-              <div key={i} className="p-4 rounded-xl bg-slate-950/70 border border-slate-800 space-y-2 text-xs">
+              <div key={i} className="p-4 rounded-xl bg-[#1A1211]/70 border border-[#4D3331] space-y-2 text-xs">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
                     <span className={`w-2.5 h-2.5 rounded-full ${cat.color}`}></span>
                     <span className="font-semibold text-white">{cat.name}</span>
                   </div>
-                  <span className="text-slate-400">{cat.defaultPct}% Target</span>
+                  <span className="text-[#D4C3B7]">{cat.defaultPct}% Target</span>
                 </div>
 
                 <div className="flex items-baseline justify-between pt-1">
                   <span className="font-serif font-bold text-white text-sm">
                     {formatINR(catSpent)}
                   </span>
-                  <span className="text-slate-500 text-[11px]">
+                  <span className="text-[#9E897F] text-[11px]">
                     of {formatINR(targetAlloc)}
                   </span>
                 </div>
 
-                <div className="w-full h-1.5 bg-slate-800 rounded-full overflow-hidden">
+                <div className="w-full h-1.5 bg-[#4D3331] rounded-full overflow-hidden">
                   <div
                     className={`h-full ${cat.color} rounded-full transition-all duration-300`}
                     style={{ width: `${Math.min(spentPct, 100)}%` }}
@@ -182,12 +182,12 @@ export default function BudgetTrackerPage() {
       <div className="p-8 rounded-3xl glass-card border border-white/10 space-y-6">
         <div className="flex items-center justify-between">
           <h2 className="text-lg font-serif font-bold text-white">Expense Ledger</h2>
-          <span className="text-xs text-slate-400">{activeExpenses.length} Total Line Items</span>
+          <span className="text-xs text-[#D4C3B7]">{activeExpenses.length} Total Line Items</span>
         </div>
 
         <div className="overflow-x-auto">
           <table className="w-full text-left text-xs">
-            <thead className="bg-slate-950/80 text-slate-400 uppercase text-[10px] tracking-wider border-b border-white/10">
+            <thead className="bg-[#1A1211]/80 text-[#D4C3B7] uppercase text-[10px] tracking-wider border-b border-white/10">
               <tr>
                 <th className="py-3 px-4">Item & Description</th>
                 <th className="py-3 px-4">Category</th>
@@ -199,10 +199,10 @@ export default function BudgetTrackerPage() {
             </thead>
             <tbody className="divide-y divide-white/5">
               {activeExpenses.map((exp) => (
-                <tr key={exp.id} className="hover:bg-white/[0.02] transition-colors">
+                <tr key={exp.id} className="hover:bg-[#FFFCF6]/[0.02] transition-colors">
                   <td className="py-3.5 px-4 font-semibold text-white">{exp.title}</td>
-                  <td className="py-3.5 px-4 text-slate-300">{exp.category}</td>
-                  <td className="py-3.5 px-4 text-slate-400">{exp.vendorName || "—"}</td>
+                  <td className="py-3.5 px-4 text-[#D4C3B7]">{exp.category}</td>
+                  <td className="py-3.5 px-4 text-[#D4C3B7]">{exp.vendorName || "—"}</td>
                   <td className="py-3.5 px-4 font-serif font-bold text-amber-400">
                     {formatINR(exp.amount)}
                   </td>
@@ -211,7 +211,7 @@ export default function BudgetTrackerPage() {
                       <span
                         className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider ${
                           exp.status === "paid"
-                            ? "bg-emerald-500/10 text-emerald-400 border border-emerald-500/20"
+                            ? "bg-rose-900/10 text-amber-700 border border-rose-900/20"
                             : exp.status === "due"
                             ? "bg-rose-500/10 text-rose-400 border border-rose-500/20"
                             : "bg-amber-500/10 text-amber-400 border border-amber-500/20"
@@ -246,7 +246,7 @@ export default function BudgetTrackerPage() {
                               console.error(e);
                             }
                           }}
-                          className="px-2 py-0.5 rounded bg-emerald-600 hover:bg-emerald-500 text-white text-[10px] font-bold uppercase transition-all cursor-pointer shadow-xs inline-flex items-center gap-1"
+                          className="px-2 py-0.5 rounded bg-rose-800 hover:bg-rose-900 text-white text-[10px] font-bold uppercase transition-all cursor-pointer shadow-xs inline-flex items-center gap-1"
                         >
                           Pay
                         </button>
@@ -256,7 +256,7 @@ export default function BudgetTrackerPage() {
                   <td className="py-3.5 px-4 text-right">
                     <button
                       onClick={() => deleteExpense(exp.id)}
-                      className="text-slate-500 hover:text-rose-400 p-1 transition-colors"
+                      className="text-[#9E897F] hover:text-rose-400 p-1 transition-colors"
                       title="Remove expense"
                     >
                       <Trash2 className="w-4 h-4" />
@@ -277,7 +277,7 @@ export default function BudgetTrackerPage() {
               <h3 className="text-lg font-serif font-bold text-white">Record New Expense</h3>
               <button
                 onClick={() => setShowAddModal(false)}
-                className="text-slate-400 hover:text-white text-sm"
+                className="text-[#D4C3B7] hover:text-white text-sm"
               >
                 ✕
               </button>
@@ -285,14 +285,14 @@ export default function BudgetTrackerPage() {
 
             <form onSubmit={handleAddExpense} className="space-y-4 text-xs">
               <div>
-                <label className="block text-slate-400 mb-1 font-medium">Expense Title</label>
+                <label className="block text-[#D4C3B7] mb-1 font-medium">Expense Title</label>
                 <input
                   type="text"
                   required
                   value={title}
                   onChange={(e) => setTitle(e.target.value)}
                   placeholder="e.g. Sangeet Sound Rigging Deposit"
-                  className="w-full px-3 py-2.5 rounded-xl bg-slate-950 border border-slate-800 text-white focus:outline-none focus:border-amber-400"
+                  className="w-full px-3 py-2.5 rounded-xl bg-[#1A1211] border border-[#4D3331] text-white focus:outline-none focus:border-amber-400"
                 />
               </div>
 
@@ -302,7 +302,7 @@ export default function BudgetTrackerPage() {
                 </div>
 
                 <div>
-                  <label className="block text-slate-400 mb-1 font-medium">Amount (INR)</label>
+                  <label className="block text-[#D4C3B7] mb-1 font-medium">Amount (INR)</label>
                   <input
                     type="number"
                     min="1000"
@@ -310,19 +310,19 @@ export default function BudgetTrackerPage() {
                     required
                     value={amount}
                     onChange={(e) => setAmount(Number(e.target.value))}
-                    className="w-full px-3 py-2.5 rounded-xl bg-slate-950 border border-slate-800 text-white focus:outline-none focus:border-amber-400"
+                    className="w-full px-3 py-2.5 rounded-xl bg-[#1A1211] border border-[#4D3331] text-white focus:outline-none focus:border-amber-400"
                   />
                 </div>
               </div>
 
               <div>
-                <label className="block text-slate-400 mb-1 font-medium">Vendor / Payee</label>
+                <label className="block text-[#D4C3B7] mb-1 font-medium">Vendor / Payee</label>
                 <input
                   type="text"
                   value={vendorName}
                   onChange={(e) => setVendorName(e.target.value)}
                   placeholder="e.g. DJ Rohit Music"
-                  className="w-full px-3 py-2.5 rounded-xl bg-slate-950 border border-slate-800 text-white focus:outline-none focus:border-amber-400"
+                  className="w-full px-3 py-2.5 rounded-xl bg-[#1A1211] border border-[#4D3331] text-white focus:outline-none focus:border-amber-400"
                 />
               </div>
 
@@ -332,12 +332,12 @@ export default function BudgetTrackerPage() {
                 </div>
 
                 <div>
-                  <label className="block text-slate-400 mb-1 font-medium">Due Date</label>
+                  <label className="block text-[#D4C3B7] mb-1 font-medium">Due Date</label>
                   <input
                     type="date"
                     value={dueDate}
                     onChange={(e) => setDueDate(e.target.value)}
-                    className="w-full px-3 py-2.5 rounded-xl bg-slate-950 border border-slate-800 text-white focus:outline-none focus:border-amber-400"
+                    className="w-full px-3 py-2.5 rounded-xl bg-[#1A1211] border border-[#4D3331] text-white focus:outline-none focus:border-amber-400"
                   />
                 </div>
               </div>
@@ -346,13 +346,13 @@ export default function BudgetTrackerPage() {
                 <button
                   type="button"
                   onClick={() => setShowAddModal(false)}
-                  className="px-4 py-2 rounded-xl bg-slate-900 text-slate-300 font-semibold"
+                  className="px-4 py-2 rounded-xl bg-[#2E1F1E] text-[#D4C3B7] font-semibold"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="px-5 py-2 rounded-xl bg-amber-500 text-slate-950 font-bold"
+                  className="px-5 py-2 rounded-xl bg-amber-500 text-[#1A1211] font-bold"
                 >
                   Save Expense
                 </button>

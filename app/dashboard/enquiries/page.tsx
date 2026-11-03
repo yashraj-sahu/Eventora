@@ -18,7 +18,7 @@ export default function EnquiriesPage() {
         <h1 className="text-2xl sm:text-4xl font-serif font-bold text-white">
           Active Vendor Enquiries
         </h1>
-        <p className="text-xs text-slate-400">
+        <p className="text-xs text-[#D4C3B7]">
           Direct quotes, proposals, and communication status with shortlisted event artisans
         </p>
       </div>
@@ -36,7 +36,7 @@ export default function EnquiriesPage() {
                 </div>
                 <div>
                   <h3 className="text-lg font-serif font-bold text-white">{enq.vendorName}</h3>
-                  <span className="text-[11px] text-slate-400">{enq.vendorCategory} • Request ID: {enq.id}</span>
+                  <span className="text-[11px] text-[#D4C3B7]">{enq.vendorCategory} • Request ID: {enq.id}</span>
                 </div>
               </div>
 
@@ -44,7 +44,7 @@ export default function EnquiriesPage() {
                 <span
                   className={`px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider ${
                     enq.status === "booked"
-                      ? "bg-emerald-500/10 text-emerald-400 border border-emerald-500/20"
+                      ? "bg-rose-900/10 text-amber-700 border border-rose-900/20"
                       : enq.status === "replied"
                       ? "bg-blue-500/10 text-blue-400 border border-blue-500/20"
                       : "bg-amber-500/10 text-amber-400 border border-amber-500/20"
@@ -55,7 +55,7 @@ export default function EnquiriesPage() {
               </div>
             </div>
 
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs text-slate-300">
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs text-[#D4C3B7]">
               <div className="flex items-center gap-1.5">
                 <Calendar className="w-3.5 h-3.5 text-amber-400" />
                 <span>Date: {enq.eventDate}</span>
@@ -68,12 +68,12 @@ export default function EnquiriesPage() {
                 <Coins className="w-3.5 h-3.5 text-amber-400" />
                 <span>Budget: {formatINR(enq.estimatedBudget)}</span>
               </div>
-              <div className="text-slate-400 text-right">
+              <div className="text-[#D4C3B7] text-right">
                 Sent: {new Date(enq.createdAt).toLocaleDateString()}
               </div>
             </div>
 
-            <p className="text-xs text-slate-300 bg-slate-950/60 p-4 rounded-xl border border-slate-800 leading-relaxed italic">
+            <p className="text-xs text-[#D4C3B7] bg-[#1A1211]/60 p-4 rounded-xl border border-[#4D3331] leading-relaxed italic">
               &ldquo;{enq.message}&rdquo;
             </p>
 

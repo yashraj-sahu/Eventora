@@ -23,7 +23,18 @@ export function FeaturedVendors() {
 
   const filterTabs = ["All", "Venues", "Photographers", "Caterers", "Decorators", "DJs"];
 
-  const filteredVendors = vendors.filter((v) => v.isFeatured && (selectedFilter === "All" || v.category === selectedFilter)).slice(0, 6);
+  // Filter vendors: allow all approved vendors, sorting featured vendors to the top
+  const filteredVendors = vendors
+    .filter((v) => {
+      if (selectedFilter === "All") return true;
+      const cat = (v.category || "").toLowerCase();
+      const filter = selectedFilter.toLowerCase();
+      const cleanFilter = filter.replace(/s$/, "");
+      const cleanCat = cat.replace(/s$/, "");
+      return cat === filter || cleanCat === cleanFilter || cat.includes(cleanFilter) || filter.includes(cleanCat);
+    })
+    .sort((a, b) => (b.isFeatured ? 1 : 0) - (a.isFeatured ? 1 : 0))
+    .slice(0, 6);
 
   return (
     <section className="py-20 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-12">
@@ -174,7 +185,7 @@ export function FeaturedVendors() {
                     </button>
                     <Link
                       href={`/vendors/${vendor.id}`}
-                      className="px-3 py-2 rounded-xl bg-white dark:bg-[#1A1211] hover:bg-[#EAD2B0]/30 text-[#30221D] dark:text-[#FFF3E3] border border-[#EAD2B0] dark:border-[#4D3331] text-xs font-semibold transition-all flex items-center gap-1 cursor-pointer shadow-2xs"
+                      className="px-3 py-2 rounded-xl bg-[#FFFCF6] dark:bg-[#1A1211] hover:bg-[#EAD2B0]/30 text-[#30221D] dark:text-[#FFF3E3] border border-[#EAD2B0] dark:border-[#4D3331] text-xs font-semibold transition-all flex items-center gap-1 cursor-pointer shadow-2xs"
                     >
                       <span>Profile</span>
                       <ArrowRight className="w-3 h-3" />

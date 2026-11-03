@@ -23,7 +23,7 @@ export default function DesignStudioPage() {
         <h1 className="text-2xl sm:text-4xl font-serif font-bold text-white">
           Aesthetic Inspiration & Moodboard
         </h1>
-        <p className="text-xs text-slate-400">
+        <p className="text-xs text-[#D4C3B7]">
           Curated themes, color harmonies, mandap designs, and tablescapes for high-touch Indian celebrations
         </p>
       </div>
@@ -36,8 +36,8 @@ export default function DesignStudioPage() {
             onClick={() => setSelectedCategory(cat)}
             className={`px-4 py-2 rounded-xl text-xs font-semibold whitespace-nowrap transition-all ${
               selectedCategory === cat
-                ? "bg-amber-500 text-slate-950 font-bold"
-                : "bg-slate-900 text-slate-400 hover:text-white border border-slate-800"
+                ? "bg-amber-500 text-[#1A1211] font-bold"
+                : "bg-[#2E1F1E] text-[#D4C3B7] hover:text-white border border-[#4D3331]"
             }`}
           >
             {cat}
@@ -70,24 +70,24 @@ export default function DesignStudioPage() {
                 <h3 className="text-lg font-serif font-bold text-white group-hover:text-amber-300 transition-colors">
                   {item.title}
                 </h3>
-                <p className="text-xs text-slate-300 leading-relaxed">
+                <p className="text-xs text-[#D4C3B7] leading-relaxed">
                   {item.description}
                 </p>
               </div>
 
               {item.colors && (
                 <div className="pt-2 border-t border-white/5 space-y-1.5">
-                  <span className="text-[10px] uppercase font-bold tracking-wider text-slate-500 block">
+                  <span className="text-[10px] uppercase font-bold tracking-wider text-[#9E897F] block">
                     Color Palette Harmony
                   </span>
                   <div className="flex items-center gap-2">
                     {item.colors.map((c, i) => (
-                      <div key={i} className="flex items-center gap-1.5 bg-slate-950 px-2 py-1 rounded-lg border border-slate-800">
+                      <div key={i} className="flex items-center gap-1.5 bg-[#1A1211] px-2 py-1 rounded-lg border border-[#4D3331]">
                         <div
                           className="w-3.5 h-3.5 rounded-full border border-white/20"
                           style={{ backgroundColor: c.hex }}
                         ></div>
-                        <span className="text-[10px] text-slate-300">{c.name}</span>
+                        <span className="text-[10px] text-[#D4C3B7]">{c.name}</span>
                       </div>
                     ))}
                   </div>
@@ -98,7 +98,7 @@ export default function DesignStudioPage() {
                 {item.tags.map((t, idx) => (
                   <span
                     key={idx}
-                    className="text-[10px] px-2 py-0.5 rounded bg-slate-900 border border-slate-800 text-slate-400"
+                    className="text-[10px] px-2 py-0.5 rounded bg-[#2E1F1E] border border-[#4D3331] text-[#D4C3B7]"
                   >
                     #{t}
                   </span>

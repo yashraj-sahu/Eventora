@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import "./globals.css";
 import { AuthProvider } from "@/lib/auth-context";
 import { ThemeProvider } from "@/lib/theme-context";
-
+import { GlobalFloatingChatbot } from "@/components/ai/GlobalFloatingChatbot";
 
 export const metadata: Metadata = {
   title: "EVNTORA — Every Celebration, Beautifully Planned",
@@ -12,7 +12,6 @@ export const metadata: Metadata = {
     google: "7CWlGR9FChJOtTIeTtg2dZczL20oW9fMW_TzM9ajWOY",
   },
 };
-
 
 export default function RootLayout({
   children,
@@ -46,9 +45,12 @@ export default function RootLayout({
           }}
         />
       </head>
-      <body className="antialiased min-h-screen bg-[#FAF8F3] dark:bg-[#151B18] text-[#252522] dark:text-[#F4F0E7] selection:bg-[#173F35] dark:selection:bg-[#A9C7B2] selection:text-white dark:selection:text-[#151B18] font-sans transition-colors duration-200">
+      <body className="antialiased min-h-screen bg-[#FFF3E3] dark:bg-[#1A1211] text-[#30221D] dark:text-[#FFF3E3] selection:bg-[#681B1D] selection:text-[#FFF3E3] font-sans transition-colors duration-200">
         <ThemeProvider>
-          <AuthProvider>{children}</AuthProvider>
+          <AuthProvider>
+            {children}
+            <GlobalFloatingChatbot />
+          </AuthProvider>
         </ThemeProvider>
       </body>
     </html>

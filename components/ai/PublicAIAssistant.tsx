@@ -30,7 +30,9 @@ export function PublicAIAssistant() {
     try {
       const stored = JSON.parse(sessionStorage.getItem(HISTORY_KEY) || "[]") as Message[];
       setMessages(stored.slice(-12));
-    } catch { sessionStorage.removeItem(HISTORY_KEY); }
+    } catch {
+      sessionStorage.removeItem(HISTORY_KEY);
+    }
   }, [isLoading, hasCustomerAccess]);
 
   useEffect(() => {
@@ -42,7 +44,11 @@ export function PublicAIAssistant() {
     return () => { active = false; };
   }, [hasCustomerAccess]);
 
-  const eventOptions: SelectOption[] = events.map((event) => ({ value: event.id, label: event.title, description: `${event.city} · ${event.date}` }));
+  const eventOptions: SelectOption[] = events.map((event) => ({
+    value: event.id,
+    label: event.title,
+    description: `${event.city} · ${event.date}`,
+  }));
 
   const send = async (event: React.FormEvent) => {
     event.preventDefault();
@@ -71,29 +77,99 @@ export function PublicAIAssistant() {
   return (
     <section className="max-w-4xl mx-auto px-4 sm:px-6 py-12 sm:py-16">
       <div className="text-center mb-8">
-        <div className="mx-auto w-14 h-14 rounded-2xl bg-[#E7EFEA] dark:bg-[#173F35]/50 grid place-items-center text-[#173F35] dark:text-[#D4B77D]"><Bot className="w-7 h-7" /></div>
-        <p className="mt-5 text-[10px] uppercase tracking-[0.2em] font-bold text-[#C6A66B]">Evntora AI concierge</p>
-        <h1 className="mt-2 text-3xl sm:text-4xl font-serif font-bold text-[#173F35] dark:text-[#F4F0E7]">Ask about your celebration</h1>
-        <p className="mt-3 text-sm text-[#77746D] dark:text-[#B5B5AA]">Explore ideas and get real AI planning help. No account is needed to start.</p>
+        <div className="mx-auto w-14 h-14 rounded-2xl bg-[#EAD2B0]/40 dark:bg-[#3D2624] border border-[#EAD2B0] dark:border-[#4D3331] grid place-items-center text-[#681B1D] dark:text-[#EAD2B0]">
+          <Bot className="w-7 h-7" />
+        </div>
+        <p className="mt-5 text-[10px] uppercase tracking-[0.2em] font-bold text-[#B77A36] dark:text-[#EAD2B0]">
+          Evntora AI concierge
+        </p>
+        <h1 className="mt-2 text-3xl sm:text-4xl font-serif font-bold text-[#30221D] dark:text-[#FFF3E3]">
+          Ask about your celebration
+        </h1>
+        <p className="mt-3 text-sm text-[#59453E] dark:text-[#D4C3B7]">
+          Explore ideas and get real AI planning help. No account is needed to start.
+        </p>
       </div>
 
-      <div className="rounded-3xl border border-[#E8E2D7] dark:border-[#344139] bg-white dark:bg-[#232F28] shadow-lg overflow-hidden">
-        {hasCustomerAccess && events.length > 0 && <div className="px-5 sm:px-7 pt-5"><SearchableSelect label="Planning for an event (optional)" value={selectedEventId} options={eventOptions} onChange={(value) => { if (conversationId && value !== selectedEventId) { setConversationId(null); setMessages([]); } setSelectedEventId(value); }} placeholder="Choose an event for tailored help" /></div>}
+      <div className="rounded-3xl border border-[#EAD2B0] dark:border-[#4D3331] bg-[#FFFCF6] dark:bg-[#2E1F1E] shadow-xl overflow-hidden">
+        {hasCustomerAccess && events.length > 0 && (
+          <div className="px-5 sm:px-7 pt-5">
+            <SearchableSelect
+              label="Planning for an event (optional)"
+              value={selectedEventId}
+              options={eventOptions}
+              onChange={(value) => {
+                if (conversationId && value !== selectedEventId) {
+                  setConversationId(null);
+                  setMessages([]);
+                }
+                setSelectedEventId(value);
+              }}
+              placeholder="Choose an event for tailored help"
+            />
+          </div>
+        )}
         <div className="h-[min(55vh,480px)] min-h-72 overflow-y-auto p-5 sm:p-7 space-y-4" aria-live="polite">
-          {!messages.length && <div className="h-full min-h-56 grid place-items-center text-center"><div className="max-w-sm"><Sparkles className="w-6 h-6 mx-auto text-[#C6A66B]" /><p className="mt-3 text-sm text-[#77746D] dark:text-[#B5B5AA]">Try “Help me plan a relaxed three-day wedding in Jaipur” or ask a general event question.</p></div></div>}
-          {messages.map((item, index) => <div key={`${index}-${item.role}`} className={`max-w-[90%] whitespace-pre-wrap rounded-2xl px-4 py-3 text-sm leading-6 ${item.role === "user" ? "ml-auto bg-[#173F35] text-[#FAF8F3]" : "mr-auto bg-[#FAF8F3] dark:bg-[#1C2520] border border-[#E8E2D7] dark:border-[#344139] text-[#252522] dark:text-[#F4F0E7]"}`}>{item.content}</div>)}
-          {busy && <p role="status" className="text-sm text-[#77746D] dark:text-[#B5B5AA]">Evntora AI is thinking…</p>}
+          {!messages.length && (
+            <div className="h-full min-h-56 grid place-items-center text-center">
+              <div className="max-w-sm">
+                <Sparkles className="w-6 h-6 mx-auto text-[#B77A36]" />
+                <p className="mt-3 text-xs sm:text-sm text-[#7D6B63] dark:text-[#D4C3B7]">
+                  Try “Help me plan a relaxed three-day wedding in Jaipur” or ask a general event question.
+                </p>
+              </div>
+            </div>
+          )}
+          {messages.map((item, index) => (
+            <div
+              key={`${index}-${item.role}`}
+              className={`max-w-[90%] whitespace-pre-wrap rounded-2xl px-4 py-3 text-xs sm:text-sm leading-6 ${
+                item.role === "user"
+                  ? "ml-auto bg-gradient-to-r from-[#681B1D] to-[#4B1117] text-[#FFF3E3] border border-[#B77A36]/40 shadow-xs"
+                  : "mr-auto bg-[#FFF3E3]/80 dark:bg-[#1A1211] border border-[#EAD2B0] dark:border-[#4D3331] text-[#30221D] dark:text-[#FFF3E3]"
+              }`}
+            >
+              {item.content}
+            </div>
+          ))}
+          {busy && (
+            <p role="status" className="text-xs text-[#7D6B63] dark:text-[#D4C3B7] flex items-center gap-2">
+              <span className="w-2 h-2 rounded-full bg-[#B77A36] animate-ping" />
+              <span>Evntora AI is crafting recommendations…</span>
+            </p>
+          )}
         </div>
-        {error && <p role="alert" className="mx-5 text-sm text-red-700 dark:text-red-300">{error}</p>}
-        <form onSubmit={send} className="border-t border-[#E8E2D7] dark:border-[#344139] p-4 sm:p-5 flex gap-3">
+        {error && <p role="alert" className="mx-5 text-xs text-rose-700 dark:text-rose-300 py-1">{error}</p>}
+        <form onSubmit={send} className="border-t border-[#EAD2B0] dark:border-[#4D3331] p-4 sm:p-5 flex gap-3 bg-[#FAF3E8] dark:bg-[#1A1211]">
           <label className="sr-only" htmlFor="guest-ai-question">Your question</label>
-          <input id="guest-ai-question" value={message} onChange={(event) => setMessage(event.target.value)} maxLength={2000} disabled={busy} placeholder="Ask your event planning question…" className="min-w-0 flex-1 rounded-xl bg-[#FAF8F3] dark:bg-[#1C2520] border border-[#E8E2D7] dark:border-[#344139] px-4 py-3 text-sm text-[#252522] dark:text-[#F4F0E7] placeholder:text-[#77746D] focus:outline-none focus:border-[#173F35] dark:focus:border-[#A9C7B2]" />
-          <button type="submit" disabled={busy || !message.trim()} aria-label="Send question" className="shrink-0 rounded-xl bg-[#173F35] hover:bg-[#0F2B24] disabled:opacity-50 text-[#FAF8F3] px-4 py-3"><Send className="w-4 h-4" /></button>
+          <input
+            id="guest-ai-question"
+            value={message}
+            onChange={(event) => setMessage(event.target.value)}
+            maxLength={2000}
+            disabled={busy}
+            placeholder="Ask your event planning question…"
+            className="min-w-0 flex-1 rounded-xl bg-[#FFFCF6] dark:bg-[#2E1F1E] border border-[#EAD2B0] dark:border-[#4D3331] px-4 py-2.5 text-xs text-[#30221D] dark:text-[#FFF3E3] placeholder-[#9E897F] focus:outline-none focus:border-[#B77A36]"
+          />
+          <button
+            type="submit"
+            disabled={busy || !message.trim()}
+            aria-label="Send question"
+            className="shrink-0 rounded-xl bg-gradient-to-r from-[#681B1D] to-[#4B1117] hover:from-[#7A2124] hover:to-[#5C151D] disabled:opacity-50 text-[#FFF3E3] px-4 py-2.5 cursor-pointer border border-[#B77A36]/40"
+          >
+            <Send className="w-4 h-4 text-[#EAD2B0]" />
+          </button>
         </form>
       </div>
-      <p className="mt-4 text-center text-xs text-[#77746D] dark:text-[#B5B5AA]">{hasCustomerAccess ? "Your signed-in conversation is saved to your account." : "This guest conversation stays in this browser session and is not saved to an account."}</p>
-      <div className="mt-6 flex justify-center"><Link href="/planner" className="inline-flex items-center gap-2 text-sm font-semibold text-[#173F35] dark:text-[#A9C7B2] hover:underline">Generate a complete event blueprint <ArrowRight className="w-4 h-4" /></Link></div>
-      {hasCustomerAccess && <div className="mt-3 flex justify-center"><Link href="/dashboard/ai-assistant" className="text-xs font-semibold text-[#77746D] dark:text-[#B5B5AA] hover:text-[#173F35] dark:hover:text-[#A9C7B2] hover:underline">Open saved conversations and memory settings</Link></div>}
+      <p className="mt-4 text-center text-xs text-[#7D6B63] dark:text-[#D4C3B7]">
+        {hasCustomerAccess ? "Your signed-in conversation is saved to your account." : "This guest conversation stays in this browser session."}
+      </p>
+      <div className="mt-6 flex justify-center">
+        <Link href="/planner" className="inline-flex items-center gap-2 text-xs font-semibold text-[#681B1D] dark:text-[#EAD2B0] hover:underline">
+          <span>Generate a complete event blueprint</span>
+          <ArrowRight className="w-3.5 h-3.5 text-[#B77A36]" />
+        </Link>
+      </div>
     </section>
   );
 }

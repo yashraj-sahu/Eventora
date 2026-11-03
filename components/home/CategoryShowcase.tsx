@@ -83,7 +83,7 @@ export function CategoryShowcase() {
               <div className="pt-2">
                 <Link
                   href={`/planner?type=${encodeURIComponent(category.id)}`}
-                  className="w-full py-2.5 rounded-xl bg-white dark:bg-[#1A1211] hover:bg-[#EAD2B0]/40 dark:hover:bg-[#3D2624] text-[#681B1D] dark:text-[#EAD2B0] border border-[#EAD2B0] dark:border-[#4D3331] text-xs font-semibold transition-all flex items-center justify-center gap-2 cursor-pointer shadow-2xs"
+                  className="w-full py-2.5 rounded-xl bg-[#FFFCF6] dark:bg-[#1A1211] hover:bg-[#EAD2B0]/40 dark:hover:bg-[#3D2624] text-[#681B1D] dark:text-[#EAD2B0] border border-[#EAD2B0] dark:border-[#4D3331] text-xs font-semibold transition-all flex items-center justify-center gap-2 cursor-pointer shadow-2xs"
                 >
                   <span>Plan This Event</span>
                   <ArrowRight className="w-3.5 h-3.5" />

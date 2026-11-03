@@ -48,7 +48,6 @@ function SignInForm({ forcedPortal }: { forcedPortal?: PortalIntent }) {
       : null
   );
 
-  // If already authenticated with a valid session, redirect immediately
   useEffect(() => {
     let isMounted = true;
 
@@ -98,52 +97,58 @@ function SignInForm({ forcedPortal }: { forcedPortal?: PortalIntent }) {
     setSuccessMessage(null);
 
     let redirectUrl: string | null = null;
-
     try {
-      // 1. Authenticate with Supabase Auth
-      const { data, error: authError } = await supabase.auth.signInWithPassword({
-        email: email.trim(),
+      const { data, error: signInError } = await supabase.auth.signInWithPassword({
+        email: email.trim().toLowerCase(),
         password,
       });
 
-      if (authError) {
-        if (authError.message.includes("Invalid login credentials")) {
-          setError("Incorrect email or password. Please check your credentials and try again.");
-        } else if (authError.message.includes("Email not confirmed")) {
-          setError("Please verify your email address before signing in. Check your inbox for the confirmation link.");
-        } else {
-          setError("Unable to sign in right now. Check your details and try again.");
-        }
+      if (signInError) {
+        setError(signInError.message || "Invalid email or password.");
+        setIsLoading(false);
         return;
       }
 
-      // 2. Verify session was successfully established
-      if (!data.session || !data.user) {
-        setError("Unable to establish a secure session. Please try again.");
+      if (!data.user) {
+        setError("Sign-in failed. Please verify your credentials and try again.");
+        setIsLoading(false);
         return;
       }
 
-      // Active memberships are authoritative; a user may hold several portal memberships.
       const { data: memberships, error: membershipError } = await supabase.from("user_roles").select("role").eq("user_id", data.user.id).eq("is_active", true);
-      if (membershipError) { setError("Account access is temporarily unavailable. Please try again."); return; }
-      const roles: UserRole[] = (memberships ?? []).map((item) => item.role);
-      const has = (wanted: UserRole) => roles.includes(wanted) || (wanted === "admin" && roles.includes("platform_owner"));
-      const userRole = requestedPortal ? (has(requestedPortal) ? requestedPortal : null) : has("customer") ? "customer" : has("vendor") ? "vendor" : has("admin") ? "admin" : null;
-      if (!userRole) {
-        setError(requestedPortal === "vendor" ? "This account is not a vendor yet. Register your business to add Vendor access." : requestedPortal === "admin" ? "This account does not have an authorized administrator role." : "Customer access is not enabled for this account.");
+      if (membershipError) {
+        setError("We could not verify your account roles. Please refresh and try again.");
+        setIsLoading(false);
         return;
       }
+
+      const assignedRoles = (memberships ?? []).map((item) => item.role as UserRole);
+      const has = (r: UserRole) => assignedRoles.includes(r);
+      const isAdminUser = has("admin") || has("platform_owner");
+
+      if (requestedPortal === "admin" && !isAdminUser) {
+        setError("This account does not have authorized administrator access.");
+        await supabase.auth.signOut();
+        setIsLoading(false);
+        return;
+      }
+
       let vendorApproved = false;
-      if (roles.includes("vendor")) {
-        const { data: vp, error: vendorError } = await supabase.from("vendor_profiles").select("approval_status").eq("user_id", data.user.id).maybeSingle();
-        if (vendorError) {
-          setError("We couldn’t verify your vendor application status.");
-          return;
-        }
+      if (has("vendor")) {
+        const { data: vp } = await supabase.from("vendor_profiles").select("approval_status").eq("user_id", data.user.id).maybeSingle();
         vendorApproved = vp?.approval_status === "approved";
       }
-      const defaultDestination = portalHome(userRole, vendorApproved);
-      redirectUrl = defaultDestination;
+
+      const primaryRole = requestedPortal || (has("customer") ? "customer" : has("vendor") ? "vendor" : isAdminUser ? "admin" : null);
+
+      if (!primaryRole) {
+        setError("Your account is signed in, but no portal access is assigned.");
+        setIsLoading(false);
+        return;
+      }
+
+      redirectUrl = portalHome(primaryRole, vendorApproved);
+
       if (safeInternalRedirect(rawRedirectTo, window.location.origin)) {
         const path = rawRedirectTo.split(/[?#]/, 1)[0];
         const targetsAdmin = path === "/admin" || path.startsWith("/admin/");
@@ -155,13 +160,10 @@ function SignInForm({ forcedPortal }: { forcedPortal?: PortalIntent }) {
         if (sameRoleTarget || (safePublicTarget && (!customerOnlyTarget || has("customer")))) redirectUrl = rawRedirectTo;
       }
 
-      // 6. Navigate to destination
       window.location.assign(redirectUrl);
     } catch (err: unknown) {
       console.error("Sign-in submission error:", err);
-      setError(
-        "An unexpected sign-in error occurred. Please try again."
-      );
+      setError("An unexpected sign-in error occurred. Please try again.");
     } finally {
       if (!redirectUrl) {
         setIsLoading(false);
@@ -173,25 +175,25 @@ function SignInForm({ forcedPortal }: { forcedPortal?: PortalIntent }) {
   const description = requestedPortal === "admin" ? "Authorized administrators only. Access is checked against your Evntora account role." : requestedPortal === "vendor" ? "Sign in to manage your vendor profile and business." : requestedPortal === "customer" ? "Sign in to plan and manage your events." : "Sign in to your Evntora workspace to continue planning";
 
   return (
-    <div className="w-full max-w-md p-8 sm:p-10 rounded-3xl bg-white dark:bg-[#232F28] border border-[#E8E2D7] dark:border-[#344139] shadow-xl space-y-6">
+    <div className="w-full max-w-md p-8 sm:p-10 rounded-3xl bg-[#FFFCF6] dark:bg-[#2E1F1E] border border-[#EAD2B0] dark:border-[#4D3331] shadow-xl space-y-6">
       {/* Header */}
       <div className="text-center space-y-2">
         <Link href="/" className="inline-flex items-center justify-center">
-          <div className="w-10 h-10 rounded-xl bg-[#173F35] flex items-center justify-center font-serif font-bold text-[#C6A66B] text-xl shadow-xs">
+          <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#681B1D] to-[#4B1117] flex items-center justify-center font-serif font-bold text-[#EAD2B0] text-xl shadow-xs border border-[#B77A36]/60">
             E
           </div>
         </Link>
-        <h1 className="text-2xl font-serif font-bold text-[#173F35] dark:text-[#F4F0E7]">
+        <h1 className="text-2xl font-serif font-bold text-[#30221D] dark:text-[#FFF3E3]">
           {title}
         </h1>
-        <p className="text-xs text-[#77746D] dark:text-[#B5B5AA]">
+        <p className="text-xs text-[#7D6B63] dark:text-[#D4C3B7]">
           {description}
         </p>
       </div>
 
       {/* Status Messages */}
       {successMessage && (
-        <div className="flex items-start gap-2 p-3 rounded-xl bg-[#E7EFEA] dark:bg-[#173F35]/50 border border-[#173F35]/20 dark:border-[#A9C7B2]/30 text-xs text-[#173F35] dark:text-[#A9C7B2]">
+        <div className="flex items-start gap-2 p-3 rounded-xl bg-[#EAD2B0]/40 dark:bg-[#3D2624] border border-[#B77A36]/40 text-xs text-[#681B1D] dark:text-[#EAD2B0]">
           <span className="shrink-0 mt-0.5">✓</span>
           <span>{successMessage}</span>
         </div>
@@ -206,11 +208,11 @@ function SignInForm({ forcedPortal }: { forcedPortal?: PortalIntent }) {
       {/* Sign In Form */}
       <form onSubmit={handleSignIn} className="space-y-4 text-xs">
         <div>
-          <label htmlFor="email" className="block text-[#77746D] dark:text-[#B5B5AA] mb-1.5 font-medium">
+          <label htmlFor="email" className="block text-[#7D6B63] dark:text-[#D4C3B7] mb-1.5 font-medium">
             Email Address
           </label>
           <div className="relative">
-            <Mail className="w-4 h-4 text-[#77746D] dark:text-[#B5B5AA] absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
+            <Mail className="w-4 h-4 text-[#7D6B63] dark:text-[#D4C3B7] absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
             <input
               id="email"
               type="email"
@@ -220,25 +222,25 @@ function SignInForm({ forcedPortal }: { forcedPortal?: PortalIntent }) {
               onChange={(e) => setEmail(e.target.value)}
               placeholder="you@example.com"
               disabled={isLoading}
-              className="w-full pl-9 pr-3 py-2.5 rounded-xl bg-[#FAF8F3] dark:bg-[#1C2520] border border-[#E8E2D7] dark:border-[#344139] text-[#252522] dark:text-[#F4F0E7] placeholder-[#77746D]/60 focus:outline-none focus:border-[#173F35] dark:focus:border-[#A9C7B2] transition-colors disabled:opacity-50"
+              className="w-full pl-9 pr-3 py-2.5 rounded-xl bg-[#FFF3E3]/60 dark:bg-[#1A1211] border border-[#EAD2B0] dark:border-[#4D3331] text-[#30221D] dark:text-[#FFF3E3] placeholder-[#9E897F] focus:outline-none focus:border-[#B77A36] transition-colors disabled:opacity-50"
             />
           </div>
         </div>
 
         <div>
           <div className="flex items-center justify-between mb-1.5">
-            <label htmlFor="password" className="text-[#77746D] dark:text-[#B5B5AA] font-medium">
+            <label htmlFor="password" className="text-[#7D6B63] dark:text-[#D4C3B7] font-medium">
               Password
             </label>
             <Link
               href="/auth/forgot-password"
-              className="text-[#173F35] dark:text-[#A9C7B2] hover:underline transition-colors text-[11px] font-semibold"
+              className="text-[#681B1D] dark:text-[#EAD2B0] hover:underline transition-colors text-[11px] font-semibold"
             >
               Forgot password?
             </Link>
           </div>
           <div className="relative">
-            <Lock className="w-4 h-4 text-[#77746D] dark:text-[#B5B5AA] absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
+            <Lock className="w-4 h-4 text-[#7D6B63] dark:text-[#D4C3B7] absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
             <input
               id="password"
               type={showPassword ? "text" : "password"}
@@ -248,13 +250,13 @@ function SignInForm({ forcedPortal }: { forcedPortal?: PortalIntent }) {
               onChange={(e) => setPassword(e.target.value)}
               placeholder="••••••••••••"
               disabled={isLoading}
-              className="w-full pl-9 pr-9 py-2.5 rounded-xl bg-[#FAF8F3] dark:bg-[#1C2520] border border-[#E8E2D7] dark:border-[#344139] text-[#252522] dark:text-[#F4F0E7] placeholder-[#77746D]/60 focus:outline-none focus:border-[#173F35] dark:focus:border-[#A9C7B2] transition-colors disabled:opacity-50"
+              className="w-full pl-9 pr-9 py-2.5 rounded-xl bg-[#FFF3E3]/60 dark:bg-[#1A1211] border border-[#EAD2B0] dark:border-[#4D3331] text-[#30221D] dark:text-[#FFF3E3] placeholder-[#9E897F] focus:outline-none focus:border-[#B77A36] transition-colors disabled:opacity-50"
             />
             <button
               type="button"
               onClick={() => setShowPassword(!showPassword)}
               disabled={isLoading}
-              className="absolute right-3 top-1/2 -translate-y-1/2 text-[#77746D] dark:text-[#B5B5AA] hover:text-[#252522] dark:hover:text-[#F4F0E7] cursor-pointer"
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-[#7D6B63] dark:text-[#D4C3B7] hover:text-[#30221D] dark:hover:text-[#FFF3E3] cursor-pointer"
               aria-label={showPassword ? "Hide password" : "Show password"}
             >
               {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
@@ -265,28 +267,52 @@ function SignInForm({ forcedPortal }: { forcedPortal?: PortalIntent }) {
         <button
           type="submit"
           disabled={isLoading}
-          className="w-full py-3 rounded-xl bg-[#173F35] hover:bg-[#0F2B24] text-[#FAF8F3] font-bold text-xs uppercase tracking-wider transition-all shadow-sm hover:shadow-md flex items-center justify-center gap-2 cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed mt-2"
+          className="w-full py-3 rounded-xl bg-gradient-to-r from-[#681B1D] to-[#4B1117] hover:from-[#7A2124] hover:to-[#5C151D] text-[#FFF3E3] font-bold text-xs uppercase tracking-wider transition-all shadow-sm hover:shadow-md flex items-center justify-center gap-2 cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed mt-2 border border-[#B77A36]/40"
         >
           {isLoading ? (
             <span className="flex items-center gap-2">
-              <span className="w-3.5 h-3.5 border-2 border-[#FAF8F3] border-t-transparent rounded-full animate-spin" />
+              <span className="w-3.5 h-3.5 border-2 border-[#FFF3E3] border-t-transparent rounded-full animate-spin" />
               <span>Signing in...</span>
             </span>
           ) : (
             <>
-              <Sparkles className="w-3.5 h-3.5 text-[#C6A66B]" />
+              <Sparkles className="w-3.5 h-3.5 text-[#EAD2B0]" />
               <span>Sign In</span>
-              <ArrowRight className="w-3.5 h-3.5" />
+              <ArrowRight className="w-3.5 h-3.5 text-[#EAD2B0]" />
             </>
           )}
         </button>
       </form>
 
-      <div className="text-center text-xs text-[#77746D] dark:text-[#B5B5AA] pt-2 border-t border-[#E8E2D7] dark:border-[#344139] space-y-3">
-        {requestedPortal === "admin" ? <p>Administrator access is assigned by Evntora. <Link href="/signin?portal=customer" className="text-[#173F35] dark:text-[#A9C7B2] hover:underline font-semibold">Customer sign in</Link></p> : <>
-          <p>{requestedPortal === "vendor" ? "New vendor?" : "Don’t have an account?"}{" "}<Link href={requestedPortal === "vendor" ? "/signup/vendor" : `/signup?portal=customer${rawRedirectTo ? `&redirectTo=${encodeURIComponent(rawRedirectTo)}` : ""}`} className="text-[#173F35] dark:text-[#A9C7B2] hover:underline font-semibold">{requestedPortal === "vendor" ? "Register your business" : "Create a customer account"}</Link></p>
-          {requestedPortal !== "vendor" && <p>Are you a vendor? <Link href="/signin?portal=vendor" className="text-[#173F35] dark:text-[#A9C7B2] hover:underline font-semibold">Vendor sign in</Link></p>}
-        </>}
+      <div className="text-center text-xs text-[#7D6B63] dark:text-[#D4C3B7] pt-2 border-t border-[#EAD2B0] dark:border-[#4D3331] space-y-3">
+        {requestedPortal === "admin" ? (
+          <p>
+            Administrator access is assigned by Evntora.{" "}
+            <Link href="/signin?portal=customer" className="text-[#681B1D] dark:text-[#EAD2B0] hover:underline font-semibold">
+              Customer sign in
+            </Link>
+          </p>
+        ) : (
+          <>
+            <p>
+              {requestedPortal === "vendor" ? "New vendor?" : "Don’t have an account?"}{" "}
+              <Link
+                href={requestedPortal === "vendor" ? "/signup/vendor" : `/signup?portal=customer${rawRedirectTo ? `&redirectTo=${encodeURIComponent(rawRedirectTo)}` : ""}`}
+                className="text-[#681B1D] dark:text-[#EAD2B0] hover:underline font-semibold"
+              >
+                {requestedPortal === "vendor" ? "Register your business" : "Create a customer account"}
+              </Link>
+            </p>
+            {requestedPortal !== "vendor" && (
+              <p>
+                Are you a vendor?{" "}
+                <Link href="/signin?portal=vendor" className="text-[#681B1D] dark:text-[#EAD2B0] hover:underline font-semibold">
+                  Vendor sign in
+                </Link>
+              </p>
+            )}
+          </>
+        )}
       </div>
     </div>
   );
@@ -294,10 +320,10 @@ function SignInForm({ forcedPortal }: { forcedPortal?: PortalIntent }) {
 
 export function PortalSignInPage({ portal }: { portal?: PortalIntent }) {
   return (
-    <div className="min-h-screen flex flex-col bg-[#FAF8F3] dark:bg-[#151B18] text-[#252522] dark:text-[#F4F0E7] transition-colors duration-200">
+    <div className="min-h-screen flex flex-col bg-[#FFF3E3] dark:bg-[#1A1211] text-[#30221D] dark:text-[#FFF3E3] transition-colors duration-200">
       <Navbar />
       <main className="flex-1 flex items-center justify-center py-16 px-4 sm:px-6 lg:px-8">
-        <Suspense fallback={<div className="w-full max-w-md h-96 rounded-3xl bg-white dark:bg-[#232F28] animate-pulse" />}>
+        <Suspense fallback={<div className="w-full max-w-md h-96 rounded-3xl bg-[#FFFCF6] dark:bg-[#2E1F1E] animate-pulse" />}>
           <SignInForm forcedPortal={portal} />
         </Suspense>
       </main>
@@ -306,4 +332,6 @@ export function PortalSignInPage({ portal }: { portal?: PortalIntent }) {
   );
 }
 
-export default function SignInPage() { return <PortalSignInPage />; }
+export default function SignInPage() {
+  return <PortalSignInPage />;
+}

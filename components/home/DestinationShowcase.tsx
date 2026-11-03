@@ -69,7 +69,7 @@ export function DestinationShowcase() {
                 {city.popularFor.map((item, i) => (
                   <span
                     key={i}
-                    className="text-[10px] px-2.5 py-0.5 rounded-full bg-white/20 backdrop-blur-xs text-[#FFF3E3] border border-white/10"
+                    className="text-[10px] px-2.5 py-0.5 rounded-full bg-[#FFFCF6]/20 backdrop-blur-xs text-[#FFF3E3] border border-white/10"
                   >
                     {item}
                   </span>

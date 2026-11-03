@@ -120,22 +120,22 @@ export default function SignUpPage() {
   };
 
   return (
-    <div className="min-h-screen flex flex-col bg-[#FAF8F3] dark:bg-[#151B18] text-[#252522] dark:text-[#F4F0E7] transition-colors duration-200">
+    <div className="min-h-screen flex flex-col bg-[#FFF3E3] dark:bg-[#1A1211] text-[#30221D] dark:text-[#F4F0E7] transition-colors duration-200">
       <Navbar />
 
       <main className="flex-1 flex items-center justify-center py-16 px-4 sm:px-6 lg:px-8">
-        <div className="w-full max-w-md p-8 sm:p-10 rounded-3xl bg-white dark:bg-[#232F28] border border-[#E8E2D7] dark:border-[#344139] shadow-xl space-y-6">
+        <div className="w-full max-w-md p-8 sm:p-10 rounded-3xl bg-[#FFFCF6] dark:bg-[#2E1F1E] border border-[#EAD2B0] dark:border-[#4D3331] shadow-xl space-y-6">
           {/* Header */}
           <div className="text-center space-y-2">
             <Link href="/" className="inline-flex items-center justify-center">
-              <div className="w-10 h-10 rounded-xl bg-[#173F35] flex items-center justify-center font-serif font-bold text-[#C6A66B] text-xl shadow-xs">
+              <div className="w-10 h-10 rounded-xl bg-[#681B1D] flex items-center justify-center font-serif font-bold text-[#B77A36] text-xl shadow-xs">
                 E
               </div>
             </Link>
-            <h1 className="text-2xl font-serif font-bold text-[#173F35] dark:text-[#F4F0E7]">
+            <h1 className="text-2xl font-serif font-bold text-[#681B1D] dark:text-[#F4F0E7]">
               Begin Your Journey
             </h1>
-            <p className="text-xs text-[#77746D] dark:text-[#B5B5AA]">
+            <p className="text-xs text-[#7D6B63] dark:text-[#D4C3B7]">
               Create your personal celebration planning workspace
             </p>
           </div>
@@ -150,21 +150,21 @@ export default function SignUpPage() {
 
           {/* Success / Verification Required */}
           {success ? (
-            <div className="p-6 rounded-2xl bg-[#E7EFEA] dark:bg-[#173F35]/40 border border-[#173F35]/20 dark:border-[#A9C7B2]/30 text-center space-y-3">
-              <div className="w-12 h-12 rounded-full bg-[#173F35] text-[#FAF8F3] flex items-center justify-center mx-auto">
-                <CheckCircle className="w-6 h-6 text-[#C6A66B]" />
+            <div className="p-6 rounded-2xl bg-[#EAD2B0] dark:bg-[#681B1D]/40 border border-[#681B1D]/20 dark:border-[#EAD2B0]/30 text-center space-y-3">
+              <div className="w-12 h-12 rounded-full bg-[#681B1D] text-[#FFF3E3] flex items-center justify-center mx-auto">
+                <CheckCircle className="w-6 h-6 text-[#B77A36]" />
               </div>
-              <h2 className="text-base font-serif font-bold text-[#173F35] dark:text-[#F4F0E7]">
+              <h2 className="text-base font-serif font-bold text-[#681B1D] dark:text-[#F4F0E7]">
                 Check Your Inbox
               </h2>
-              <p className="text-xs text-[#77746D] dark:text-[#B5B5AA] leading-relaxed">
-                We have sent an activation link to <strong className="text-[#173F35] dark:text-[#F4F0E7]">{email}</strong>.
+              <p className="text-xs text-[#7D6B63] dark:text-[#D4C3B7] leading-relaxed">
+                We have sent an activation link to <strong className="text-[#681B1D] dark:text-[#F4F0E7]">{email}</strong>.
                 Please verify your email address to access your workspace.
               </p>
               <div className="pt-2">
                 <Link
                   href="/signin?portal=customer"
-                  className="inline-block px-4 py-2 rounded-xl bg-[#173F35] text-[#FAF8F3] text-xs font-bold"
+                  className="inline-block px-4 py-2 rounded-xl bg-[#681B1D] text-[#FFF3E3] text-xs font-bold"
                 >
                   Return to Sign In
                 </Link>
@@ -174,11 +174,11 @@ export default function SignUpPage() {
             <form onSubmit={handleSignUp} className="space-y-4 text-xs">
               {/* Full Name */}
               <div>
-                <label htmlFor="fullName" className="block text-[#77746D] dark:text-[#B5B5AA] mb-1.5 font-medium">
+                <label htmlFor="fullName" className="block text-[#7D6B63] dark:text-[#D4C3B7] mb-1.5 font-medium">
                   Full Name <span className="text-rose-500">*</span>
                 </label>
                 <div className="relative">
-                  <User className="w-4 h-4 text-[#77746D] dark:text-[#B5B5AA] absolute left-3 top-1/2 -translate-y-1/2" />
+                  <User className="w-4 h-4 text-[#7D6B63] dark:text-[#D4C3B7] absolute left-3 top-1/2 -translate-y-1/2" />
                   <input
                     id="fullName"
                     type="text"
@@ -186,18 +186,18 @@ export default function SignUpPage() {
                     value={fullName}
                     onChange={(e) => setFullName(e.target.value)}
                     placeholder="Aditi Singhania"
-                    className="w-full pl-9 pr-3 py-2.5 rounded-xl bg-[#FAF8F3] dark:bg-[#1C2520] border border-[#E8E2D7] dark:border-[#344139] text-[#252522] dark:text-[#F4F0E7] placeholder-[#77746D]/60 focus:outline-none focus:border-[#173F35] dark:focus:border-[#A9C7B2] transition-colors"
+                    className="w-full pl-9 pr-3 py-2.5 rounded-xl bg-[#FFF3E3] dark:bg-[#241918] border border-[#EAD2B0] dark:border-[#4D3331] text-[#30221D] dark:text-[#F4F0E7] placeholder-[#7D6B63]/60 focus:outline-none focus:border-[#681B1D] dark:focus:border-[#EAD2B0] transition-colors"
                   />
                 </div>
               </div>
 
               {/* Email */}
               <div>
-                <label htmlFor="email" className="block text-[#77746D] dark:text-[#B5B5AA] mb-1.5 font-medium">
+                <label htmlFor="email" className="block text-[#7D6B63] dark:text-[#D4C3B7] mb-1.5 font-medium">
                   Email Address <span className="text-rose-500">*</span>
                 </label>
                 <div className="relative">
-                  <Mail className="w-4 h-4 text-[#77746D] dark:text-[#B5B5AA] absolute left-3 top-1/2 -translate-y-1/2" />
+                  <Mail className="w-4 h-4 text-[#7D6B63] dark:text-[#D4C3B7] absolute left-3 top-1/2 -translate-y-1/2" />
                   <input
                     id="email"
                     type="email"
@@ -206,19 +206,19 @@ export default function SignUpPage() {
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     placeholder="aditi@example.com"
-                    className="w-full pl-9 pr-3 py-2.5 rounded-xl bg-[#FAF8F3] dark:bg-[#1C2520] border border-[#E8E2D7] dark:border-[#344139] text-[#252522] dark:text-[#F4F0E7] placeholder-[#77746D]/60 focus:outline-none focus:border-[#173F35] dark:focus:border-[#A9C7B2] transition-colors"
+                    className="w-full pl-9 pr-3 py-2.5 rounded-xl bg-[#FFF3E3] dark:bg-[#241918] border border-[#EAD2B0] dark:border-[#4D3331] text-[#30221D] dark:text-[#F4F0E7] placeholder-[#7D6B63]/60 focus:outline-none focus:border-[#681B1D] dark:focus:border-[#EAD2B0] transition-colors"
                   />
                 </div>
               </div>
 
               {/* Phone (optional) */}
               <div>
-                <label htmlFor="phone" className="block text-[#77746D] dark:text-[#B5B5AA] mb-1.5 font-medium">
+                <label htmlFor="phone" className="block text-[#7D6B63] dark:text-[#D4C3B7] mb-1.5 font-medium">
                   Phone Number{" "}
-                  <span className="text-[#77746D]/60 font-normal">(optional)</span>
+                  <span className="text-[#7D6B63]/60 font-normal">(optional)</span>
                 </label>
                 <div className="relative">
-                  <Phone className="w-4 h-4 text-[#77746D] dark:text-[#B5B5AA] absolute left-3 top-1/2 -translate-y-1/2" />
+                  <Phone className="w-4 h-4 text-[#7D6B63] dark:text-[#D4C3B7] absolute left-3 top-1/2 -translate-y-1/2" />
                   <input
                     id="phone"
                     type="tel"
@@ -226,18 +226,18 @@ export default function SignUpPage() {
                     value={phone}
                     onChange={(e) => setPhone(e.target.value)}
                     placeholder="+91 98765 43210"
-                    className="w-full pl-9 pr-3 py-2.5 rounded-xl bg-[#FAF8F3] dark:bg-[#1C2520] border border-[#E8E2D7] dark:border-[#344139] text-[#252522] dark:text-[#F4F0E7] placeholder-[#77746D]/60 focus:outline-none focus:border-[#173F35] dark:focus:border-[#A9C7B2] transition-colors"
+                    className="w-full pl-9 pr-3 py-2.5 rounded-xl bg-[#FFF3E3] dark:bg-[#241918] border border-[#EAD2B0] dark:border-[#4D3331] text-[#30221D] dark:text-[#F4F0E7] placeholder-[#7D6B63]/60 focus:outline-none focus:border-[#681B1D] dark:focus:border-[#EAD2B0] transition-colors"
                   />
                 </div>
               </div>
 
               {/* Password */}
               <div>
-                <label htmlFor="password" className="block text-[#77746D] dark:text-[#B5B5AA] mb-1.5 font-medium">
+                <label htmlFor="password" className="block text-[#7D6B63] dark:text-[#D4C3B7] mb-1.5 font-medium">
                   Password <span className="text-rose-500">*</span>
                 </label>
                 <div className="relative">
-                  <Lock className="w-4 h-4 text-[#77746D] dark:text-[#B5B5AA] absolute left-3 top-1/2 -translate-y-1/2" />
+                  <Lock className="w-4 h-4 text-[#7D6B63] dark:text-[#D4C3B7] absolute left-3 top-1/2 -translate-y-1/2" />
                   <input
                     id="password"
                     type={showPassword ? "text" : "password"}
@@ -246,12 +246,12 @@ export default function SignUpPage() {
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     placeholder="Minimum 8 characters"
-                    className="w-full pl-9 pr-9 py-2.5 rounded-xl bg-[#FAF8F3] dark:bg-[#1C2520] border border-[#E8E2D7] dark:border-[#344139] text-[#252522] dark:text-[#F4F0E7] placeholder-[#77746D]/60 focus:outline-none focus:border-[#173F35] dark:focus:border-[#A9C7B2] transition-colors"
+                    className="w-full pl-9 pr-9 py-2.5 rounded-xl bg-[#FFF3E3] dark:bg-[#241918] border border-[#EAD2B0] dark:border-[#4D3331] text-[#30221D] dark:text-[#F4F0E7] placeholder-[#7D6B63]/60 focus:outline-none focus:border-[#681B1D] dark:focus:border-[#EAD2B0] transition-colors"
                   />
                   <button
                     type="button"
                     onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-[#77746D] dark:text-[#B5B5AA] hover:text-[#252522] dark:hover:text-[#F4F0E7]"
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-[#7D6B63] dark:text-[#D4C3B7] hover:text-[#30221D] dark:hover:text-[#F4F0E7]"
                   >
                     {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                   </button>
@@ -260,11 +260,11 @@ export default function SignUpPage() {
 
               {/* Confirm Password */}
               <div>
-                <label htmlFor="confirmPassword" className="block text-[#77746D] dark:text-[#B5B5AA] mb-1.5 font-medium">
+                <label htmlFor="confirmPassword" className="block text-[#7D6B63] dark:text-[#D4C3B7] mb-1.5 font-medium">
                   Confirm Password <span className="text-rose-500">*</span>
                 </label>
                 <div className="relative">
-                  <Lock className="w-4 h-4 text-[#77746D] dark:text-[#B5B5AA] absolute left-3 top-1/2 -translate-y-1/2" />
+                  <Lock className="w-4 h-4 text-[#7D6B63] dark:text-[#D4C3B7] absolute left-3 top-1/2 -translate-y-1/2" />
                   <input
                     id="confirmPassword"
                     type={showConfirmPassword ? "text" : "password"}
@@ -273,16 +273,16 @@ export default function SignUpPage() {
                     value={confirmPassword}
                     onChange={(e) => setConfirmPassword(e.target.value)}
                     placeholder="Repeat your password"
-                    className={`w-full pl-9 pr-9 py-2.5 rounded-xl bg-[#FAF8F3] dark:bg-[#1C2520] border text-[#252522] dark:text-[#F4F0E7] placeholder-[#77746D]/60 focus:outline-none transition-colors ${
+                    className={`w-full pl-9 pr-9 py-2.5 rounded-xl bg-[#FFF3E3] dark:bg-[#241918] border text-[#30221D] dark:text-[#F4F0E7] placeholder-[#7D6B63]/60 focus:outline-none transition-colors ${
                       confirmPassword && confirmPassword !== password
                         ? "border-rose-400"
-                        : "border-[#E8E2D7] dark:border-[#344139] focus:border-[#173F35] dark:focus:border-[#A9C7B2]"
+                        : "border-[#EAD2B0] dark:border-[#4D3331] focus:border-[#681B1D] dark:focus:border-[#EAD2B0]"
                     }`}
                   />
                   <button
                     type="button"
                     onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-[#77746D] dark:text-[#B5B5AA] hover:text-[#252522] dark:hover:text-[#F4F0E7]"
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-[#7D6B63] dark:text-[#D4C3B7] hover:text-[#30221D] dark:hover:text-[#F4F0E7]"
                   >
                     {showConfirmPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                   </button>
@@ -299,15 +299,15 @@ export default function SignUpPage() {
                   type="checkbox"
                   checked={agreedToTerms}
                   onChange={(e) => setAgreedToTerms(e.target.checked)}
-                  className="w-4 h-4 rounded accent-[#173F35] mt-0.5 cursor-pointer"
+                  className="w-4 h-4 rounded accent-[#681B1D] mt-0.5 cursor-pointer"
                 />
-                <label htmlFor="terms" className="text-[#77746D] dark:text-[#B5B5AA] leading-relaxed cursor-pointer text-xs">
+                <label htmlFor="terms" className="text-[#7D6B63] dark:text-[#D4C3B7] leading-relaxed cursor-pointer text-xs">
                   I agree to the{" "}
-                  <Link href="/terms" className="text-[#173F35] dark:text-[#A9C7B2] hover:underline font-semibold">
+                  <Link href="/terms" className="text-[#681B1D] dark:text-[#EAD2B0] hover:underline font-semibold">
                     Terms of Service
                   </Link>{" "}
                   and{" "}
-                  <Link href="/privacy" className="text-[#173F35] dark:text-[#A9C7B2] hover:underline font-semibold">
+                  <Link href="/privacy" className="text-[#681B1D] dark:text-[#EAD2B0] hover:underline font-semibold">
                     Privacy Policy
                   </Link>
                 </label>
@@ -316,13 +316,13 @@ export default function SignUpPage() {
               <button
                 type="submit"
                 disabled={isLoading}
-                className="w-full py-3 rounded-xl bg-[#173F35] hover:bg-[#0F2B24] text-[#FAF8F3] font-bold text-xs uppercase tracking-wider transition-all shadow-sm hover:shadow-md flex items-center justify-center gap-2 cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed mt-2"
+                className="w-full py-3 rounded-xl bg-[#681B1D] hover:bg-[#4B1117] text-[#FFF3E3] font-bold text-xs uppercase tracking-wider transition-all shadow-sm hover:shadow-md flex items-center justify-center gap-2 cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed mt-2"
               >
                 {isLoading ? (
                   <span>Creating account...</span>
                 ) : (
                   <>
-                    <Sparkles className="w-3.5 h-3.5 text-[#C6A66B]" />
+                    <Sparkles className="w-3.5 h-3.5 text-[#B77A36]" />
                     <span>Create Account</span>
                     <ArrowRight className="w-3.5 h-3.5" />
                   </>
@@ -331,16 +331,16 @@ export default function SignUpPage() {
             </form>
           )}
 
-          <div className="text-center text-xs text-[#77746D] dark:text-[#B5B5AA] pt-2 border-t border-[#E8E2D7] dark:border-[#344139] space-y-2">
+          <div className="text-center text-xs text-[#7D6B63] dark:text-[#D4C3B7] pt-2 border-t border-[#EAD2B0] dark:border-[#4D3331] space-y-2">
             <p>
               Already have an account?{" "}
-              <Link href="/signin?portal=customer" className="text-[#173F35] dark:text-[#A9C7B2] hover:underline font-semibold">
+              <Link href="/signin?portal=customer" className="text-[#681B1D] dark:text-[#EAD2B0] hover:underline font-semibold">
                 Sign in
               </Link>
             </p>
             <p>
               Registering an artisan business?{" "}
-              <Link href="/signup/vendor" className="text-[#173F35] dark:text-[#A9C7B2] hover:underline font-semibold">
+              <Link href="/signup/vendor" className="text-[#681B1D] dark:text-[#EAD2B0] hover:underline font-semibold">
                 Vendor registration →
               </Link>
             </p>

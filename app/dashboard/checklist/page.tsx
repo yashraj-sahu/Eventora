@@ -50,14 +50,14 @@ export default function ChecklistPage() {
           <h1 className="text-2xl sm:text-4xl font-serif font-bold text-white">
             Planning Checklist & Action Items
           </h1>
-          <p className="text-xs text-slate-400">
+          <p className="text-xs text-[#D4C3B7]">
             Milestone checkpoints to ensure no cultural ritual or vendor dependency is overlooked
           </p>
         </div>
 
         <button
           onClick={() => setShowAddModal(true)}
-          className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 text-slate-950 font-bold text-xs uppercase tracking-wider transition-all shadow-md flex items-center gap-1.5 cursor-pointer shrink-0"
+          className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 text-[#1A1211] font-bold text-xs uppercase tracking-wider transition-all shadow-md flex items-center gap-1.5 cursor-pointer shrink-0"
         >
           <Plus className="w-4 h-4" />
           <span>Add Custom Task</span>
@@ -72,7 +72,7 @@ export default function ChecklistPage() {
           </span>
           <span className="font-bold text-amber-400">{progressPct}%</span>
         </div>
-        <div className="w-full h-2.5 bg-slate-900 rounded-full overflow-hidden border border-slate-800">
+        <div className="w-full h-2.5 bg-[#2E1F1E] rounded-full overflow-hidden border border-[#4D3331]">
           <div
             className="h-full bg-gradient-to-r from-amber-500 to-amber-400 rounded-full transition-all duration-300"
             style={{ width: `${progressPct}%` }}
@@ -88,8 +88,8 @@ export default function ChecklistPage() {
             onClick={() => setFilterStage(st)}
             className={`px-3.5 py-1.5 rounded-xl text-xs font-semibold whitespace-nowrap transition-all ${
               filterStage === st
-                ? "bg-amber-500 text-slate-950"
-                : "bg-slate-900 text-slate-400 hover:text-white border border-slate-800"
+                ? "bg-amber-500 text-[#1A1211]"
+                : "bg-[#2E1F1E] text-[#D4C3B7] hover:text-white border border-[#4D3331]"
             }`}
           >
             {st}
@@ -105,15 +105,15 @@ export default function ChecklistPage() {
             onClick={() => toggleChecklist(item.id)}
             className={`p-5 rounded-2xl border transition-all cursor-pointer flex items-start gap-4 ${
               item.completed
-                ? "bg-slate-950/40 border-slate-900 opacity-60"
+                ? "bg-[#1A1211]/40 border-[#2E1F1E] opacity-60"
                 : "glass-card border-white/10 hover:border-amber-500/30"
             }`}
           >
             <div
               className={`w-5 h-5 rounded-md mt-0.5 border flex items-center justify-center shrink-0 transition-colors ${
                 item.completed
-                  ? "bg-emerald-500 border-emerald-500 text-slate-950 font-bold text-xs"
-                  : "border-slate-700 bg-slate-900 hover:border-amber-400"
+                  ? "bg-rose-900 border-rose-900 text-[#1A1211] font-bold text-xs"
+                  : "border-[#4D3331] bg-[#2E1F1E] hover:border-amber-400"
               }`}
             >
               {item.completed && <Check className="w-3.5 h-3.5 stroke-[3]" />}
@@ -122,12 +122,12 @@ export default function ChecklistPage() {
             <div className="flex-1 space-y-1">
               <h3
                 className={`text-sm font-semibold transition-colors ${
-                  item.completed ? "line-through text-slate-500" : "text-white"
+                  item.completed ? "line-through text-[#9E897F]" : "text-white"
                 }`}
               >
                 {item.task}
               </h3>
-              <div className="flex flex-wrap items-center gap-3 text-[11px] text-slate-400">
+              <div className="flex flex-wrap items-center gap-3 text-[11px] text-[#D4C3B7]">
                 <span className="text-amber-400/90 font-mono">{item.timelineStage}</span>
                 <span>•</span>
                 <span>Category: {item.category}</span>
@@ -150,14 +150,14 @@ export default function ChecklistPage() {
             <h3 className="text-lg font-serif font-bold text-white">Add Task</h3>
             <form onSubmit={handleAddTask} className="space-y-4 text-xs">
               <div>
-                <label className="block text-slate-400 mb-1">Task Description</label>
+                <label className="block text-[#D4C3B7] mb-1">Task Description</label>
                 <input
                   type="text"
                   required
                   value={task}
                   onChange={(e) => setTask(e.target.value)}
                   placeholder="e.g. Confirm floral chandelier rigging with decorators"
-                  className="w-full px-3 py-2.5 rounded-xl bg-slate-950 border border-slate-800 text-white focus:outline-none focus:border-amber-400"
+                  className="w-full px-3 py-2.5 rounded-xl bg-[#1A1211] border border-[#4D3331] text-white focus:outline-none focus:border-amber-400"
                 />
               </div>
 
@@ -175,13 +175,13 @@ export default function ChecklistPage() {
                 <button
                   type="button"
                   onClick={() => setShowAddModal(false)}
-                  className="px-4 py-2 rounded-xl bg-slate-900 text-slate-300 font-semibold"
+                  className="px-4 py-2 rounded-xl bg-[#2E1F1E] text-[#D4C3B7] font-semibold"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="px-5 py-2 rounded-xl bg-amber-500 text-slate-950 font-bold"
+                  className="px-5 py-2 rounded-xl bg-amber-500 text-[#1A1211] font-bold"
                 >
                   Save Task
                 </button>

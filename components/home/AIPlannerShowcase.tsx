@@ -45,7 +45,7 @@ export function AIPlannerShowcase() {
         </div>
 
         {/* Blueprint Simulator Card */}
-        <div className="max-w-5xl mx-auto bg-white dark:bg-[#2E1F1E] rounded-3xl border border-[#EAD2B0] dark:border-[#4D3331] shadow-2xl p-6 sm:p-10 space-y-8">
+        <div className="max-w-5xl mx-auto bg-[#FFFCF6] dark:bg-[#2E1F1E] rounded-3xl border border-[#EAD2B0] dark:border-[#4D3331] shadow-2xl p-6 sm:p-10 space-y-8">
           {/* Header of the Blueprint */}
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-[#EAD2B0] dark:border-[#4D3331] pb-6">
             <div className="space-y-1">
@@ -178,7 +178,7 @@ export function AIPlannerShowcase() {
                       </div>
 
                       <div className="text-left sm:text-right">
-                        <span className="text-[11px] px-2.5 py-0.5 rounded-full bg-white dark:bg-[#2E1F1E] border border-[#EAD2B0] dark:border-[#4D3331] text-[#30221D] dark:text-[#FFF3E3] font-semibold">
+                        <span className="text-[11px] px-2.5 py-0.5 rounded-full bg-[#FFFCF6] dark:bg-[#2E1F1E] border border-[#EAD2B0] dark:border-[#4D3331] text-[#30221D] dark:text-[#FFF3E3] font-semibold">
                           Lead: {item.responsiblePerson}
                         </span>
                         <p className="text-[11px] text-[#7D6B63] dark:text-[#D4C3B7] mt-1 max-w-xs">{item.notes}</p>

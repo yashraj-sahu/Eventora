@@ -40,7 +40,7 @@ export default function WorkspacePage() {
   }, []);
   const bp = activeEvent?.blueprint as AIEventBlueprint | null | undefined;
 
-  if (loading) return <div role="status" className="p-16 text-center glass-card rounded-3xl text-slate-300">Loading your saved event workspace…</div>;
+  if (loading) return <div role="status" className="p-16 text-center glass-card rounded-3xl text-[#D4C3B7]">Loading your saved event workspace…</div>;
   if (error) return <div role="alert" className="p-8 text-center glass-card rounded-3xl text-rose-300">{error}</div>;
 
   if (!bp) {
@@ -48,10 +48,10 @@ export default function WorkspacePage() {
       <div className="p-16 text-center glass-card rounded-3xl space-y-4">
         <Sparkles className="w-8 h-8 text-amber-400 mx-auto" />
         <h2 className="text-xl font-bold text-white">No Blueprint Attached</h2>
-        <p className="text-xs text-slate-400">
+        <p className="text-xs text-[#D4C3B7]">
           {activeEvent ? "This saved event does not have a generated AI blueprint yet." : "No saved event plans are available in this account yet."}
         </p>
-        <Link href="/planner" className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-amber-500 text-slate-950 text-xs font-semibold">Open AI Planner</Link>
+        <Link href="/planner" className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-amber-500 text-[#1A1211] text-xs font-semibold">Open AI Planner</Link>
       </div>
     );
   }
@@ -61,10 +61,10 @@ export default function WorkspacePage() {
       <div className="p-8 rounded-3xl glass-panel border border-amber-500/30 space-y-3">
         <div className="flex items-center gap-2">
           <span className="font-mono text-xs font-bold text-amber-400">{bp.blueprintId}</span>
-          <span className="text-xs text-slate-500">• Complete Event Master Blueprint</span>
+          <span className="text-xs text-[#9E897F]">• Complete Event Master Blueprint</span>
         </div>
         <h1 className="text-2xl sm:text-4xl font-serif font-bold text-white">{bp.title}</h1>
-        <p className="text-sm text-slate-300 leading-relaxed bg-slate-950/60 p-4 rounded-xl border border-slate-800">
+        <p className="text-sm text-[#D4C3B7] leading-relaxed bg-[#1A1211]/60 p-4 rounded-xl border border-[#4D3331]">
           {bp.executiveSummary}
         </p>
       </div>
@@ -77,17 +77,17 @@ export default function WorkspacePage() {
             <Coins className="w-4 h-4 text-amber-400" />
             <span>Recommended Budget Matrix ({formatINR(bp.recommendedBudget.total)})</span>
           </h2>
-          <p className="text-[11px] text-slate-400">Planning formats and rough estimates only; these are not vendor listings, quotes, or availability confirmations.</p>
+          <p className="text-[11px] text-[#D4C3B7]">Planning formats and rough estimates only; these are not vendor listings, quotes, or availability confirmations.</p>
           <div className="space-y-2.5">
             {bp.recommendedBudget.breakdown.map((item, i) => (
-              <div key={i} className="p-3.5 rounded-xl bg-slate-950/70 border border-slate-800 flex items-center justify-between text-xs">
+              <div key={i} className="p-3.5 rounded-xl bg-[#1A1211]/70 border border-[#4D3331] flex items-center justify-between text-xs">
                 <div>
                   <span className="font-semibold text-white block">{item.category}</span>
-                  <span className="text-[10px] text-slate-400">{item.description}</span>
+                  <span className="text-[10px] text-[#D4C3B7]">{item.description}</span>
                 </div>
                 <div className="text-right shrink-0">
                   <span className="font-serif font-bold text-amber-400 block">{formatINR(item.amount)}</span>
-                  <span className="text-[10px] text-slate-500">{item.percentage}%</span>
+                  <span className="text-[10px] text-[#9E897F]">{item.percentage}%</span>
                 </div>
               </div>
             ))}
@@ -102,16 +102,16 @@ export default function WorkspacePage() {
           </h2>
           <div className="space-y-3">
             {bp.venueRecommendations.map((v, i) => (
-              <div key={i} className="p-4 rounded-xl bg-slate-950/70 border border-slate-800 space-y-1.5 text-xs">
+              <div key={i} className="p-4 rounded-xl bg-[#1A1211]/70 border border-[#4D3331] space-y-1.5 text-xs">
                 <div className="flex items-center justify-between">
                   <h3 className="font-bold text-white">{v.name}</h3>
                   <span className="text-amber-400 font-semibold">{v.estimatedCost}</span>
                 </div>
-                <p className="text-slate-400 text-[11px]">{v.type} • Capacity: {v.capacity}</p>
-                <p className="text-slate-300">{v.highlight}</p>
-                <div className="pt-2 flex items-center justify-between border-t border-slate-800">
-                  <span className="text-[10px] text-slate-400">Planning idea, not a real listing or quote</span>
-                  <Link href={`/vendors?city=${encodeURIComponent(activeEvent?.city ?? "")}`} className="px-3 py-1 rounded-lg bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-[11px] uppercase tracking-wider flex items-center gap-1 transition-all">Find Vendors</Link>
+                <p className="text-[#D4C3B7] text-[11px]">{v.type} • Capacity: {v.capacity}</p>
+                <p className="text-[#D4C3B7]">{v.highlight}</p>
+                <div className="pt-2 flex items-center justify-between border-t border-[#4D3331]">
+                  <span className="text-[10px] text-[#D4C3B7]">Planning idea, not a real listing or quote</span>
+                  <Link href={`/vendors?city=${encodeURIComponent(activeEvent?.city ?? "")}`} className="px-3 py-1 rounded-lg bg-amber-500 hover:bg-amber-400 text-[#1A1211] font-bold text-[11px] uppercase tracking-wider flex items-center gap-1 transition-all">Find Vendors</Link>
                 </div>
               </div>
             ))}
@@ -128,8 +128,8 @@ export default function WorkspacePage() {
           </h2>
           <div className="space-y-2 text-xs">
             {bp.culinaryStrategy.recommendedCounters.map((item, i) => (
-              <div key={i} className="p-3 rounded-xl bg-slate-950/70 border border-slate-800 flex items-center gap-2 text-slate-300">
-                <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
+              <div key={i} className="p-3 rounded-xl bg-[#1A1211]/70 border border-[#4D3331] flex items-center gap-2 text-[#D4C3B7]">
+                <CheckCircle2 className="w-4 h-4 text-amber-700 shrink-0" />
                 <span>{item}</span>
               </div>
             ))}
@@ -142,13 +142,13 @@ export default function WorkspacePage() {
             <span>Aesthetic & Lighting</span>
           </h2>
           <div className="space-y-3 text-xs">
-            <div className="p-4 rounded-xl bg-slate-950/70 border border-slate-800 space-y-1">
+            <div className="p-4 rounded-xl bg-[#1A1211]/70 border border-[#4D3331] space-y-1">
               <span className="text-amber-400 font-bold block">Mandap & Stage</span>
-              <p className="text-slate-300">{bp.decorAndFloral.mandapOrStage}</p>
+              <p className="text-[#D4C3B7]">{bp.decorAndFloral.mandapOrStage}</p>
             </div>
-            <div className="p-4 rounded-xl bg-slate-950/70 border border-slate-800 space-y-1">
+            <div className="p-4 rounded-xl bg-[#1A1211]/70 border border-[#4D3331] space-y-1">
               <span className="text-amber-400 font-bold block">Lighting Scheme</span>
-              <p className="text-slate-300">{bp.decorAndFloral.lightingConcept}</p>
+              <p className="text-[#D4C3B7]">{bp.decorAndFloral.lightingConcept}</p>
             </div>
           </div>
         </div>
