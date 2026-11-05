@@ -81,6 +81,72 @@
   }
 }
 
+@keyframes evntora-reveal {
+  from { opacity: 0; transform: translate3d(0, 22px, 0); }
+  to { opacity: 1; transform: translate3d(0, 0, 0); }
+}
+
+@keyframes evntora-hero-image {
+  from { opacity: 0.7; transform: scale(1.045); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+.evntora-reveal[data-revealed="true"] {
+  animation: evntora-reveal 720ms cubic-bezier(0.2, 0.7, 0.2, 1) both;
+  animation-delay: var(--reveal-delay, 0ms);
+}
+
+.evntora-hero-image {
+  animation: evntora-hero-image 1100ms cubic-bezier(0.2, 0.7, 0.2, 1) both;
+}
+
+.evntora-hero-copy {
+  animation: evntora-reveal 760ms 100ms cubic-bezier(0.2, 0.7, 0.2, 1) both;
+}
+
+.evntora-tilt {
+  transform: perspective(1100px) rotateX(var(--tilt-x, 0deg)) rotateY(var(--tilt-y, 0deg));
+  transform-style: preserve-3d;
+  transition: transform 360ms cubic-bezier(0.2, 0.7, 0.2, 1), box-shadow 360ms ease;
+  will-change: transform;
+}
+
+.evntora-tilt[data-tilting="true"] {
+  transition: box-shadow 360ms ease;
+}
+
+@media (hover: hover) and (pointer: fine) and (prefers-reduced-motion: no-preference) {
+  .evntora-tilt:hover {
+    box-shadow: 0 22px 48px -22px rgba(75, 17, 23, 0.36);
+  }
+}
+
+@media (max-width: 767px), (pointer: coarse) {
+  .evntora-tilt {
+    transform: none !important;
+    transition: box-shadow 240ms ease;
+    will-change: auto;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    animation-duration: 0.01ms !important;
+    animation-delay: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+
+  .evntora-tilt,
+  .evntora-tilt[data-tilting="true"] {
+    transform: none !important;
+    will-change: auto;
+  }
+}
+
 /* Traditional Indian Royal Heritage Surfaces */
 .luxury-card {
   background: #FFFCF6;
@@ -133,6 +199,221 @@
 }
 .dark .champagne-gradient-subtle {
   background: linear-gradient(135deg, rgba(183, 122, 54, 0.12) 0%, rgba(36, 25, 24, 0.7) 100%);
+}
+
+/* Shared Evntora surfaces for older portal and account screens. */
+.glass-card,
+.glass-panel,
+.glass-dropdown {
+  color: #30221D;
+  background: #FFFCF6;
+  border-color: #EAD2B0;
+  box-shadow: 0 12px 32px -20px rgba(75, 17, 23, 0.24);
+}
+
+.dark .glass-card,
+.dark .glass-panel,
+.dark .glass-dropdown {
+  color: #FFF3E3;
+  background: #2E1F1E;
+  border-color: #4D3331;
+  box-shadow: 0 12px 32px -20px rgba(0, 0, 0, 0.55);
+}
+
+[data-evntora-theme="portal"] {
+  color: #30221D;
+}
+
+.dark [data-evntora-theme="portal"] {
+  color: #FFF3E3;
+}
+
+[data-evntora-theme="portal"] [class~="bg-[#1A1211]"],
+[data-evntora-theme="portal"] [class~="bg-[#1A1211]/90"],
+[data-evntora-theme="portal"] [class~="bg-[#1A1211]/80"],
+[data-evntora-theme="portal"] [class~="bg-[#1A1211]/70"],
+[data-evntora-theme="portal"] [class~="bg-[#1A1211]/60"],
+[data-evntora-theme="portal"] [class~="bg-[#1A1211]/40"],
+[data-evntora-theme="portal"] [class~="bg-[#08090d]"],
+[data-evntora-theme="portal"] [class~="bg-[#07080b]"],
+[data-evntora-theme="portal"] [class~="bg-[#090a0f]"],
+[data-evntora-theme="portal"] [class~="bg-[#1E2621]"] {
+  background-color: #FFFCF6 !important;
+  border-color: #EAD2B0;
+  color: #30221D;
+}
+
+[data-evntora-theme="portal"] [class~="bg-[#2E1F1E]"],
+[data-evntora-theme="portal"] [class~="bg-[#241918]"] {
+  background-color: #FAF3E8 !important;
+  border-color: #EAD2B0;
+}
+
+[data-evntora-theme="portal"] [class~="bg-[#4D3331]"] {
+  background-color: #EAD2B0 !important;
+  border-color: #D9BD96;
+  color: #681B1D;
+}
+
+.dark [data-evntora-theme="portal"] [class~="bg-[#1A1211]"],
+.dark [data-evntora-theme="portal"] [class~="bg-[#1A1211]/90"],
+.dark [data-evntora-theme="portal"] [class~="bg-[#1A1211]/80"],
+.dark [data-evntora-theme="portal"] [class~="bg-[#1A1211]/70"],
+.dark [data-evntora-theme="portal"] [class~="bg-[#1A1211]/60"],
+.dark [data-evntora-theme="portal"] [class~="bg-[#1A1211]/40"],
+.dark [data-evntora-theme="portal"] [class~="bg-[#08090d]"],
+.dark [data-evntora-theme="portal"] [class~="bg-[#07080b]"],
+.dark [data-evntora-theme="portal"] [class~="bg-[#090a0f]"],
+.dark [data-evntora-theme="portal"] [class~="bg-[#1E2621]"] {
+  background-color: #1A1211 !important;
+  border-color: #4D3331;
+  color: #FFF3E3;
+}
+
+.dark [data-evntora-theme="portal"] [class~="bg-[#2E1F1E]"] {
+  background-color: #2E1F1E !important;
+  border-color: #4D3331;
+}
+
+.dark [data-evntora-theme="portal"] [class~="bg-[#241918]"] {
+  background-color: #241918 !important;
+  border-color: #4D3331;
+}
+
+.dark [data-evntora-theme="portal"] [class~="bg-[#4D3331]"] {
+  background-color: #4D3331 !important;
+  border-color: #4D3331;
+  color: #EAD2B0;
+}
+
+.dark [data-evntora-theme="portal"] [class~="dark:bg-[#1E2621]"] {
+  background-color: #2E1F1E !important;
+  border-color: #4D3331;
+}
+
+[data-evntora-theme="portal"] :is(
+  [class~="bg-[#1A1211]"], [class~="bg-[#1A1211]/90"], [class~="bg-[#1A1211]/80"],
+  [class~="bg-[#1A1211]/70"], [class~="bg-[#1A1211]/60"], [class~="bg-[#1A1211]/40"],
+  [class~="bg-[#08090d]"], [class~="bg-[#090a0f]"], [class~="bg-[#2E1F1E]"],
+  [class~="bg-[#07080b]"], [class~="bg-[#241918]"], [class~="bg-[#1E2621]"]
+).text-white,
+[data-evntora-theme="portal"] :is(
+  [class~="bg-[#1A1211]"], [class~="bg-[#1A1211]/90"], [class~="bg-[#1A1211]/80"],
+  [class~="bg-[#1A1211]/70"], [class~="bg-[#1A1211]/60"], [class~="bg-[#1A1211]/40"],
+  [class~="bg-[#08090d]"], [class~="bg-[#090a0f]"], [class~="bg-[#2E1F1E]"],
+  [class~="bg-[#07080b]"], [class~="bg-[#241918]"], [class~="bg-[#1E2621]"]
+) .text-white {
+  color: #30221D !important;
+}
+
+.dark [data-evntora-theme="portal"] :is(
+  [class~="bg-[#1A1211]"], [class~="bg-[#1A1211]/90"], [class~="bg-[#1A1211]/80"],
+  [class~="bg-[#1A1211]/70"], [class~="bg-[#1A1211]/60"], [class~="bg-[#1A1211]/40"],
+  [class~="bg-[#08090d]"], [class~="bg-[#090a0f]"], [class~="bg-[#2E1F1E]"],
+  [class~="bg-[#07080b]"], [class~="bg-[#241918]"], [class~="bg-[#1E2621]"]
+).text-white,
+.dark [data-evntora-theme="portal"] :is(
+  [class~="bg-[#1A1211]"], [class~="bg-[#1A1211]/90"], [class~="bg-[#1A1211]/80"],
+  [class~="bg-[#1A1211]/70"], [class~="bg-[#1A1211]/60"], [class~="bg-[#1A1211]/40"],
+  [class~="bg-[#08090d]"], [class~="bg-[#090a0f]"], [class~="bg-[#2E1F1E]"],
+  [class~="bg-[#07080b]"], [class~="bg-[#241918]"], [class~="bg-[#1E2621]"]
+) .text-white {
+  color: #FFF3E3 !important;
+}
+
+[data-evntora-theme="portal"] h1.text-white,
+[data-evntora-theme="portal"] h2.text-white,
+[data-evntora-theme="portal"] h3.text-white,
+[data-evntora-theme="portal"] .glass-card .text-white,
+[data-evntora-theme="portal"] .glass-panel .text-white,
+[data-evntora-theme="portal"] .glass-dropdown .text-white {
+  color: #30221D !important;
+}
+
+.dark [data-evntora-theme="portal"] h1.text-white,
+.dark [data-evntora-theme="portal"] h2.text-white,
+.dark [data-evntora-theme="portal"] h3.text-white,
+.dark [data-evntora-theme="portal"] .glass-card .text-white,
+.dark [data-evntora-theme="portal"] .glass-panel .text-white,
+.dark [data-evntora-theme="portal"] .glass-dropdown .text-white {
+  color: #FFF3E3 !important;
+}
+
+[data-evntora-theme="portal"] [class~="bg-amber-500"] {
+  background-color: #681B1D !important;
+  color: #FFF3E3 !important;
+}
+
+[data-evntora-theme="portal"] [class~="from-amber-500"] {
+  --tw-gradient-from: #681B1D var(--tw-gradient-from-position) !important;
+  --tw-gradient-to: #4B1117 var(--tw-gradient-to-position) !important;
+  color: #FFF3E3 !important;
+}
+
+[data-evntora-theme="portal"] [class~="hover:from-amber-400"]:hover {
+  --tw-gradient-from: #7A2124 var(--tw-gradient-from-position) !important;
+  --tw-gradient-to: #5C151D var(--tw-gradient-to-position) !important;
+}
+
+[data-evntora-theme="portal"] [class~="hover:bg-amber-400"]:hover {
+  background-color: #7A2124 !important;
+}
+
+[data-evntora-theme="portal"] [class~="bg-amber-500/10"],
+[data-evntora-theme="portal"] [class~="bg-amber-500/20"] {
+  background-color: rgba(234, 210, 176, 0.42) !important;
+}
+
+[data-evntora-theme="portal"] [class~="text-amber-300"],
+[data-evntora-theme="portal"] [class~="text-amber-400"],
+[data-evntora-theme="portal"] [class~="text-amber-400/90"] {
+  color: #9A6126 !important;
+}
+
+.dark [data-evntora-theme="portal"] [class~="text-amber-300"],
+.dark [data-evntora-theme="portal"] [class~="text-amber-400"],
+.dark [data-evntora-theme="portal"] [class~="text-amber-400/90"] {
+  color: #EAD2B0 !important;
+}
+
+[data-evntora-theme="portal"] [class~="text-amber-700"],
+[data-evntora-theme="portal"] [class~="text-amber-600"] {
+  color: #681B1D !important;
+}
+
+[data-evntora-theme="portal"] [class~="bg-black/60"] [class~="text-amber-400"],
+[data-evntora-theme="portal"] [class~="bg-black/70"] [class~="text-amber-400"] {
+  color: #EAD2B0 !important;
+}
+
+[data-evntora-theme="portal"] [class~="text-[#D4C3B7]"] {
+  color: #7D6B63 !important;
+}
+
+.dark [data-evntora-theme="portal"] [class~="text-[#D4C3B7]"] {
+  color: #D4C3B7 !important;
+}
+
+[data-evntora-theme="portal"] [class~="border-[#4D3331]"] {
+  border-color: #EAD2B0 !important;
+}
+
+.dark [data-evntora-theme="portal"] [class~="border-[#4D3331]"] {
+  border-color: #4D3331 !important;
+}
+
+[data-evntora-theme="portal"] [class~="border-white/10"],
+[data-evntora-theme="portal"] [class~="border-white/20"],
+[data-evntora-theme="portal"] [class~="border-amber-500/20"],
+[data-evntora-theme="portal"] [class~="border-amber-500/30"] {
+  border-color: #EAD2B0 !important;
+}
+
+.dark [data-evntora-theme="portal"] [class~="border-white/10"],
+.dark [data-evntora-theme="portal"] [class~="border-white/20"],
+.dark [data-evntora-theme="portal"] [class~="border-amber-500/20"],
+.dark [data-evntora-theme="portal"] [class~="border-amber-500/30"] {
+  border-color: #4D3331 !important;
 }
 
 .maroon-gradient-subtle {

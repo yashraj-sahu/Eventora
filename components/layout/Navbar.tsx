@@ -6,7 +6,6 @@ import { usePathname } from "next/navigation";
 import {
   Menu,
   X,
-  ArrowRight,
   User,
   ChevronDown,
   LogOut,
@@ -15,7 +14,6 @@ import {
   Building2,
   ShieldCheck,
   CalendarCheck,
-  Sparkles,
 } from "lucide-react";
 import { useAuth } from "@/lib/auth-context";
 import { ThemeToggle } from "@/components/ui/ThemeToggle";
@@ -214,7 +212,7 @@ export function Navbar() {
             : "bg-[#FFF3E3]/92 dark:bg-[#1A1211]/92 backdrop-blur-sm border-[#EAD2B0]/90 dark:border-[#4D3331]/90 shadow-[0_4px_24px_rgba(75,17,23,0.06)]"
         }`}
       >
-        <div className="flex items-center justify-between h-[52px] gap-2 lg:gap-6">
+        <div className="flex items-center justify-between h-[52px] gap-4 xl:gap-7">
           {/* ── 1. BRAND LOGO ── */}
           <Link href="/" className="flex items-center gap-2.5 group shrink-0 pl-1">
             <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-gradient-to-br from-[#681B1D] to-[#4B1117] border border-[#B77A36]/70 flex items-center justify-center font-serif font-bold text-[#EAD2B0] text-xl shadow-xs group-hover:from-[#7A2124] group-hover:to-[#5C151D] transition-all">
@@ -231,7 +229,7 @@ export function Navbar() {
           </Link>
 
           {/* ── 2. CENTER NAVIGATION ITEMS (PROPORTIONAL, BALANCED) ── */}
-          <nav className="hidden xl:flex items-center gap-5 2xl:gap-7">
+          <nav className="hidden xl:flex flex-1 items-center justify-center gap-4 2xl:gap-6">
             {navLinks.map((link) => {
               const isActive = pathname === link.href;
               return (
@@ -279,7 +277,7 @@ export function Navbar() {
           </nav>
 
           {/* ── 3. RIGHT ACTION CLUSTER ── */}
-          <div className="hidden xl:flex items-center gap-3 2xl:gap-4 shrink-0 pr-1">
+          <div className="hidden xl:flex items-center gap-4 shrink-0 pr-1">
             {/* Theme Selector */}
             <ThemeToggle />
 
@@ -315,7 +313,7 @@ export function Navbar() {
                   /* Sign In */
                   <Link
                     href="/signin"
-                    className="px-3.5 py-1.5 text-xs font-semibold text-[#30221D] dark:text-[#FFF3E3] hover:text-[#681B1D] dark:hover:text-[#EAD2B0] transition-colors whitespace-nowrap"
+                    className="px-4 py-2 rounded-full bg-gradient-to-r from-[#681B1D] to-[#4B1117] hover:from-[#7A2124] hover:to-[#5C151D] border border-[#B77A36]/60 text-xs font-bold tracking-wide text-[#FFF3E3] shadow-md hover:shadow-lg transition-all whitespace-nowrap focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#B77A36] focus-visible:ring-offset-2 focus-visible:ring-offset-[#FFF3E3] dark:focus-visible:ring-offset-[#1A1211]"
                   >
                     Sign In
                   </Link>
@@ -323,25 +321,11 @@ export function Navbar() {
               </>
             )}
 
-            {/* Prominent Royal Maroon Start Planning CTA */}
-            <Link
-              href="/planner"
-              className="px-4 sm:px-5 py-2.5 rounded-full bg-gradient-to-r from-[#681B1D] to-[#4B1117] hover:from-[#7A2124] hover:to-[#5C151D] text-[#FFF3E3] text-xs font-bold tracking-wide shadow-md hover:shadow-lg transition-all flex items-center gap-1.5 whitespace-nowrap cursor-pointer shrink-0 border border-[#B77A36]/50"
-            >
-              <span>Start Planning</span>
-              <ArrowRight className="w-3.5 h-3.5 text-[#EAD2B0]" />
-            </Link>
           </div>
 
           {/* ── MOBILE MENU TRIGGER ── */}
           <div className="flex xl:hidden items-center gap-2">
             <ThemeToggle />
-            <Link
-              href="/planner"
-              className="px-3 py-1.5 rounded-full bg-[#681B1D] text-[#FFF3E3] text-xs font-bold border border-[#B77A36]/40"
-            >
-              Plan
-            </Link>
             <button
               type="button"
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
@@ -436,20 +420,12 @@ export function Navbar() {
               <Link
                 href="/signin"
                 onClick={() => setMobileMenuOpen(false)}
-                className="flex items-center justify-center w-full px-4 py-2.5 rounded-xl border border-[#681B1D] text-xs font-bold text-[#681B1D] dark:text-[#EAD2B0] bg-[#FFFCF6] dark:bg-[#2E1F1E] hover:bg-[#EAD2B0]/30 transition-colors"
+                className="flex items-center justify-center w-full px-4 py-2.5 rounded-xl bg-gradient-to-r from-[#681B1D] to-[#4B1117] border border-[#B77A36]/60 text-xs font-bold tracking-wide text-[#FFF3E3] shadow-md hover:shadow-lg transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#B77A36]"
               >
                 Sign In
               </Link>
             )}
 
-            <Link
-              href="/planner"
-              onClick={() => setMobileMenuOpen(false)}
-              className="flex items-center justify-center gap-2 w-full px-4 py-2.5 rounded-xl bg-gradient-to-r from-[#681B1D] to-[#4B1117] text-[#FFF3E3] text-xs font-bold shadow-md hover:from-[#7A2124] hover:to-[#5C151D] border border-[#B77A36]/40"
-            >
-              <Sparkles className="w-3.5 h-3.5 text-[#EAD2B0]" />
-              <span>Start Planning My Event</span>
-            </Link>
           </div>
         </div>
       )}

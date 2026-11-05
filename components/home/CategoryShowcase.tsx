@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { ArrowRight, Users, Coins } from "lucide-react";
 import { EVENT_CATEGORIES } from "@/data/categories";
+import { TiltCard } from "@/components/motion/TiltCard";
 
 export function CategoryShowcase() {
   return (
@@ -31,7 +32,7 @@ export function CategoryShowcase() {
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {EVENT_CATEGORIES.map((category) => (
-          <div
+          <TiltCard
             key={category.id}
             className="group relative rounded-3xl overflow-hidden bg-[#FFF3E3] dark:bg-[#2E1F1E] border border-[#EAD2B0] dark:border-[#4D3331] hover:border-[#B77A36] hover:shadow-xl transition-all duration-300 flex flex-col justify-between"
           >
@@ -90,7 +91,7 @@ export function CategoryShowcase() {
                 </Link>
               </div>
             </div>
-          </div>
+          </TiltCard>
         ))}
       </div>
     </section>

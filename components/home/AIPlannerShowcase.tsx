@@ -14,6 +14,7 @@ import {
 } from "lucide-react";
 import { generateAIBlueprint } from "@/data/sampleBlueprints";
 import { formatINR } from "@/lib/utils";
+import { TiltCard } from "@/components/motion/TiltCard";
 
 export function AIPlannerShowcase() {
   const [activeTab, setActiveTab] = useState<"summary" | "timeline" | "culinary" | "decor">("summary");
@@ -45,7 +46,7 @@ export function AIPlannerShowcase() {
         </div>
 
         {/* Blueprint Simulator Card */}
-        <div className="max-w-5xl mx-auto bg-[#FFFCF6] dark:bg-[#2E1F1E] rounded-3xl border border-[#EAD2B0] dark:border-[#4D3331] shadow-2xl p-6 sm:p-10 space-y-8">
+        <TiltCard className="max-w-5xl mx-auto bg-[#FFFCF6] dark:bg-[#2E1F1E] rounded-3xl border border-[#EAD2B0] dark:border-[#4D3331] shadow-2xl p-6 sm:p-10 space-y-8">
           {/* Header of the Blueprint */}
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-[#EAD2B0] dark:border-[#4D3331] pb-6">
             <div className="space-y-1">
@@ -289,7 +290,7 @@ export function AIPlannerShowcase() {
               <ArrowRight className="w-3.5 h-3.5 text-[#EAD2B0]" />
             </Link>
           </div>
-        </div>
+        </TiltCard>
       </div>
     </section>
   );

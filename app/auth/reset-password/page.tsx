@@ -189,7 +189,7 @@ function ResetPasswordForm() {
 
 export default function ResetPasswordPage() {
   return (
-    <div className="min-h-screen flex flex-col bg-[#08090d] text-[#FFF3E3]">
+    <div data-evntora-theme="portal" className="min-h-screen flex flex-col bg-[#08090d] text-[#FFF3E3]">
       <Navbar />
       <main className="flex-1 flex items-center justify-center py-16 px-4 sm:px-6 lg:px-8">
         <Suspense fallback={<div className="w-full max-w-md h-80 rounded-3xl bg-[#1A1211]/90 animate-pulse" />}>

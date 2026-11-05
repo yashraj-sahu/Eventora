@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { ArrowRight } from "lucide-react";
 import { CITIES } from "@/data/cities";
+import { TiltCard } from "@/components/motion/TiltCard";
 
 export function DestinationShowcase() {
   return (
@@ -30,8 +31,8 @@ export function DestinationShowcase() {
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {CITIES.map((city) => (
+          <TiltCard key={city.id} className="rounded-3xl">
           <Link
-            key={city.id}
             href={`/vendors?city=${encodeURIComponent(city.name)}`}
             className="group relative rounded-3xl overflow-hidden bg-[#FFF3E3] dark:bg-[#2E1F1E] border border-[#EAD2B0] dark:border-[#4D3331] hover:border-[#B77A36] hover:shadow-2xl transition-all duration-300 h-80 flex flex-col justify-end p-6"
           >
@@ -82,6 +83,7 @@ export function DestinationShowcase() {
               </div>
             </div>
           </Link>
+          </TiltCard>
         ))}
       </div>
     </section>

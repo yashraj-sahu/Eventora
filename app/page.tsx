@@ -9,6 +9,7 @@ import { AIPlannerShowcase } from "@/components/home/AIPlannerShowcase";
 import { BudgetShowcase } from "@/components/home/BudgetShowcase";
 import { Testimonials } from "@/components/home/Testimonials";
 import { FinalCTA } from "@/components/home/FinalCTA";
+import { ScrollReveal } from "@/components/motion/ScrollReveal";
 
 export default function HomePage() {
   return (
@@ -18,14 +19,14 @@ export default function HomePage() {
       {/* Page Body */}
       <main className="flex-1 w-full">
         <Hero />
-        <CategoryShowcase />
-        <HowItWorks />
-        <AIPlannerShowcase />
-        <FeaturedVendors />
-        <DestinationShowcase />
-        <BudgetShowcase />
-        <Testimonials />
-        <FinalCTA />
+        <ScrollReveal><CategoryShowcase /></ScrollReveal>
+        <ScrollReveal delay={50}><HowItWorks /></ScrollReveal>
+        <ScrollReveal delay={75}><AIPlannerShowcase /></ScrollReveal>
+        <ScrollReveal delay={50}><FeaturedVendors /></ScrollReveal>
+        <ScrollReveal><DestinationShowcase /></ScrollReveal>
+        <ScrollReveal delay={50}><BudgetShowcase /></ScrollReveal>
+        <ScrollReveal><Testimonials /></ScrollReveal>
+        <ScrollReveal delay={50}><FinalCTA /></ScrollReveal>
       </main>
 
       {/* Comprehensive Footer */}

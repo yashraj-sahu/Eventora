@@ -33,7 +33,7 @@ export default function VendorPortalLayout({
   const category = vendorProfile?.business_category || "Vendor";
 
   return (
-    <RequireRole role="vendor"><div className="min-h-screen flex flex-col bg-[#FFF3E3] dark:bg-[#1A1211] text-[#30221D] dark:text-[#F4F0E7] selection:bg-[#681B1D] dark:selection:bg-[#EAD2B0] selection:text-white dark:selection:text-[#1A1211] font-sans transition-colors duration-200"><PortalAccessNotice />
+    <RequireRole role="vendor"><div data-evntora-theme="portal" className="min-h-screen flex flex-col bg-[#FFF3E3] dark:bg-[#1A1211] text-[#30221D] dark:text-[#F4F0E7] selection:bg-[#681B1D] dark:selection:bg-[#EAD2B0] selection:text-white dark:selection:text-[#1A1211] font-sans transition-colors duration-200"><PortalAccessNotice />
       <div className="flex-1 flex">
         {/* Vendor Sidebar */}
         <aside className="hidden lg:flex flex-col w-64 bg-[#FFFCF6] dark:bg-[#241918] border-r border-[#EAD2B0] dark:border-[#4D3331] shrink-0 select-none">
@@ -98,7 +98,7 @@ export default function VendorPortalLayout({
               className="flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-medium text-[#7D6B63] dark:text-[#D4C3B7] hover:text-[#681B1D] dark:hover:text-[#EAD2B0] hover:bg-[#EAD2B0]/50 dark:hover:bg-[#2E1F1E] transition-all w-full"
             >
               <ArrowLeft className="w-3.5 h-3.5" />
-              <span>Back to Evntora Website</span>
+              <span>Back to Evntora</span>
             </Link>
             <button
               onClick={handleSignOut}

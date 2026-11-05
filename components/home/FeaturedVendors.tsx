@@ -14,6 +14,7 @@ import { useMarketplaceVendors } from "@/lib/use-marketplace";
 import { formatINR } from "@/lib/utils";
 import { BookingModal } from "@/components/booking/BookingModal";
 import type { VendorItem } from "@/types";
+import { TiltCard } from "@/components/motion/TiltCard";
 
 export function FeaturedVendors() {
   const { vendors, savedIds, loading, error, toggleSaved } = useMarketplaceVendors();
@@ -86,7 +87,7 @@ export function FeaturedVendors() {
         {filteredVendors.map((vendor) => {
           const isSaved = savedIds.includes(vendor.id);
           return (
-            <div
+            <TiltCard
               key={vendor.id}
               className="group rounded-3xl overflow-hidden bg-[#FFF3E3] dark:bg-[#2E1F1E] border border-[#EAD2B0] dark:border-[#4D3331] hover:border-[#B77A36] hover:shadow-xl transition-all duration-300 flex flex-col justify-between"
             >
@@ -193,7 +194,7 @@ export function FeaturedVendors() {
                   </div>
                 </div>
               </div>
-            </div>
+            </TiltCard>
           );
         })}
       </div>

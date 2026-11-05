@@ -10,7 +10,7 @@ export default function VendorPendingPage() {
   const handleSignOut = async () => { await signOut(); window.location.assign("/"); };
 
   return (
-    <div className="min-h-screen bg-[#07080b] text-[#FFF3E3] flex items-center justify-center p-6">
+    <div data-evntora-theme="portal" className="min-h-screen bg-[#07080b] text-[#FFF3E3] flex items-center justify-center p-6">
       <div className="max-w-lg w-full text-center space-y-8">
         {/* Logo */}
         <Link href="/" className="inline-flex items-center gap-3 group">

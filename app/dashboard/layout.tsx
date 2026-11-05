@@ -19,7 +19,6 @@ import {
   Clock,
   Bookmark,
   MessageSquare,
-  Bot,
   Palette,
   Settings,
   Menu,
@@ -59,16 +58,15 @@ export default function DashboardLayout({
     { href: "/dashboard/timeline", label: "Run of Show Timeline", icon: Clock },
     { href: "/dashboard/saved-vendors", label: "Saved Artisans", icon: Bookmark },
     { href: "/dashboard/enquiries", label: "Vendor Enquiries", icon: MessageSquare },
-    { href: "/dashboard/ai-assistant", label: "AI Concierge", icon: Bot },
     { href: "/dashboard/studio", label: "Design Moodboard", icon: Palette },
     { href: "/dashboard/settings", label: "Account Settings", icon: Settings },
   ];
 
   return (
-    <RequireRole role="customer"><div className="min-h-screen flex flex-col bg-[#FFF3E3] dark:bg-[#1A1211] text-[#30221D] dark:text-[#FFF3E3] selection:bg-[#681B1D] dark:selection:bg-[#EAD2B0] selection:text-white dark:selection:text-[#1A1211] font-sans transition-colors duration-200"><PortalAccessNotice />
+    <RequireRole role="customer"><div data-evntora-theme="portal" className="min-h-screen flex flex-col bg-[#FFF3E3] dark:bg-[#1A1211] text-[#30221D] dark:text-[#FFF3E3] selection:bg-[#681B1D] dark:selection:bg-[#EAD2B0] selection:text-white dark:selection:text-[#1A1211] font-sans transition-colors duration-200"><PortalAccessNotice />
       <div className="flex-1 flex">
         {/* Desktop Sidebar */}
-        <aside className="hidden lg:flex flex-col w-64 bg-[#FFFCF6] dark:bg-[#241918] border-r border-[#EAD2B0] dark:border-[#4D3331] shrink-0 select-none">
+        <aside className="hidden lg:flex sticky top-0 h-screen flex-col w-64 bg-[#FFFCF6] dark:bg-[#241918] border-r border-[#EAD2B0] dark:border-[#4D3331] shrink-0 select-none">
           {/* Brand — links back to public site */}
           <div className="p-5 border-b border-[#EAD2B0] dark:border-[#4D3331] flex items-center justify-between">
             <Link href="/" className="flex items-center gap-2.5 group">
@@ -146,7 +144,7 @@ export default function DashboardLayout({
           </div>
 
           {/* Navigation Links */}
-          <nav className="flex-1 p-3 space-y-1 overflow-y-auto">
+          <nav className="flex-1 min-h-0 p-3 space-y-1 overflow-y-auto overscroll-contain">
             {navItems.map((item) => {
               const Icon = item.icon;
               const isActive = pathname === item.href;
@@ -174,9 +172,8 @@ export default function DashboardLayout({
               className="flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-medium text-[#7D6B63] dark:text-[#D4C3B7] hover:text-[#681B1D] dark:hover:text-[#EAD2B0] hover:bg-[#EAD2B0]/50 dark:hover:bg-[#2E1F1E] transition-all w-full"
             >
               <ArrowLeft className="w-3.5 h-3.5" />
-              <span>Back to Evntora Website</span>
-            </Link>
-
+              <span>Back to Home</span>
+            </Link
             <div className="flex items-center justify-between gap-2 p-2 rounded-xl bg-[#FFF3E3] dark:bg-[#2E1F1E] border border-[#EAD2B0] dark:border-[#4D3331]">
               <div className="flex items-center gap-2 min-w-0">
                 <div className="w-7 h-7 rounded-full bg-[#681B1D] text-[#FFF3E3] flex items-center justify-center font-bold text-xs shrink-0">
@@ -257,7 +254,7 @@ export default function DashboardLayout({
                   className="flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-medium text-[#7D6B63] dark:text-[#D4C3B7] hover:text-[#681B1D] dark:hover:text-[#EAD2B0]"
                 >
                   <ArrowLeft className="w-3.5 h-3.5" />
-                  <span>Back to Evntora Website</span>
+                  <span>Back to Evntora</span>
                 </Link>
                 <button
                   onClick={handleSignOut}
