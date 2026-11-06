@@ -173,7 +173,7 @@ export default function DashboardLayout({
             >
               <ArrowLeft className="w-3.5 h-3.5" />
               <span>Back to Home</span>
-            </Link
+            </Link>
             <div className="flex items-center justify-between gap-2 p-2 rounded-xl bg-[#FFF3E3] dark:bg-[#2E1F1E] border border-[#EAD2B0] dark:border-[#4D3331]">
               <div className="flex items-center gap-2 min-w-0">
                 <div className="w-7 h-7 rounded-full bg-[#681B1D] text-[#FFF3E3] flex items-center justify-center font-bold text-xs shrink-0">
