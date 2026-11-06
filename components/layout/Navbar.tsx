@@ -6,6 +6,7 @@ import { usePathname } from "next/navigation";
 import {
   Menu,
   X,
+  ArrowRight,
   User,
   ChevronDown,
   LogOut,
@@ -313,9 +314,10 @@ export function Navbar() {
                   /* Sign In */
                   <Link
                     href="/signin"
-                    className="px-4 py-2 rounded-full bg-gradient-to-r from-[#681B1D] to-[#4B1117] hover:from-[#7A2124] hover:to-[#5C151D] border border-[#B77A36]/60 text-xs font-bold tracking-wide text-[#FFF3E3] shadow-md hover:shadow-lg transition-all whitespace-nowrap focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#B77A36] focus-visible:ring-offset-2 focus-visible:ring-offset-[#FFF3E3] dark:focus-visible:ring-offset-[#1A1211]"
+                    className="group flex items-center gap-2 px-4 py-2 rounded-full bg-gradient-to-r from-[#681B1D] to-[#4B1117] hover:from-[#7A2124] hover:to-[#5C151D] border border-[#B77A36]/60 text-xs font-bold tracking-wide text-[#FFF3E3] shadow-md hover:shadow-lg transition-all whitespace-nowrap focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#B77A36] focus-visible:ring-offset-2 focus-visible:ring-offset-[#FFF3E3] dark:focus-visible:ring-offset-[#1A1211]"
                   >
-                    Sign In
+                    <span>Sign In</span>
+                    <ArrowRight aria-hidden="true" className="h-3.5 w-3.5 text-[#EAD2B0] transition-transform group-hover:translate-x-0.5" />
                   </Link>
                 )}
               </>
@@ -420,9 +422,10 @@ export function Navbar() {
               <Link
                 href="/signin"
                 onClick={() => setMobileMenuOpen(false)}
-                className="flex items-center justify-center w-full px-4 py-2.5 rounded-xl bg-gradient-to-r from-[#681B1D] to-[#4B1117] border border-[#B77A36]/60 text-xs font-bold tracking-wide text-[#FFF3E3] shadow-md hover:shadow-lg transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#B77A36]"
+                className="group flex items-center justify-center gap-2 w-full px-4 py-2.5 rounded-xl bg-gradient-to-r from-[#681B1D] to-[#4B1117] border border-[#B77A36]/60 text-xs font-bold tracking-wide text-[#FFF3E3] shadow-md hover:shadow-lg transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#B77A36]"
               >
-                Sign In
+                <span>Sign In</span>
+                <ArrowRight aria-hidden="true" className="h-3.5 w-3.5 text-[#EAD2B0] transition-transform group-hover:translate-x-0.5" />
               </Link>
             )}
 
