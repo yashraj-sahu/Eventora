@@ -1,8 +1,12 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { getAuthenticatedUser } from "@/lib/supabase-server";
-import { generateText, getAiErrorResponse } from "@/lib/gemini";
-import { consumeAiRequest, consumeGuestAiRequest } from "@/lib/ai-rate-limit";
+import { generateText, getAiErrorResponse } from "@/lib/ai";
+import {
+  consumeAiRequest,
+  consumeGuestAiRequest,
+  isAiRateLimitEnabled,
+} from "@/lib/ai-rate-limit";
 import { blueprintSchema } from "@/lib/ai-schemas";
 
 export const runtime = "nodejs";
@@ -40,8 +44,23 @@ export async function POST(request: Request) {
     if (!roles?.some((role) => role.role === "customer")) user = null;
   }
   if (!user) {
-    const quota = await consumeGuestAiRequest(request);
-    if (quota !== "ok") return NextResponse.json({ error: quota === "limited" ? "You have reached the guest assistant request limit. Please wait before asking another question." : "AI request limits are temporarily unavailable. Please try again shortly." }, { status: quota === "limited" ? 429 : 503 });
+    // const quota = await consumeGuestAiRequest(request);
+    // if (quota !== "ok") return NextResponse.json({ error: quota === "limited" ? "You have reached the guest assistant request limit. Please wait before asking another question." : "AI request limits are temporarily unavailable. Please try again shortly." }, { status: quota === "limited" ? 429 : 503 });
+    if (isAiRateLimitEnabled()) {
+  const quota = await consumeGuestAiRequest(request);
+
+  if (quota !== "ok") {
+    return NextResponse.json(
+      {
+        error:
+          quota === "limited"
+            ? "You have reached the guest assistant request limit. Please wait before asking another question."
+            : "AI request limits are temporarily unavailable. Please try again shortly.",
+      },
+      { status: quota === "limited" ? 429 : 503 },
+    );
+  }
+}
     if (plannerContext && JSON.stringify(plannerContext).length > 30000) return NextResponse.json({ error: "The planner context is too large. Start a new conversation and try again." }, { status: 400 });
     const prompt = `You are Evntora's event-planning assistant. Answer helpfully using the user's question and explicitly supplied guest context only. You have no access to private account records, bookings, memories, or vendor availability. Never invent actual vendors, ratings, prices, bookings, payments, or availability. General planning ideas must be presented as suggestions and estimates. Never perform bookings, payments, or other consequential actions. Maintain context from this current-session conversation: ${JSON.stringify((parsed.data.guestHistory ?? []).slice(-12))}. Current user message: ${message}.${plannerContext ? ` Guest planner context: ${JSON.stringify(plannerContext)}.` : ""}`;
     try {
@@ -65,8 +84,23 @@ export async function POST(request: Request) {
     }
   }
 
+  // const quota = await consumeAiRequest(supabase);
+  // if (quota !== "ok") return NextResponse.json({ error: quota === "limited" ? "You have reached the assistant request limit. Please wait a minute and try again." : "AI request limits are temporarily unavailable. Please try again." }, { status: quota === "limited" ? 429 : 503 });
+  if (isAiRateLimitEnabled()) {
   const quota = await consumeAiRequest(supabase);
-  if (quota !== "ok") return NextResponse.json({ error: quota === "limited" ? "You have reached the assistant request limit. Please wait a minute and try again." : "AI request limits are temporarily unavailable. Please try again." }, { status: quota === "limited" ? 429 : 503 });
+
+  if (quota !== "ok") {
+    return NextResponse.json(
+      {
+        error:
+          quota === "limited"
+            ? "You have reached the assistant request limit. Please wait a minute and try again."
+            : "AI request limits are temporarily unavailable. Please try again.",
+      },
+      { status: quota === "limited" ? 429 : 503 },
+    );
+  }
+}
   let eventId = parsed.data.eventId ?? null;
   if (conversationId) {
     const { data: existing, error } = await supabase.from("ai_conversations").select("id,event_id").eq("id", conversationId).eq("user_id", user.id).maybeSingle();

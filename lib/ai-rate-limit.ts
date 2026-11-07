@@ -35,3 +35,7 @@ export async function consumeGuestAiRequest(request: Request) {
     return "unavailable" as const;
   }
 }
+
+export function isAiRateLimitEnabled() {
+  return process.env.AI_RATE_LIMIT_ENABLED !== "false";
+}

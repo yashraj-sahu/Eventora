@@ -2,7 +2,7 @@
 
 import { useState, useRef, useEffect, useId, useMemo } from "react";
 import { ChevronDown, Check, X, Sparkles } from "lucide-react";
-
+import { createPortal } from "react-dom";
 export interface ComboboxOption {
   value: string;
   label: string;
@@ -106,6 +106,7 @@ export function EditableCombobox({
     <div
       ref={containerRef}
       className={`relative w-full ${open ? "z-[80]" : "z-20"} ${className}`}
+ 
     >
       {/* ── CARD INPUT WRAPPER ── */}
       <div
@@ -199,9 +200,12 @@ export function EditableCombobox({
       </div>
 
       {/* ── HIGH Z-INDEX FLOATING OPTIONS DROPDOWN ── */}
-      {open && (
-        <div id={`${inputId}-options`} role="listbox" className="absolute top-[calc(100%+6px)] left-0 right-0 z-[90] w-full max-h-60 overflow-y-auto overscroll-contain rounded-2xl bg-[#FFF3E3] dark:bg-[#2E1F1E] border border-[#EAD2B0] dark:border-[#4D3331] shadow-[0_16px_36px_rgba(75,17,23,0.22),0_4px_12px_rgba(183,122,54,0.12)] p-1.5 animate-in fade-in zoom-in-95 duration-150">
+      {/* {open && (
+        <div id={`${inputId}-options`} role="listbox" className="absolute top-[calc(100%+6px)] left-0 right-0 z-[90] w-full max-h-60 overflow-y-auto overscroll-contain rounded-2xl bg-[#FFF3E3] dark:bg-[#2E1F1E] border border-[#EAD2B0] dark:border-[#4D3331] shadow-[0_16px_36px_rgba(75,17,23,0.22),0_4px_12px_rgba(183,122,54,0.12)] p-1.5 animate-in fade-in zoom-in-95 duration-150"> */}
+        
           {/* Custom entry chip if typed value doesn't match any option */}
+          {open && (
+  <div id={`${inputId}-options`} role="listbox" className="absolute top-[calc(100%+6px)] left-0 right-0 z-[90] w-full max-h-60 overflow-y-auto overscroll-contain rounded-2xl bg-[#FFF3E3] dark:bg-[#2E1F1E] border border-[#EAD2B0] dark:border-[#4D3331] shadow-[0_16px_36px_rgba(75,17,23,0.22),0_4px_12px_rgba(183,122,54,0.12)] p-1.5 animate-in fade-in zoom-in-95 duration-150">
           {query.trim() &&
             !options.some((opt) => opt.label.toLowerCase() === query.trim().toLowerCase()) && (
               <div

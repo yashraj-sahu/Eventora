@@ -85,10 +85,10 @@ function RoyalFlourishMotif() {
 
 export function Hero() {
   const router = useRouter();
-  const [selectedType, setSelectedType] = useState("Weddings & Royal Celebrations");
-  const [selectedCity, setSelectedCity] = useState("Udaipur");
-  const [guestCount, setGuestCount] = useState("350");
-  const [budgetINR, setBudgetINR] = useState("₹45,00,000");
+  const [selectedType, setSelectedType] = useState("");
+  const [selectedCity, setSelectedCity] = useState("");
+  const [guestCount, setGuestCount] = useState("");
+  const [budgetINR, setBudgetINR] = useState("");
   const [quickPlanError, setQuickPlanError] = useState("");
 
   const categoryOptions: ComboboxOption[] = EVENT_CATEGORIES.map((category) => ({
