@@ -1524,7 +1524,7 @@ function PlannerContent() {
                     onChange={setVenuePreference}
                     allowCustom
                     customLabel="Use setting"
-                    placeholder="Choose or describe a setting"
+                    placeholder="Choose or describe a setting (optional)"
                   />
                 </div>
 
@@ -1543,7 +1543,7 @@ function PlannerContent() {
                     onChange={setStyleTheme}
                     allowCustom
                     customLabel="Use theme"
-                    placeholder="Choose or enter your theme"
+                    placeholder="Choose or enter your theme (optional)"
                   />
                 </div>
 
@@ -1553,7 +1553,7 @@ function PlannerContent() {
                   options={preferenceOptions}
                   onChange={setPreferences}
                   allowCustom
-                  placeholder="Select any that apply or add your own"
+                  placeholder="Select any that apply or add your own (optional)"
                 />
 
                 <div>

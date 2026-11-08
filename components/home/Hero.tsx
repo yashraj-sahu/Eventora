@@ -232,8 +232,8 @@ export function Hero() {
         </div>
 
         {/* ── SIGNATURE FLOATING QUICK PLANNER BAR WITH GENUINE EDITABLE INPUTS ── */}
-        <div className="max-w-5xl mx-auto w-full pt-1 relative z-30">
-          <div className="relative p-2.5 sm:p-3 rounded-3xl bg-[#FFF3E3]/95 dark:bg-[#2E1F1E]/95 backdrop-blur-md border border-[#EAD2B0] dark:border-[#4D3331] shadow-[0_16px_40px_-8px_rgba(75,17,23,0.18),0_2px_10px_rgba(183,122,54,0.10)]">
+        <div className="max-w-[62rem] mx-auto w-full pt-1 relative z-30">
+          <div className="relative px-2.5 py-2 sm:px-3 sm:py-2.5 rounded-3xl bg-[#FFF3E3]/95 dark:bg-[#2E1F1E]/95 backdrop-blur-md border border-[#EAD2B0] dark:border-[#4D3331] shadow-[0_16px_40px_-8px_rgba(75,17,23,0.18),0_2px_10px_rgba(183,122,54,0.10)]">
             <form
               onSubmit={handleQuickPlan}
               className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-12 gap-2.5 sm:gap-3 items-center"
@@ -291,7 +291,7 @@ export function Hero() {
               <div className="lg:col-span-2">
                 <button
                   type="submit"
-                  className="w-full h-[62px] rounded-2xl bg-gradient-to-r from-[#681B1D] to-[#4B1117] hover:from-[#7A2124] hover:to-[#5C151D] text-[#FFF3E3] font-bold text-xs tracking-wider uppercase transition-all shadow-md hover:shadow-lg flex items-center justify-center gap-2 border border-[#B77A36]/60 group cursor-pointer"
+                  className="w-full h-[58px] rounded-2xl bg-gradient-to-r from-[#681B1D] to-[#4B1117] hover:from-[#7A2124] hover:to-[#5C151D] text-[#FFF3E3] font-bold text-xs tracking-wider uppercase transition-all shadow-md hover:shadow-lg flex items-center justify-center gap-2 border border-[#B77A36]/60 group cursor-pointer"
                 >
                   <span>Generate Plan</span>
                   <Sparkles className="w-3.5 h-3.5 text-[#EAD2B0] group-hover:rotate-12 transition-transform" />

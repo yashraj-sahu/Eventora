@@ -153,14 +153,6 @@ export function GlobalFloatingChatbot() {
                   <RotateCcw className="w-4 h-4" />
                 </button>
               )}
-              <button
-                type="button"
-                onClick={() => setIsOpen(false)}
-                aria-label="Close assistant"
-                className="p-1.5 rounded-lg text-[#EAD2B0]/80 hover:text-[#FFF3E3] hover:bg-[#FFFCF6]/10 transition-colors cursor-pointer"
-              >
-                <X className="w-5 h-5" />
-              </button>
             </div>
           </div>
 
@@ -273,13 +265,14 @@ export function GlobalFloatingChatbot() {
       )}
 
       {/* ── FLOATING CIRCULAR LAUNCHER BUTTON ── */}
-      <button
-        type="button"
-        onClick={() => setIsOpen((prev) => !prev)}
-        aria-label={isOpen ? "Close AI Concierge" : "Open AI Concierge"}
-        aria-expanded={isOpen}
-        className="group relative flex items-center justify-center w-14 h-14 rounded-full bg-gradient-to-br from-[#681B1D] via-[#5C151D] to-[#3B0E12] text-[#FFF3E3] border-2 border-[#B77A36] shadow-[0_10px_25px_rgba(75,17,23,0.35),0_2px_10px_rgba(183,122,54,0.3)] hover:scale-105 active:scale-95 transition-all duration-300 cursor-pointer"
-      >
+      <div className="flex justify-end">
+        <button
+          type="button"
+          onClick={() => setIsOpen((prev) => !prev)}
+          aria-label={isOpen ? "Close AI Concierge" : "Open AI Concierge"}
+          aria-expanded={isOpen}
+          className="group relative flex items-center justify-center w-14 h-14 rounded-full bg-gradient-to-br from-[#681B1D] via-[#5C151D] to-[#3B0E12] text-[#FFF3E3] border-2 border-[#B77A36] shadow-[0_10px_25px_rgba(75,17,23,0.35),0_2px_10px_rgba(183,122,54,0.3)] hover:scale-105 active:scale-95 transition-all duration-300 cursor-pointer"
+        >
         {/* Animated aura ring */}
         <span className="absolute inset-0 rounded-full bg-[#B77A36]/25 animate-ping pointer-events-none opacity-40 group-hover:opacity-75" />
 
@@ -298,7 +291,8 @@ export function GlobalFloatingChatbot() {
             Ask AI Concierge ✨
           </span>
         )}
-      </button>
+        </button>
+      </div>
     </div>
   );
 }
