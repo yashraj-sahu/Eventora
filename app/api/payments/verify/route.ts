@@ -1,154 +1,65 @@
 import { NextResponse } from "next/server";
+import { z } from "zod";
 import { getAuthenticatedUser, createAdminSupabaseClient } from "@/lib/supabase-server";
-import { verifyRazorpaySignature, fetchRazorpayPayment } from "@/lib/razorpay-server";
+import { fetchRazorpayPayment, verifyRazorpaySignature } from "@/lib/razorpay-server";
+
+const verificationInput = z.object({
+  razorpayOrderId: z.string().min(1).max(100),
+  razorpayPaymentId: z.string().min(1).max(100),
+  razorpaySignature: z.string().regex(/^[a-f0-9]{64}$/i),
+  bookingId: z.string().uuid(),
+}).strict();
 
 export async function POST(request: Request) {
+  const { user, supabase: sessionClient, error: authError } = await getAuthenticatedUser(request);
+  if (!user || authError) return NextResponse.json({ error: "Authentication required to verify payment." }, { status: 401 });
+  const { data: roles, error: roleError } = await sessionClient.from("user_roles").select("role")
+    .eq("user_id", user.id).eq("is_active", true);
+  if (roleError) return NextResponse.json({ error: "Account access could not be verified." }, { status: 503 });
+  if (!roles?.some((role) => role.role === "customer")) return NextResponse.json({ error: "Enable Customer access before verifying payment." }, { status: 403 });
+
+  const parsed = verificationInput.safeParse(await request.json().catch(() => null));
+  if (!parsed.success) return NextResponse.json({ error: "Payment verification details are invalid." }, { status: 400 });
+  const { razorpayOrderId, razorpayPaymentId, razorpaySignature, bookingId } = parsed.data;
   try {
-    const { user, supabase: sessionClient, error: authError } = await getAuthenticatedUser(request);
-
-    if (authError || !user) {
-      return NextResponse.json(
-        { error: "Authentication required to verify payment." },
-        { status: 401 }
-      );
-    }
-
-    const { data: memberships, error: rolesError } = await sessionClient.from("user_roles").select("role").eq("user_id", user.id).eq("is_active", true);
-    if (rolesError) return NextResponse.json({ error: "Account access could not be verified." }, { status: 503 });
-    if (!memberships?.some((item) => item.role === "customer")) return NextResponse.json({ error: "Enable Customer access before verifying payment." }, { status: 403 });
-
-    const body = await request.json();
-    const {
-      razorpayOrderId,
-      razorpayPaymentId,
-      razorpaySignature,
-      bookingId,
-    } = body;
-
-    if (!razorpayOrderId || !razorpayPaymentId || !razorpaySignature || !bookingId) {
-      return NextResponse.json(
-        { error: "Missing required verification parameters." },
-        { status: 400 }
-      );
-    }
-
-    // 1. Verify Razorpay HMAC-SHA256 signature
-    const isValidSignature = verifyRazorpaySignature({
-      orderId: razorpayOrderId,
-      paymentId: razorpayPaymentId,
-      signature: razorpaySignature,
-    });
-
-    if (!isValidSignature) {
-      console.error("Payment signature mismatch for order:", razorpayOrderId);
-      return NextResponse.json(
-        { error: "Invalid payment signature. Transaction could not be verified." },
-        { status: 400 }
-      );
+    if (!verifyRazorpaySignature({ orderId: razorpayOrderId, paymentId: razorpayPaymentId, signature: razorpaySignature })) {
+      return NextResponse.json({ error: "Invalid payment signature. Transaction could not be verified." }, { status: 400 });
     }
 
     const supabase = createAdminSupabaseClient();
+    const { data: payment, error: paymentError } = await supabase.from("payments")
+      .select("id,booking_id,customer_id,razorpay_order_id,amount,currency,status")
+      .eq("razorpay_order_id", razorpayOrderId).eq("booking_id", bookingId).maybeSingle();
+    if (paymentError) return NextResponse.json({ error: "Payment record could not be verified." }, { status: 503 });
+    if (!payment) return NextResponse.json({ error: "Matching payment transaction record not found." }, { status: 404 });
+    if (payment.customer_id !== user.id) return NextResponse.json({ error: "This payment does not belong to the current account." }, { status: 403 });
 
-    // 2. Look up the payment record
-    const { data: paymentRecord, error: paymentLookupError } = await supabase
-      .from("payments")
-      .select("*")
-      .eq("razorpay_order_id", razorpayOrderId)
-      .eq("booking_id", bookingId)
-      .maybeSingle();
-
-    if (paymentLookupError || !paymentRecord) {
-      return NextResponse.json(
-        { error: "Matching payment transaction record not found." },
-        { status: 404 }
-      );
+    const remote = await fetchRazorpayPayment(razorpayPaymentId);
+    if (remote.order_id !== payment.razorpay_order_id || remote.amount !== payment.amount || remote.currency !== payment.currency) {
+      return NextResponse.json({ error: "Razorpay payment details do not match the recorded order." }, { status: 409 });
+    }
+    if (remote.status !== "captured" || remote.captured !== true) {
+      return NextResponse.json({ error: "Razorpay has not confirmed that this payment was captured." }, { status: 409 });
     }
 
-    // 3. Verify user ownership
-    if (paymentRecord.customer_id !== user.id) {
-      return NextResponse.json(
-        { error: "Access denied. Order does not belong to the current user." },
-        { status: 403 }
-      );
-    }
-
-    // 4. Idempotency check: if already captured, return immediate success
-    if (paymentRecord.status === "captured") {
-      return NextResponse.json({
-        success: true,
-        message: "Payment has already been verified and recorded.",
-        paymentId: paymentRecord.id,
-        bookingId: paymentRecord.booking_id,
-        status: "captured",
-      });
-    }
-
-    // 5. Fetch payment from Razorpay API to confirm capture state & method
-    let paymentMethod: string | null = null;
-    try {
-      const razorpayDetails = await fetchRazorpayPayment(razorpayPaymentId);
-      if (razorpayDetails) {
-        paymentMethod = razorpayDetails.method || null;
-      }
-    } catch (fetchErr) {
-      console.warn("Could not fetch remote Razorpay payment entity:", fetchErr);
-    }
-
-    const nowIso = new Date().toISOString();
-
-    // 6. Update payment record to captured
-    const { error: paymentUpdateError } = await supabase
-      .from("payments")
-      .update({
-        razorpay_payment_id: razorpayPaymentId,
-        razorpay_signature: razorpaySignature,
-        status: "captured",
-        payment_method: paymentMethod,
-        verified_at: nowIso,
-      })
-      .eq("id", paymentRecord.id);
-
-    if (paymentUpdateError) {
-      console.error("Failed to update payment record:", paymentUpdateError);
-      return NextResponse.json(
-        { error: "Failed to update payment status: " + paymentUpdateError.message },
-        { status: 500 }
-      );
-    }
-
-    // 7. Update booking paid_amount and status
-    const { data: booking } = await supabase
-      .from("bookings")
-      .select("total_amount, paid_amount, status")
-      .eq("id", bookingId)
-      .single();
-
-    if (booking) {
-      const newPaidAmount = (booking.paid_amount || 0) + paymentRecord.amount;
-      const newStatus =
-        newPaidAmount >= booking.total_amount ? "confirmed" : "confirmed";
-
-      await supabase
-        .from("bookings")
-        .update({
-          paid_amount: newPaidAmount,
-          status: newStatus,
-        })
-        .eq("id", bookingId);
-    }
-
-    return NextResponse.json({
-      success: true,
-      message: "Payment successfully verified and booking secured.",
-      paymentId: paymentRecord.id,
-      bookingId,
-      status: "captured",
-      verifiedAt: nowIso,
+    const verifiedAt = new Date().toISOString();
+    const { data: result, error: finalizeError } = await supabase.rpc("apply_razorpay_capture", {
+      p_order_id: payment.razorpay_order_id,
+      p_payment_id: razorpayPaymentId,
+      p_amount: remote.amount,
+      p_currency: remote.currency,
+      p_payment_method: remote.method ?? null,
+      p_verified_at: verifiedAt,
     });
-  } catch (err: unknown) {
-    const message = err instanceof Error ? err.message : "Internal Server Error";
-    console.error("Payment verification route error:", err);
-    return NextResponse.json({ error: message }, { status: 500 });
+    if (finalizeError) {
+      console.error("[payment-verify] capture finalization failed", { code: finalizeError.code });
+      return NextResponse.json({ error: "Captured payment could not be reconciled yet. Please contact support before retrying checkout." }, { status: 503 });
+    }
+
+    return NextResponse.json({ success: true, message: "Payment verified and recorded.", paymentId: payment.id, bookingId: payment.booking_id, status: "captured", verifiedAt });
+  } catch (error) {
+    console.error("[payment-verify] failed", { errorType: error instanceof Error ? error.name : "unknown" });
+    const missingServiceKey = error instanceof Error && error.message.includes("SUPABASE_SERVICE_ROLE_KEY");
+    return NextResponse.json({ error: missingServiceKey ? "Secure payment storage is not configured on the server." : "Razorpay verification is temporarily unavailable. Please try again." }, { status: 503 });
   }
 }
-

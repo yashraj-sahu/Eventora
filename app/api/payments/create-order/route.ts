@@ -1,6 +1,9 @@
 import { NextResponse } from "next/server";
+import { z } from "zod";
 import { getAuthenticatedUser, createAdminSupabaseClient } from "@/lib/supabase-server";
 import { createRazorpayOrder } from "@/lib/razorpay-server";
+
+const inputSchema = z.object({ bookingId: z.string().uuid(), purpose: z.enum(["advance", "remaining", "full"]).default("advance") }).strict();
 
 export async function POST(request: Request) {
   try {
@@ -17,29 +20,16 @@ export async function POST(request: Request) {
     if (rolesError) return NextResponse.json({ error: "Account access could not be verified." }, { status: 503 });
     if (!memberships?.some((item) => item.role === "customer")) return NextResponse.json({ error: "Enable Customer access before checkout." }, { status: 403 });
 
-    const body = await request.json();
-    const { bookingId, purpose = "advance" } = body;
-
-    if (!bookingId) {
-      return NextResponse.json(
-        { error: "Booking ID is required." },
-        { status: 400 }
-      );
-    }
-
-    if (!["advance", "remaining", "full"].includes(purpose)) {
-      return NextResponse.json(
-        { error: "Invalid payment purpose. Must be advance, remaining, or full." },
-        { status: 400 }
-      );
-    }
+    const parsed = inputSchema.safeParse(await request.json().catch(() => null));
+    if (!parsed.success) return NextResponse.json({ error: "Provide a valid booking and payment option." }, { status: 400 });
+    const { bookingId, purpose } = parsed.data;
 
     const supabase = createAdminSupabaseClient();
 
     // 1. Fetch booking securely from Supabase
     const { data: booking, error: bookingError } = await supabase
       .from("bookings")
-      .select("*")
+      .select("id,booking_reference,customer_id,vendor_name,total_amount,advance_amount,paid_amount,currency,status")
       .eq("id", bookingId)
       .maybeSingle();
 
@@ -78,6 +68,10 @@ export async function POST(request: Request) {
         { error: "This booking is awaiting artisan confirmation before payment can be accepted." },
         { status: 400 }
       );
+    }
+
+    if (!["awaiting_payment", "confirmed"].includes(booking.status)) {
+      return NextResponse.json({ error: "This booking is not ready for payment." }, { status: 409 });
     }
 
     // 4. Calculate actual payable amount server-side in paise
@@ -139,14 +133,14 @@ export async function POST(request: Request) {
         status: "created",
         purpose: purpose as "advance" | "remaining" | "full",
       })
-      .select("*")
+      .select("id")
       .single();
 
     if (paymentInsertError) {
-      console.error("Failed to log payment attempt in Supabase:", paymentInsertError);
+      console.error("[payment-order] payment attempt insert failed", { code: paymentInsertError.code });
       return NextResponse.json(
-        { error: "Failed to initialize payment record. " + paymentInsertError.message },
-        { status: 500 }
+        { error: "Failed to initialize the payment record. Please try again." },
+        { status: 503 }
       );
     }
 
@@ -164,9 +158,9 @@ export async function POST(request: Request) {
       purpose,
     });
   } catch (err: unknown) {
-    const message = err instanceof Error ? err.message : "Internal Server Error";
-    console.error("Error creating payment order:", err);
-    return NextResponse.json({ error: message }, { status: 500 });
+    console.error("[payment-order] failed", { errorType: err instanceof Error ? err.name : "unknown" });
+    const missingServiceKey = err instanceof Error && err.message.includes("SUPABASE_SERVICE_ROLE_KEY");
+    return NextResponse.json({ error: missingServiceKey ? "Secure payment storage is not configured on the server." : "Payment order could not be created. Please try again." }, { status: missingServiceKey ? 503 : 502 });
   }
 }
 

@@ -54,6 +54,7 @@ export default function AdminPaymentsPage() {
   const [refundingPayment, setRefundingPayment] = useState<AdminPaymentRecord | null>(null);
   const [refundReason, setRefundReason] = useState("");
   const [refundAmountPaise, setRefundAmountPaise] = useState<number>(0);
+  const [refundRequestKey, setRefundRequestKey] = useState("");
   const [isRefunding, setIsRefunding] = useState(false);
   const [refundError, setRefundError] = useState<string | null>(null);
 
@@ -61,7 +62,7 @@ export default function AdminPaymentsPage() {
     try {
       const { data, error } = await supabase
         .from("payments")
-        .select("*, bookings(booking_reference, vendor_name, vendor_category), profiles:customer_id(full_name, email)")
+        .select("id,booking_id,customer_id,razorpay_order_id,razorpay_payment_id,amount,currency,status,purpose,payment_method,verified_at,created_at,bookings(booking_reference,vendor_name,vendor_category),profiles:customer_id(full_name,email)")
         .order("created_at", { ascending: false });
 
       if (!error && data) {
@@ -92,14 +93,20 @@ export default function AdminPaymentsPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           paymentId: refundingPayment.id,
-          amountPaise: refundAmountPaise || refundingPayment.amount,
+          ...(refundAmountPaise > 0 ? { amountPaise: refundAmountPaise } : {}),
           reason: refundReason || "Customer Requested Administrative Refund",
+          idempotencyKey: refundRequestKey,
         }),
       });
 
       const data = await res.json();
       if (!res.ok) {
         throw new Error(data.error || "Failed to process refund on Razorpay.");
+      }
+
+      if (data.status === "pending") {
+        setRefundError("Razorpay has not finished processing this refund. The reserved amount will not be submitted again.");
+        return;
       }
 
       setRefundingPayment(null);
@@ -135,7 +142,7 @@ export default function AdminPaymentsPage() {
   });
 
   const totalCapturedPaise = payments
-    .filter((p) => p.status === "captured")
+    .filter((p) => p.status === "captured" || p.status === "partially_refunded")
     .reduce((sum, p) => sum + p.amount, 0);
 
   const totalRefundedPaise = payments
@@ -178,7 +185,7 @@ export default function AdminPaymentsPage() {
             {formatINR(totalCapturedPaise / 100)}
           </div>
           <span className="text-[11px] text-[#7D6B63] dark:text-[#D4C3B7] block">
-            Across {payments.filter((p) => p.status === "captured").length} verified transactions
+            Across {payments.filter((p) => p.status === "captured" || p.status === "partially_refunded").length} verified transactions
           </span>
         </div>
 
@@ -222,7 +229,7 @@ export default function AdminPaymentsPage() {
           </div>
 
           <div className="flex items-center gap-2">
-            {(["all", "captured", "created", "refunded"] as const).map((st) => (
+            {(["all", "captured", "partially_refunded", "created", "refunded"] as const).map((st) => (
               <button
                 key={st}
                 onClick={() => setStatusFilter(st)}
@@ -311,6 +318,8 @@ export default function AdminPaymentsPage() {
                         className={`px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider ${
                           p.status === "captured"
                             ? "bg-[#EAD2B0] text-[#681B1D] dark:bg-[#681B1D]/50 dark:text-[#EAD2B0]"
+                            : p.status === "partially_refunded"
+                            ? "bg-amber-100 text-amber-800 dark:bg-amber-950/40 dark:text-amber-300"
                             : p.status === "refunded"
                             ? "bg-purple-100 text-purple-700 dark:bg-purple-950/40 dark:text-purple-300"
                             : "bg-rose-100 text-rose-700 dark:bg-rose-950/40 dark:text-rose-300"
@@ -321,11 +330,12 @@ export default function AdminPaymentsPage() {
                     </td>
 
                     <td className="py-3.5 px-3 text-right">
-                      {p.status === "captured" ? (
+                      {p.status === "captured" || p.status === "partially_refunded" ? (
                         <button
                           onClick={() => {
                             setRefundingPayment(p);
-                            setRefundAmountPaise(p.amount);
+                            setRefundAmountPaise(0);
+                            setRefundRequestKey(crypto.randomUUID());
                             setRefundError(null);
                           }}
                           className="px-2.5 py-1 rounded-lg bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 text-[11px] font-semibold cursor-pointer transition-colors"
@@ -377,6 +387,14 @@ export default function AdminPaymentsPage() {
                 <div className="text-[11px] text-[#7D6B63] pt-1">
                   Original Amount: <strong>{formatINR(refundingPayment.amount / 100)}</strong>
                 </div>
+              </div>
+
+              <div>
+                <label className="block text-[#7D6B63] dark:text-[#D4C3B7] mb-1 font-semibold">Refund amount (₹; leave blank for remaining balance)</label>
+                <input type="number" min="0.01" step="0.01" max={refundingPayment.amount / 100}
+                  value={refundAmountPaise ? refundAmountPaise / 100 : ""}
+                  onChange={(event) => setRefundAmountPaise(Math.round(Number(event.target.value) * 100))}
+                  className="w-full px-3 py-2 rounded-xl bg-[#FFF3E3] dark:bg-[#1A1211] border border-[#EAD2B0] dark:border-[#4D3331] text-[#30221D] dark:text-[#F4F0E7] focus:outline-none focus:border-[#681B1D]" />
               </div>
 
               <div>

@@ -166,6 +166,7 @@ export interface Vendor {
   contactEmail: string;
   address: string;
   packages: {
+    id?: string;
     name: string;
     price: number;
     features: string[];
@@ -266,6 +267,7 @@ export function marketplaceVendorToLegacy(mv: MarketplaceVendor): VendorItem {
     address: mv.address || mv.city,
     packages:
       mv.vendor_packages?.map((p) => ({
+        id: p.id,
         name: p.name,
         price: p.price / 100,
         features: Array.isArray(p.features) ? p.features : [],

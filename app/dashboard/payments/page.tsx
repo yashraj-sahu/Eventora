@@ -73,7 +73,7 @@ export default function CustomerPaymentsPage() {
         // Fetch payments
         const { data: payData, error: payError } = await supabase
           .from("payments")
-          .select("*, bookings(booking_reference, vendor_name, vendor_category, event_date, total_amount, paid_amount, status)")
+          .select("id,booking_id,razorpay_order_id,razorpay_payment_id,amount,currency,status,purpose,payment_method,verified_at,created_at,bookings(booking_reference,vendor_name,vendor_category,event_date,total_amount,paid_amount,status)")
           .eq("customer_id", user.id)
           .order("created_at", { ascending: false });
 
@@ -105,7 +105,7 @@ export default function CustomerPaymentsPage() {
 
   // Aggregate Metrics
   const totalPaidPaise = payments
-    .filter((p) => p.status === "captured")
+    .filter((p) => p.status === "captured" || p.status === "partially_refunded")
     .reduce((sum, p) => sum + p.amount, 0);
 
   const totalPendingPaise = pendingBookings.reduce(
@@ -157,7 +157,7 @@ export default function CustomerPaymentsPage() {
             {formatINR(totalPaidPaise / 100)}
           </div>
           <p className="text-[11px] text-[#7D6B63] dark:text-[#D4C3B7]">
-            {payments.filter((p) => p.status === "captured").length} verified transactions
+            {payments.filter((p) => p.status === "captured" || p.status === "partially_refunded").length} verified transactions
           </p>
         </div>
 

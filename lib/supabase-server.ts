@@ -24,10 +24,9 @@ export async function createServerSupabaseClient() {
   });
 }
 
-/** Use only for legacy trusted webhook operations. New privileged code must require the key. */
+/** Create a server-only client for trusted operations. Never fall back to the public anon key. */
 export function createAdminSupabaseClient() {
-  const key = process.env.SUPABASE_SERVICE_ROLE_KEY || anonKey;
-  return createClient<Database>(url, key, { auth: { persistSession: false, autoRefreshToken: false } });
+  return createServiceRoleSupabaseClient();
 }
 
 export function createServiceRoleSupabaseClient() {

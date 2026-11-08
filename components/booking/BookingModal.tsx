@@ -28,6 +28,7 @@ export interface BookingModalProps {
     startingPrice: number | null;
     priceUnit: string;
     packages?: Array<{
+      id?: string;
       name: string;
       price: number;
       features: string[];
@@ -59,6 +60,7 @@ export function BookingModal({
   const [requirements, setRequirements] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [bookingRequestReference, setBookingRequestReference] = useState<string | null>(null);
 
   if (!isOpen) return null;
   if (packages.length === 0) {
@@ -90,10 +92,8 @@ export function BookingModal({
 
     if (!isAuthenticated) {
       const pendingData = {
-        vendorId: vendor.id,
-        vendorName: vendor.name,
-        vendorCategory: vendor.category,
-        packageName: selectedPkgName,
+        vendorProfileId: vendor.id,
+        packageId: currentPkg?.id ?? null,
         eventDate,
         eventCity,
         guestCount,
@@ -112,19 +112,13 @@ export function BookingModal({
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          vendorId: vendor.id,
-          vendorName: vendor.name,
-          vendorCategory: vendor.category,
-          packageName: selectedPkgName,
+          vendorProfileId: vendor.id,
+          packageId: currentPkg?.id ?? null,
           eventDate,
           eventCity,
           guestCount,
-          totalAmount: totalPrice,
           advancePercentage: advancePercent,
           requirements,
-          serviceDetails: {
-            features: currentPkg?.features || [],
-          },
         }),
       });
 
@@ -133,8 +127,7 @@ export function BookingModal({
         throw new Error(data.error || "Failed to create booking.");
       }
 
-      onClose();
-      router.push(`/checkout?bookingId=${data.bookingId}`);
+      setBookingRequestReference(data.bookingReference);
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : "Booking initialization failed";
       setErrorMessage(msg);
@@ -173,6 +166,11 @@ export function BookingModal({
 
         {/* Modal Form Content */}
         <form onSubmit={handleProceedToCheckout} className="p-6 overflow-y-auto space-y-6 flex-1 text-xs">
+          {bookingRequestReference && (
+            <div role="status" className="p-3.5 rounded-xl bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-900 text-emerald-800 dark:text-emerald-200 font-medium">
+              Booking request {bookingRequestReference} has been sent. Checkout will be available after the vendor accepts it.
+            </div>
+          )}
           {errorMessage && (
             <div className="p-3.5 rounded-xl bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-900 text-rose-700 dark:text-rose-300 font-medium">
               {errorMessage}
@@ -317,14 +315,14 @@ export function BookingModal({
               </span>
             </div>
             <div className="flex items-center justify-between text-[#7D6B63] dark:text-[#D4C3B7]">
-              <span>Initial Advance Payable Now ({advancePercent}%):</span>
+                <span>Initial Payment After Acceptance ({advancePercent}%):</span>
               <span className="font-bold text-[#681B1D] dark:text-[#EAD2B0]">
                 {formatINR(advanceAmount)}
               </span>
             </div>
             {advancePercent < 100 && (
               <div className="flex items-center justify-between text-[#7D6B63] dark:text-[#D4C3B7] border-t border-[#EAD2B0]/60 dark:border-[#4D3331] pt-1.5 text-[11px]">
-                <span>Remaining Balance Due Pre-Event:</span>
+                <span>Remaining Balance After Initial Payment:</span>
                 <span className="font-semibold text-[#30221D] dark:text-[#FFF3E3]">
                   {formatINR(remainingAmount)}
                 </span>
@@ -344,7 +342,7 @@ export function BookingModal({
           <div className="pt-2">
             <button
               type="submit"
-              disabled={isSubmitting}
+              disabled={isSubmitting || Boolean(bookingRequestReference)}
               className="w-full py-3.5 rounded-2xl bg-gradient-to-r from-[#681B1D] to-[#4B1117] hover:from-[#7A2124] hover:to-[#5C151D] text-[#FFF3E3] text-xs font-bold uppercase tracking-wider shadow-md transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50 border border-[#B77A36]/40"
             >
               {isSubmitting ? (
@@ -352,7 +350,7 @@ export function BookingModal({
               ) : (
                 <>
                   <Sparkles className="w-3.5 h-3.5 text-[#EAD2B0]" />
-                  <span>Proceed to Secure Checkout • Pay {formatINR(advanceAmount)}</span>
+                <span>{bookingRequestReference ? "Request Sent" : `Send Booking Request · ${formatINR(advanceAmount)} due after acceptance`}</span>
                   <ArrowRight className="w-4 h-4 text-[#EAD2B0]" />
                 </>
               )}

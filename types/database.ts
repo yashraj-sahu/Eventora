@@ -10,7 +10,7 @@ export type BookingStatus =
   | "confirmed"
   | "cancelled"
   | "completed";
-export type PaymentStatus = "created" | "captured" | "failed" | "refunded";
+export type PaymentStatus = "created" | "captured" | "partially_refunded" | "failed" | "refunded";
 export type PaymentPurpose = "advance" | "remaining" | "full";
 export type RefundStatus = "pending" | "processed" | "failed";
 
@@ -543,6 +543,7 @@ export interface Database {
           reason: string | null;
           status: RefundStatus;
           created_by: string | null;
+          idempotency_key: string | null;
           created_at: string;
           updated_at: string;
         };
@@ -555,6 +556,7 @@ export interface Database {
           reason?: string | null;
           status?: RefundStatus;
           created_by?: string | null;
+          idempotency_key?: string | null;
           created_at?: string;
           updated_at?: string;
         };
@@ -584,6 +586,10 @@ export interface Database {
       set_admin_membership: { Args: { p_user_id: string; p_active: boolean }; Returns: boolean };
       consume_ai_request: { Args: Record<string, never>; Returns: boolean };
       consume_ai_guest_request: { Args: { p_fingerprint: string }; Returns: boolean };
+      apply_razorpay_capture: { Args: { p_order_id: string; p_payment_id: string; p_amount: number; p_currency: string; p_payment_method: string | null; p_verified_at: string }; Returns: Record<string, unknown> };
+      reserve_payment_refund: { Args: { p_payment_id: string; p_requested_amount: number | null; p_reason: string; p_created_by: string; p_idempotency_key: string }; Returns: Record<string, unknown> };
+      complete_payment_refund: { Args: { p_refund_id: string; p_razorpay_refund_id: string; p_provider_status: string }; Returns: Record<string, unknown> };
+      apply_razorpay_refund_webhook: { Args: { p_razorpay_refund_id: string; p_razorpay_payment_id: string; p_amount: number }; Returns: Record<string, unknown> };
     };
     Enums: {
       user_role: UserRole;
