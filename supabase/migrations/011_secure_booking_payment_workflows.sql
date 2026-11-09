@@ -21,6 +21,7 @@ DROP POLICY IF EXISTS "payments: admin update" ON public.payments;
 DROP POLICY IF EXISTS "refunds: select policy" ON public.refunds;
 
 REVOKE ALL ON TABLE public.bookings, public.payments, public.refunds FROM anon;
+REVOKE TRUNCATE ON TABLE public.bookings, public.payments FROM anon, authenticated;
 REVOKE INSERT, UPDATE, DELETE ON TABLE public.bookings, public.payments FROM authenticated;
 REVOKE ALL ON TABLE public.refunds FROM authenticated;
 GRANT SELECT ON TABLE public.bookings, public.payments TO authenticated;
