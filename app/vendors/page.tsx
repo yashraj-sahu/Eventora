@@ -49,10 +49,13 @@ export default function VendorsPage() {
   const [maximumPrice, setMaximumPrice] = useState("");
   const [bookingModalOpen, setBookingModalOpen] = useState(false);
   const [selectedVendorForBooking, setSelectedVendorForBooking] = useState<VendorItem | null>(null);
+  const [eventId, setEventId] = useState<string | undefined>();
 
   useEffect(() => {
     const city = new URLSearchParams(window.location.search).get("city");
     if (city) setSelectedCity(city);
+    const selectedEventId = new URLSearchParams(window.location.search).get("eventId");
+    if (selectedEventId) setEventId(selectedEventId);
   }, []);
 
   const filteredVendors = useMemo(() => {
@@ -319,6 +322,7 @@ export default function VendorsPage() {
           isOpen={bookingModalOpen}
           onClose={() => setBookingModalOpen(false)}
           vendor={selectedVendorForBooking}
+          eventId={eventId}
         />
       )}
 

@@ -5,6 +5,7 @@ import { getAuthenticatedUser, createAdminSupabaseClient } from "@/lib/supabase-
 
 const bookingInput = z.object({
   vendorProfileId: z.string().uuid(),
+  eventId: z.string().uuid().optional(),
   packageId: z.string().uuid().nullable(),
   eventDate: z.string().date(),
   eventCity: z.string().trim().min(2).max(120),
@@ -31,6 +32,12 @@ export async function POST(request: Request) {
 
   try {
     const supabase = createAdminSupabaseClient();
+    if (input.eventId) {
+      const { data: event, error: eventError } = await sessionClient.from("events")
+        .select("id").eq("id", input.eventId).eq("user_id", user.id).maybeSingle();
+      if (eventError) return NextResponse.json({ error: "Event ownership could not be verified." }, { status: 503 });
+      if (!event) return NextResponse.json({ error: "This event is not available in your workspace." }, { status: 404 });
+    }
     const { data: vendor, error: vendorError } = await supabase.from("vendor_profiles")
       .select("id,user_id,business_name,business_category,city,starting_price,approval_status,is_published")
       .eq("id", input.vendorProfileId).maybeSingle();
@@ -72,6 +79,7 @@ export async function POST(request: Request) {
       customer_id: user.id,
       vendor_id: vendor.user_id ?? vendor.id,
       vendor_profile_id: vendor.id,
+      ...(input.eventId ? { event_id: input.eventId } : {}),
       vendor_name: vendor.business_name,
       vendor_category: vendor.business_category,
       package_name: packageName,

@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import { useAuth } from "@/lib/auth-context";
 import { supabase } from "@/lib/supabase";
 import { formatINR } from "@/lib/utils";
@@ -52,12 +53,17 @@ interface BookingBalanceItem {
   total_amount: number;
   paid_amount: number;
   status: string;
+  currency?: string;
+  created_at?: string;
 }
 
 export default function CustomerPaymentsPage() {
   const { user, profile } = useAuth();
+  const searchParams = useSearchParams();
+  const activeTab = searchParams.get("tab") === "bookings" ? "bookings" : "payments";
   const [payments, setPayments] = useState<PaymentItem[]>([]);
   const [pendingBookings, setPendingBookings] = useState<BookingBalanceItem[]>([]);
+  const [bookings, setBookings] = useState<BookingBalanceItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedReceipt, setSelectedReceipt] = useState<PaymentItem | null>(null);
@@ -83,15 +89,16 @@ export default function CustomerPaymentsPage() {
         }
 
         // Fetch bookings with remaining balances
-        const { data: bookData } = await supabase
+        const { data: bookData, error: bookError } = await supabase
           .from("bookings")
-          .select("id, booking_reference, vendor_name, vendor_category, event_date, total_amount, paid_amount, status")
+          .select("id,booking_reference,vendor_name,vendor_category,event_date,total_amount,advance_amount,paid_amount,currency,status,created_at")
           .eq("customer_id", user.id)
-          .in("status", ["awaiting_payment", "confirmed"]);
+          .order("created_at", { ascending: false });
 
+        if (bookError) throw new Error("Your bookings are temporarily unavailable.");
         if (bookData) {
-          const withBalance = bookData.filter((b) => b.total_amount > (b.paid_amount || 0));
-          setPendingBookings(withBalance);
+          setBookings(bookData as BookingBalanceItem[]);
+          setPendingBookings(bookData.filter((b) => ["awaiting_payment", "confirmed"].includes(b.status) && b.total_amount > (b.paid_amount || 0)) as BookingBalanceItem[]);
         }
       } catch (err) {
         console.error("Error loading payments:", err);
@@ -134,7 +141,7 @@ export default function CustomerPaymentsPage() {
             Payments & Invoices
           </h1>
           <p className="text-xs text-[#7D6B63] dark:text-[#D4C3B7]">
-            Track verified Razorpay transactions, settled artisan contracts, and tax receipts in INR
+            Your vendor bookings, payment records and printable transaction receipts
           </p>
         </div>
 
@@ -146,6 +153,21 @@ export default function CustomerPaymentsPage() {
           <ArrowRight className="w-4 h-4" />
         </Link>
       </div>
+
+      <div role="tablist" aria-label="Bookings and payments" className="inline-flex p-1 rounded-xl bg-[#EAD2B0]/50 dark:bg-[#241918] border border-[#EAD2B0] dark:border-[#4D3331]">
+        <Link role="tab" aria-selected={activeTab === "bookings"} href="/dashboard/payments?tab=bookings" className={`px-4 py-2 rounded-lg text-xs font-semibold ${activeTab === "bookings" ? "bg-[#681B1D] text-white shadow-sm" : "text-[#7D6B63] dark:text-[#D4C3B7]"}`}>Bookings</Link>
+        <Link role="tab" aria-selected={activeTab === "payments"} href="/dashboard/payments?tab=payments" className={`px-4 py-2 rounded-lg text-xs font-semibold ${activeTab === "payments" ? "bg-[#681B1D] text-white shadow-sm" : "text-[#7D6B63] dark:text-[#D4C3B7]"}`}>Payments &amp; Receipts</Link>
+      </div>
+
+      {activeTab === "bookings" ? (
+        <section className="space-y-4">
+          <div><h2 className="text-xl font-serif font-bold">Your vendor bookings</h2><p className="mt-1 text-xs text-[#7D6B63] dark:text-[#D4C3B7]">Statuses and balances are read from your booking records.</p></div>
+          {loading ? <p role="status" className="p-10 text-center">Loading bookings…</p> : bookings.length ? <div className="space-y-3">{bookings.map((booking) => {
+            const canPay = ["awaiting_payment", "confirmed"].includes(booking.status) && booking.total_amount > booking.paid_amount;
+            return <article key={booking.id} className="p-5 sm:p-6 rounded-2xl bg-[#FFFCF6] dark:bg-[#241918] border border-[#EAD2B0] dark:border-[#4D3331] flex flex-col sm:flex-row sm:items-center justify-between gap-4"><div><span className="text-[10px] text-[#7D6B63] dark:text-[#D4C3B7] font-mono">{booking.booking_reference}</span><h3 className="mt-1 text-lg font-serif font-bold">{booking.vendor_name}</h3><p className="mt-1 text-xs text-[#7D6B63] dark:text-[#D4C3B7]">{booking.vendor_category} · {new Date(`${booking.event_date}T00:00:00`).toLocaleDateString("en-IN", { dateStyle: "medium" })}</p><p className="mt-2 text-xs">Paid {formatINR(booking.paid_amount / 100)} of {formatINR(booking.total_amount / 100)}{canPay ? ` · Balance ${formatINR((booking.total_amount - booking.paid_amount) / 100)}` : ""}</p></div><div className="flex items-center gap-3"><span className="px-3 py-1 rounded-full bg-[#EAD2B0]/50 dark:bg-[#681B1D]/40 text-[10px] font-bold uppercase">{booking.status.replaceAll("_", " ")}</span>{canPay && <Link href={`/checkout?bookingId=${booking.id}`} className="px-4 py-2 rounded-xl bg-[#681B1D] text-white text-xs font-bold">Pay balance</Link>}</div></article>;
+          })}</div> : <div className="p-12 text-center rounded-3xl bg-[#FFFCF6] dark:bg-[#241918] border border-[#EAD2B0] dark:border-[#4D3331]"><h3 className="font-serif text-xl font-bold">No bookings yet</h3><p className="mt-2 text-sm text-[#7D6B63] dark:text-[#D4C3B7]">Discover vendors to request a booking.</p><Link href="/vendors" className="inline-flex mt-4 px-4 py-2 rounded-xl bg-[#681B1D] text-white text-xs font-bold">Discover Vendors</Link></div>}
+        </section>
+      ) : <>
 
       {/* 3 Metric Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
@@ -269,7 +291,7 @@ export default function CustomerPaymentsPage() {
               No Payments Recorded Yet
             </h3>
             <p className="text-xs text-[#7D6B63] dark:text-[#D4C3B7] max-w-sm mx-auto">
-              Once you confirm and pay an advance for a vendor or blueprint package, receipts will appear here.
+              Once you pay a vendor booking, its transaction record and printable receipt will appear here.
             </p>
           </div>
         ) : (
@@ -328,6 +350,8 @@ export default function CustomerPaymentsPage() {
                           className={`px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider ${
                             p.status === "captured"
                               ? "bg-[#EAD2B0] text-[#681B1D] dark:bg-[#681B1D]/50 dark:text-[#EAD2B0]"
+                              : p.status === "partially_refunded"
+                              ? "bg-amber-100 text-amber-800 dark:bg-amber-950/40 dark:text-amber-300"
                               : p.status === "refunded"
                               ? "bg-purple-100 text-purple-700 dark:bg-purple-950/40 dark:text-purple-300"
                               : "bg-rose-100 text-rose-700 dark:bg-rose-950/40 dark:text-rose-300"
@@ -341,7 +365,7 @@ export default function CustomerPaymentsPage() {
                         <button
                           onClick={() => setSelectedReceipt(p)}
                           className="p-1.5 rounded-lg text-[#681B1D] dark:text-[#EAD2B0] hover:bg-[#EAD2B0] dark:hover:bg-[#681B1D]/30 transition-colors cursor-pointer"
-                          title="View Tax Receipt"
+                          title="View payment receipt"
                         >
                           <FileText className="w-4 h-4" />
                         </button>
@@ -362,7 +386,7 @@ export default function CustomerPaymentsPage() {
             <div className="flex items-center justify-between border-b border-[#EAD2B0] dark:border-[#4D3331] pb-4">
               <div className="space-y-0.5">
                 <span className="text-[10px] uppercase font-bold tracking-widest text-[#B77A36] dark:text-[#D4B77D]">
-                  Evntora Tax Invoice
+                  Evntora Payment Record
                 </span>
                 <h3 className="text-xl font-serif font-bold text-[#681B1D] dark:text-[#F4F0E7]">
                   Transaction Receipt
@@ -415,12 +439,13 @@ export default function CustomerPaymentsPage() {
                 className="w-full py-3 rounded-xl bg-[#681B1D] hover:bg-[#4B1117] text-[#FFF3E3] text-xs font-bold uppercase tracking-wider flex items-center justify-center gap-2 cursor-pointer transition-all"
               >
                 <Printer className="w-4 h-4" />
-                <span>Print Tax Invoice</span>
+                <span>Print Payment Receipt</span>
               </button>
             </div>
           </div>
         </div>
       )}
+      </>}
     </div>
   );
 }

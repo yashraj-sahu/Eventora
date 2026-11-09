@@ -2,10 +2,9 @@
 
 import { use, useState } from "react";
 import Link from "next/link";
-import { notFound } from "next/navigation";
+import { notFound, useSearchParams } from "next/navigation";
 import { Navbar } from "@/components/layout/Navbar";
 import { Footer } from "@/components/layout/Footer";
-import { useEvntoraStore } from "@/lib/store";
 import { useMarketplaceVendors } from "@/lib/use-marketplace";
 import { useAuth } from "@/lib/auth-context";
 import { formatINR } from "@/lib/utils";
@@ -15,11 +14,10 @@ import {
   ShieldCheck,
   Bookmark,
   Check,
+  CheckCircle2,
   Mail,
   Phone,
   ArrowLeft,
-  CheckCircle2,
-  Send,
   Sparkles,
   Lock,
 } from "lucide-react";
@@ -27,20 +25,11 @@ import { BookingModal } from "@/components/booking/BookingModal";
 
 export default function VendorDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const resolvedParams = use(params);
+  const searchParams = useSearchParams();
+  const eventId = searchParams.get("eventId") ?? undefined;
   const { vendors, savedIds, loading, error, toggleSaved } = useMarketplaceVendors();
   const vendor = vendors.find((v) => v.id === resolvedParams.id);
-  const { state, addEnquiry } = useEvntoraStore();
   const { profile: signedInProfile } = useAuth();
-
-  const [clientName, setClientName] = useState(state.currentUser.name || "");
-  const [clientEmail, setClientEmail] = useState(state.currentUser.email || "");
-  const [clientPhone, setClientPhone] = useState(state.currentUser.phone || "+91 ");
-  const [eventType, setEventType] = useState("Weddings");
-  const [eventDate, setEventDate] = useState("2026-11-20");
-  const [guestCount, setGuestCount] = useState(250);
-  const [estimatedBudget, setEstimatedBudget] = useState(2500000);
-  const [message, setMessage] = useState("");
-  const [submitted, setSubmitted] = useState(false);
   const [bookingModalOpen, setBookingModalOpen] = useState(false);
   const [selectedPackageForModal, setSelectedPackageForModal] = useState<string | undefined>(undefined);
   const [claimMessage, setClaimMessage] = useState("");
@@ -61,24 +50,6 @@ export default function VendorDetailPage({ params }: { params: Promise<{ id: str
     setClaiming(false);
   };
 
-  const handleSubmitEnquiry = (e: React.FormEvent) => {
-    e.preventDefault();
-    addEnquiry({
-      vendorId: vendor.id,
-      vendorName: vendor.name,
-      vendorCategory: vendor.category,
-      clientName,
-      clientEmail,
-      clientPhone,
-      eventType,
-      eventDate,
-      guestCount,
-      estimatedBudget,
-      message: message || `Inquiring about availability and packages for ${vendor.name}.`,
-    });
-    setSubmitted(true);
-  };
-
   return (
     <div className="min-h-screen flex flex-col bg-[#FFF3E3] dark:bg-[#1A1211] text-[#30221D] dark:text-[#FFF3E3] transition-colors duration-200">
       <Navbar />
@@ -86,7 +57,7 @@ export default function VendorDetailPage({ params }: { params: Promise<{ id: str
       <main className="flex-1 py-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full space-y-10">
         {/* Back Link */}
         <Link
-          href="/vendors"
+          href={eventId ? `/vendors?eventId=${encodeURIComponent(eventId)}` : "/vendors"}
           className="inline-flex items-center gap-2 text-xs font-semibold text-[#30221D]/70 dark:text-[#FFF3E3]/70 hover:text-[#681B1D] dark:hover:text-[#EAD2B0] transition-colors"
         >
           <ArrowLeft className="w-3.5 h-3.5" />
@@ -272,115 +243,13 @@ export default function VendorDetailPage({ params }: { params: Promise<{ id: str
 
               <div className="relative flex py-1 items-center">
                 <div className="flex-grow border-t border-[#EAD2B0] dark:border-[#4D3331]"></div>
-                <span className="flex-shrink mx-3 text-[10px] uppercase font-bold text-[#30221D]/60 dark:text-[#FFF3E3]/60">Or Send Custom Brief</span>
+                <span className="flex-shrink mx-3 text-[10px] uppercase font-bold text-[#30221D]/60 dark:text-[#FFF3E3]/60">Contact the vendor</span>
                 <div className="flex-grow border-t border-[#EAD2B0] dark:border-[#4D3331]"></div>
               </div>
 
-              <div className="space-y-1">
-                <span className="text-[10px] uppercase font-bold tracking-wider text-[#B77A36] dark:text-[#EAD2B0]">
-                  Direct Enquiry
-                </span>
-                <h3 className="text-xl font-serif font-bold text-[#681B1D] dark:text-[#FFF3E3]">Check Availability</h3>
-                <p className="text-xs text-[#30221D]/70 dark:text-[#FFF3E3]/70">
-                  Send your requirements directly to {vendor.name}&apos;s team with zero booking markup.
-                </p>
-              </div>
-
-              {submitted ? (
-                <div className="p-6 rounded-2xl bg-[#681B1D]/10 dark:bg-[#681B1D]/30 border border-[#B77A36]/30 space-y-3 text-center">
-                  <CheckCircle2 className="w-8 h-8 text-[#B77A36] dark:text-[#EAD2B0] mx-auto" />
-                  <h4 className="text-sm font-bold text-[#681B1D] dark:text-[#EAD2B0]">Enquiry Delivered!</h4>
-                  <p className="text-xs text-[#30221D] dark:text-[#FFF3E3] leading-relaxed">
-                    Your request has been logged and routed to {vendor.name}. You can review quote updates in your Customer Dashboard under Enquiries.
-                  </p>
-                  <Link
-                    href="/dashboard/enquiries"
-                    className="inline-block mt-2 px-4 py-2 rounded-xl bg-[#681B1D] hover:bg-[#4B1117] text-[#FFF3E3] font-bold text-xs transition-colors"
-                  >
-                    View in Dashboard
-                  </Link>
-                </div>
-              ) : (
-                <form onSubmit={handleSubmitEnquiry} className="space-y-3 text-xs">
-                  <div>
-                    <label className="block text-[#30221D]/80 dark:text-[#FFF3E3]/80 mb-1 font-semibold">Your Full Name</label>
-                    <input
-                      type="text"
-                      required
-                      value={clientName}
-                      onChange={(e) => setClientName(e.target.value)}
-                      className="w-full px-3 py-2 rounded-xl bg-[#FFF3E3]/50 dark:bg-[#1A1211] border border-[#EAD2B0] dark:border-[#4D3331] text-[#30221D] dark:text-[#FFF3E3] focus:outline-none focus:border-[#B77A36]"
-                    />
-                  </div>
-
-                  <div className="grid grid-cols-2 gap-2">
-                    <div>
-                      <label className="block text-[#30221D]/80 dark:text-[#FFF3E3]/80 mb-1 font-semibold">Email</label>
-                      <input
-                        type="email"
-                        required
-                        value={clientEmail}
-                        onChange={(e) => setClientEmail(e.target.value)}
-                        className="w-full px-3 py-2 rounded-xl bg-[#FFF3E3]/50 dark:bg-[#1A1211] border border-[#EAD2B0] dark:border-[#4D3331] text-[#30221D] dark:text-[#FFF3E3] focus:outline-none focus:border-[#B77A36]"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-[#30221D]/80 dark:text-[#FFF3E3]/80 mb-1 font-semibold">Phone</label>
-                      <input
-                        type="tel"
-                        required
-                        value={clientPhone}
-                        onChange={(e) => setClientPhone(e.target.value)}
-                        className="w-full px-3 py-2 rounded-xl bg-[#FFF3E3]/50 dark:bg-[#1A1211] border border-[#EAD2B0] dark:border-[#4D3331] text-[#30221D] dark:text-[#FFF3E3] focus:outline-none focus:border-[#B77A36]"
-                      />
-                    </div>
-                  </div>
-
-                  <div className="grid grid-cols-2 gap-2">
-                    <div>
-                      <label className="block text-[#30221D]/80 dark:text-[#FFF3E3]/80 mb-1 font-semibold">Event Date</label>
-                      <input
-                        type="date"
-                        required
-                        value={eventDate}
-                        onChange={(e) => setEventDate(e.target.value)}
-                        className="w-full px-3 py-2 rounded-xl bg-[#FFF3E3]/50 dark:bg-[#1A1211] border border-[#EAD2B0] dark:border-[#4D3331] text-[#30221D] dark:text-[#FFF3E3] focus:outline-none focus:border-[#B77A36]"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-[#30221D]/80 dark:text-[#FFF3E3]/80 mb-1 font-semibold">Guests</label>
-                      <input
-                        type="number"
-                        min="10"
-                        value={guestCount}
-                        onChange={(e) => setGuestCount(Number(e.target.value))}
-                        className="w-full px-3 py-2 rounded-xl bg-[#FFF3E3]/50 dark:bg-[#1A1211] border border-[#EAD2B0] dark:border-[#4D3331] text-[#30221D] dark:text-[#FFF3E3] focus:outline-none focus:border-[#B77A36]"
-                      />
-                    </div>
-                  </div>
-
-                  <div>
-                    <label className="block text-[#30221D]/80 dark:text-[#FFF3E3]/80 mb-1 font-semibold">Specific Requirements</label>
-                    <textarea
-                      rows={3}
-                      value={message}
-                      onChange={(e) => setMessage(e.target.value)}
-                      placeholder="e.g. Inquiring for 3-day wedding, requesting quote for mandap setup & Sangeet..."
-                      className="w-full px-3 py-2 rounded-xl bg-[#FFF3E3]/50 dark:bg-[#1A1211] border border-[#EAD2B0] dark:border-[#4D3331] text-[#30221D] dark:text-[#FFF3E3] placeholder-[#30221D]/40 dark:placeholder-[#FFF3E3]/40 focus:outline-none focus:border-[#B77A36]"
-                    ></textarea>
-                  </div>
-
-                  <button
-                    type="submit"
-                    className="w-full py-3 rounded-xl bg-[#681B1D] hover:bg-[#4B1117] text-[#FFF3E3] font-bold text-xs tracking-wider uppercase transition-all shadow-sm flex items-center justify-center gap-2 cursor-pointer"
-                  >
-                    <Send className="w-3.5 h-3.5" />
-                    <span>Send Official Enquiry</span>
-                  </button>
-                </form>
-              )}
-
-              <div className="pt-2 border-t border-[#EAD2B0] dark:border-[#4D3331] space-y-1.5 text-[11px] text-[#30221D]/70 dark:text-[#FFF3E3]/70">
+              <div className="space-y-2 text-xs text-[#30221D]/70 dark:text-[#FFF3E3]/70">
+                <p>Contact {vendor.name} directly for availability and custom requirements, or create a booking request using the secure booking flow above.</p>
+                <div className="pt-2 border-t border-[#EAD2B0] dark:border-[#4D3331] space-y-1.5 text-[11px] text-[#30221D]/70 dark:text-[#FFF3E3]/70">
                 <div className="flex items-center gap-1.5">
                   <Phone className="w-3.5 h-3.5 text-[#B77A36]" />
                   <span>{vendor.contactPhone}</span>
@@ -392,6 +261,7 @@ export default function VendorDetailPage({ params }: { params: Promise<{ id: str
               </div>
             </div>
           </div>
+          </div>
         </div>
       </main>
 
@@ -400,6 +270,7 @@ export default function VendorDetailPage({ params }: { params: Promise<{ id: str
         onClose={() => setBookingModalOpen(false)}
         vendor={vendor}
         initialPackageName={selectedPackageForModal}
+        eventId={eventId}
       />
 
       <Footer />

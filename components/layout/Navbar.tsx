@@ -101,6 +101,15 @@ function AccountMenu({ onClose }: { onClose: () => void }) {
         <span>Account Settings</span>
       </Link>
 
+      {roles.filter((role) => role === "customer" || role === "vendor" || role === "admin" || role === "platform_owner").length > 1 && (
+        <div className="border-t border-[#EAD2B0] dark:border-[#4D3331] mt-1 pt-1">
+          <p className="px-4 py-1 text-[10px] font-bold uppercase tracking-wider text-[#B77A36] dark:text-[#EAD2B0]">Switch workspace</p>
+          {roles.includes("customer") && <Link href="/dashboard" onClick={onClose} className="block px-4 py-2 text-xs font-medium text-[#30221D] dark:text-[#FFF3E3] hover:bg-[#EAD2B0]/30 dark:hover:bg-[#3D2624]">Customer Workspace</Link>}
+          {roles.includes("vendor") && <Link href="/vendor-portal" onClick={onClose} className="block px-4 py-2 text-xs font-medium text-[#30221D] dark:text-[#FFF3E3] hover:bg-[#EAD2B0]/30 dark:hover:bg-[#3D2624]">Vendor Hub</Link>}
+          {(roles.includes("admin") || roles.includes("platform_owner")) && <Link href="/admin" onClick={onClose} className="block px-4 py-2 text-xs font-medium text-[#30221D] dark:text-[#FFF3E3] hover:bg-[#EAD2B0]/30 dark:hover:bg-[#3D2624]">Admin Desk</Link>}
+        </div>
+      )}
+
       <div className="border-t border-[#EAD2B0] dark:border-[#4D3331] mt-1 pt-1">
         <button
           onClick={handleSignOut}

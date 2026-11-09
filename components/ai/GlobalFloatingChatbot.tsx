@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import {
   Sparkles,
   MessageCircle,
@@ -20,6 +21,8 @@ const HISTORY_KEY = "evntora-public-ai-guest-history";
 
 export function GlobalFloatingChatbot() {
   const { user, hasRole } = useAuth();
+  const pathname = usePathname();
+  const eventContextId = pathname.match(/^\/dashboard\/events\/([0-9a-f-]{36})(?:\/|$)/i)?.[1] ?? null;
   const hasCustomerAccess = Boolean(user && hasRole("customer"));
   const [isOpen, setIsOpen] = useState(false);
   const [messages, setMessages] = useState<Message[]>([]);
@@ -28,6 +31,17 @@ export function GlobalFloatingChatbot() {
   const [error, setError] = useState("");
   const [conversationId, setConversationId] = useState<string | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
+  const previousEventContext = useRef<string | null>(eventContextId);
+
+  // Keep the global launcher mounted across navigation. Start a fresh event-bound
+  // thread only when the customer switches to a different event context.
+  useEffect(() => {
+    if (previousEventContext.current === eventContextId) return;
+    previousEventContext.current = eventContextId;
+    setConversationId(null);
+    setMessages([]);
+    setError("");
+  }, [eventContextId]);
 
   // Load history from session storage on mount
   useEffect(() => {
@@ -73,7 +87,7 @@ export function GlobalFloatingChatbot() {
         body: JSON.stringify({
           message: question,
           ...(hasCustomerAccess
-            ? { conversationId: conversationId ?? undefined }
+            ? { conversationId: conversationId ?? undefined, ...(!conversationId && eventContextId ? { eventId: eventContextId } : {}) }
             : { guestHistory }),
         }),
       });

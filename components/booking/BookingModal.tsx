@@ -35,6 +35,7 @@ export interface BookingModalProps {
     }>;
   };
   initialPackageName?: string;
+  eventId?: string;
 }
 
 export function BookingModal({
@@ -42,6 +43,7 @@ export function BookingModal({
   onClose,
   vendor,
   initialPackageName,
+  eventId,
 }: BookingModalProps) {
   const router = useRouter();
   const { isAuthenticated, profile } = useAuth();
@@ -93,6 +95,7 @@ export function BookingModal({
     if (!isAuthenticated) {
       const pendingData = {
         vendorProfileId: vendor.id,
+        ...(eventId ? { eventId } : {}),
         packageId: currentPkg?.id ?? null,
         eventDate,
         eventCity,
@@ -113,6 +116,7 @@ export function BookingModal({
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           vendorProfileId: vendor.id,
+          ...(eventId ? { eventId } : {}),
           packageId: currentPkg?.id ?? null,
           eventDate,
           eventCity,

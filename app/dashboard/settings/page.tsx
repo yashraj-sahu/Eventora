@@ -1,140 +1,33 @@
 "use client";
 
-import { useState } from "react";
-import { useEvntoraStore } from "@/lib/store";
-import { getSupabaseStatus } from "@/lib/supabase";
-import { Settings, User, Bell, Shield, Database, RotateCcw, Check } from "lucide-react";
+import { useEffect, useState } from "react";
+import Link from "next/link";
+import { useAuth } from "@/lib/auth-context";
+import { supabase } from "@/lib/supabase";
+import { Check, LockKeyhole, Settings, UserRound } from "lucide-react";
 
 export default function SettingsPage() {
-  const { state, resetToDefault } = useEvntoraStore();
-  const supabaseStatus = getSupabaseStatus();
-
-  const [name, setName] = useState(state.currentUser.name);
-  const [email, setEmail] = useState(state.currentUser.email);
-  const [phone, setPhone] = useState(state.currentUser.phone || "+91 ");
+  const { user, profile, refreshProfile } = useAuth();
+  const [name, setName] = useState("");
+  const [phone, setPhone] = useState("");
+  const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
+  const [error, setError] = useState("");
 
-  const handleSave = (e: React.FormEvent) => {
-    e.preventDefault();
-    setSaved(true);
-    setTimeout(() => setSaved(false), 2000);
+  useEffect(() => { setName(profile?.full_name ?? ""); setPhone(profile?.phone ?? ""); }, [profile]);
+
+  const saveProfile = async (event: React.FormEvent) => {
+    event.preventDefault();
+    if (!user) return;
+    setSaving(true); setSaved(false); setError("");
+    const { data, error: saveError } = await supabase.from("profiles").update({ full_name: name.trim() || null, phone: phone.trim() || null }).eq("id", user.id).select("id").maybeSingle();
+    if (saveError || !data) setError("Profile changes could not be saved. Please try again.");
+    else { await refreshProfile(); setSaved(true); }
+    setSaving(false);
   };
 
-  return (
-    <div className="space-y-8 max-w-4xl animate-in fade-in duration-200">
-      <div className="space-y-1 border-b border-white/10 pb-6">
-        <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-amber-500/10 text-amber-300 text-xs font-semibold border border-amber-500/20">
-          <Settings className="w-3.5 h-3.5" />
-          <span>Account Preferences</span>
-        </div>
-        <h1 className="text-2xl sm:text-4xl font-serif font-bold text-white">
-          Workspace Settings & Security
-        </h1>
-        <p className="text-xs text-[#D4C3B7]">
-          Manage your personal profile, notification triggers, and database integration
-        </p>
-      </div>
-
-      {/* Profile Form */}
-      <div className="p-8 rounded-3xl glass-card border border-white/10 space-y-6">
-        <h2 className="text-lg font-serif font-bold text-white flex items-center gap-2">
-          <User className="w-4 h-4 text-amber-400" />
-          <span>Host Profile</span>
-        </h2>
-
-        <form onSubmit={handleSave} className="space-y-4 text-xs">
-          <div>
-            <label className="block text-[#D4C3B7] mb-1">Full Name</label>
-            <input
-              type="text"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              className="w-full px-3 py-2.5 rounded-xl bg-[#1A1211] border border-[#4D3331] text-white focus:outline-none focus:border-amber-400"
-            />
-          </div>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div>
-              <label className="block text-[#D4C3B7] mb-1">Email Address</label>
-              <input
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                className="w-full px-3 py-2.5 rounded-xl bg-[#1A1211] border border-[#4D3331] text-white focus:outline-none focus:border-amber-400"
-              />
-            </div>
-
-            <div>
-              <label className="block text-[#D4C3B7] mb-1">Phone Number</label>
-              <input
-                type="tel"
-                value={phone}
-                onChange={(e) => setPhone(e.target.value)}
-                className="w-full px-3 py-2.5 rounded-xl bg-[#1A1211] border border-[#4D3331] text-white focus:outline-none focus:border-amber-400"
-              />
-            </div>
-          </div>
-
-          <div className="pt-2 flex items-center justify-between">
-            {saved && (
-              <span className="text-amber-700 flex items-center gap-1 text-xs">
-                <Check className="w-4 h-4" />
-                <span>Changes saved to local storage!</span>
-              </span>
-            )}
-            <button
-              type="submit"
-              className="ml-auto px-5 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-[#1A1211] font-bold"
-            >
-              Update Profile
-            </button>
-          </div>
-        </form>
-      </div>
-
-      {/* Database & Integration Status */}
-      <div className="p-8 rounded-3xl glass-card border border-white/10 space-y-4">
-        <h2 className="text-lg font-serif font-bold text-white flex items-center gap-2">
-          <Database className="w-4 h-4 text-amber-400" />
-          <span>Backend & Database Integration</span>
-        </h2>
-        <div className="p-4 rounded-xl bg-[#1A1211]/70 border border-[#4D3331] space-y-2 text-xs">
-          <div className="flex items-center justify-between">
-            <span className="text-[#D4C3B7]">Current Storage Backend:</span>
-            <span className="font-mono text-amber-400 font-bold">{supabaseStatus.mode}</span>
-          </div>
-          <div className="flex items-center justify-between">
-            <span className="text-[#D4C3B7]">Supabase URL Configured:</span>
-            <span className="font-mono text-[#D4C3B7]">{supabaseStatus.url}</span>
-          </div>
-          <p className="text-[11px] text-[#9E897F] pt-1">
-            To switch to a live production PostgreSQL cluster, provide your `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_ANON_KEY` in `.env.local`.
-          </p>
-        </div>
-      </div>
-
-      {/* Demo Reset Action */}
-      <div className="p-8 rounded-3xl glass-card border border-rose-500/20 space-y-4">
-        <h2 className="text-lg font-serif font-bold text-rose-300 flex items-center gap-2">
-          <RotateCcw className="w-4 h-4 text-rose-400" />
-          <span>Reset Demonstration Data</span>
-        </h2>
-        <p className="text-xs text-[#D4C3B7]">
-          Restore the sample royal destination wedding in Udaipur and corporate gala in Bengaluru back to initial default state.
-        </p>
-        <button
-          onClick={() => {
-            if (confirm("Reset demo data to default state?")) {
-              resetToDefault();
-              window.location.reload();
-            }
-          }}
-          className="px-4 py-2 rounded-xl bg-rose-500/20 hover:bg-rose-500/30 text-rose-300 border border-rose-500/30 text-xs font-semibold"
-        >
-          Reset Demo Data
-        </button>
-      </div>
-    </div>
-  );
+  return <div className="max-w-3xl space-y-7"><header><span className="inline-flex items-center gap-2 text-xs uppercase font-bold tracking-[.18em] text-[#B77A36]"><Settings className="w-4 h-4"/>Account</span><h1 className="mt-2 text-3xl sm:text-4xl font-serif font-bold text-[#681B1D] dark:text-[#FFF3E3]">Profile & Settings</h1><p className="mt-2 text-sm text-[#7D6B63] dark:text-[#D4C3B7]">Your global account details and security options.</p></header>
+    <section className="p-6 sm:p-8 rounded-3xl bg-[#FFFCF6] dark:bg-[#241918] border border-[#EAD2B0] dark:border-[#4D3331] shadow-sm"><h2 className="flex items-center gap-2 text-xl font-serif font-bold"><UserRound className="w-5 h-5 text-[#B77A36]"/>Personal profile</h2><form onSubmit={saveProfile} className="mt-6 space-y-4"><label className="block text-xs font-semibold text-[#7D6B63] dark:text-[#D4C3B7]">Full name<input required maxLength={120} value={name} onChange={(event) => setName(event.target.value)} className="mt-1.5 w-full rounded-xl p-3 bg-[#FFF3E3] dark:bg-[#1A1211] border border-[#EAD2B0] dark:border-[#4D3331] text-sm text-[#30221D] dark:text-[#FFF3E3]"/></label><label className="block text-xs font-semibold text-[#7D6B63] dark:text-[#D4C3B7]">Phone<input type="tel" maxLength={40} value={phone} onChange={(event) => setPhone(event.target.value)} className="mt-1.5 w-full rounded-xl p-3 bg-[#FFF3E3] dark:bg-[#1A1211] border border-[#EAD2B0] dark:border-[#4D3331] text-sm text-[#30221D] dark:text-[#FFF3E3]"/></label><label className="block text-xs font-semibold text-[#7D6B63] dark:text-[#D4C3B7]">Sign-in email<input disabled value={profile?.email ?? user?.email ?? ""} className="mt-1.5 w-full rounded-xl p-3 bg-[#F3EEE6] dark:bg-[#2E1F1E] border border-[#EAD2B0] dark:border-[#4D3331] text-sm opacity-75"/><span className="mt-1 block font-normal">Email changes require the account verification flow.</span></label>{error && <p role="alert" className="text-sm text-rose-700 dark:text-rose-300">{error}</p>}{saved && <p role="status" className="inline-flex items-center gap-1.5 text-sm text-emerald-700 dark:text-emerald-300"><Check className="w-4 h-4"/>Profile saved to your account.</p>}<div><button disabled={saving} className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-[#681B1D] to-[#4B1117] text-white text-xs font-bold disabled:opacity-50">{saving ? "Saving…" : "Save profile"}</button></div></form></section>
+    <section className="p-6 sm:p-8 rounded-3xl bg-[#FFFCF6] dark:bg-[#241918] border border-[#EAD2B0] dark:border-[#4D3331]"><h2 className="flex items-center gap-2 text-xl font-serif font-bold"><LockKeyhole className="w-5 h-5 text-[#B77A36]"/>Password & security</h2><p className="mt-2 text-sm text-[#7D6B63] dark:text-[#D4C3B7]">Use the verified password reset flow for your Evntora account.</p><Link href="/auth/forgot-password" className="inline-flex mt-4 px-4 py-2.5 rounded-xl border border-[#EAD2B0] dark:border-[#4D3331] text-xs font-semibold hover:bg-[#EAD2B0]/40 dark:hover:bg-[#2E1F1E]">Reset password</Link></section>
+  </div>;
 }
-

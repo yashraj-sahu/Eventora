@@ -114,7 +114,13 @@ export async function POST(request: Request) {
     const { data, error } = await supabase.from("events").select("id,title,category,city,date,guest_count,total_budget,venue_preference,style_theme,planning_requirements,blueprint").eq("id", eventId).eq("user_id", user.id).maybeSingle();
     if (error) return NextResponse.json({ error: "Event details are temporarily unavailable." }, { status: 503 });
     if (!data) return NextResponse.json({ error: "That event is unavailable." }, { status: 404 });
-    eventContext = data;
+    // The event JSON may include private workspace data such as guest contact
+    // details. Only share the event blueprint context, not workspace records.
+    const { blueprint, ...eventFields } = data;
+    const safeBlueprint = blueprint && typeof blueprint === "object" && !Array.isArray(blueprint)
+      ? Object.fromEntries(Object.entries(blueprint).filter(([key]) => key !== "workspaceData"))
+      : blueprint;
+    eventContext = { ...eventFields, blueprint: safeBlueprint };
   }
   let currentConversation = conversationId;
   if (!currentConversation) {

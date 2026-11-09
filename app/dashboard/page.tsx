@@ -1,298 +1,70 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import Link from "next/link";
-import { useEvntoraStore } from "@/lib/store";
+import { useAuth } from "@/lib/auth-context";
+import { supabase } from "@/lib/supabase";
 import { formatINR } from "@/lib/utils";
-import {
-  Calendar,
-  Coins,
-  Users,
-  CheckSquare,
-  Sparkles,
-  ArrowRight,
-  MapPin,
-  Clock,
-  ShieldCheck,
-  Plus,
-} from "lucide-react";
+import { ArrowRight, CalendarDays, CreditCard, MapPin, Plus, Sparkles, Store } from "lucide-react";
+
+type EventRecord = { id: string; title: string; category: string; city: string; date: string; guest_count: number; total_budget: number; status: string; created_at: string };
+type BookingRecord = { id: string; booking_reference: string; vendor_name: string; status: string; event_date: string; total_amount: number; paid_amount: number; created_at: string };
+type PaymentRecord = { id: string; amount: number; status: string; created_at: string; verified_at: string | null };
+type Activity = { id: string; label: string; detail: string; createdAt: string; href: string };
 
 export default function DashboardOverviewPage() {
-  const { state, activeEvent, activeExpenses, activeGuests, activeChecklist } =
-    useEvntoraStore();
+  const { user, profile } = useAuth();
+  const [events, setEvents] = useState<EventRecord[]>([]);
+  const [bookings, setBookings] = useState<BookingRecord[]>([]);
+  const [payments, setPayments] = useState<PaymentRecord[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
 
-  const totalBudget = activeEvent?.totalBudget || 4500000;
-  const totalSpent = activeExpenses.reduce((sum, e) => sum + e.amount, 0);
-  const remainingBudget = totalBudget - totalSpent;
-  const budgetSpentPct = Math.round((totalSpent / totalBudget) * 100);
+  useEffect(() => {
+    if (!user) return;
+    let active = true;
+    void (async () => {
+      try {
+        const [eventResponse, bookingResponse, paymentResponse] = await Promise.all([
+          fetch("/api/ai/events", { cache: "no-store" }).then(async (response) => { const data = await response.json(); if (!response.ok) throw new Error(data.error || "Events unavailable."); return data.events as EventRecord[]; }),
+          supabase.from("bookings").select("id,booking_reference,vendor_name,status,event_date,total_amount,paid_amount,created_at").eq("customer_id", user.id).order("created_at", { ascending: false }),
+          supabase.from("payments").select("id,amount,status,created_at,verified_at").eq("customer_id", user.id).order("created_at", { ascending: false }),
+        ]);
+        if (bookingResponse.error || paymentResponse.error) throw new Error("Your booking or payment summary is temporarily unavailable.");
+        if (!active) return;
+        setEvents(eventResponse ?? []);
+        setBookings((bookingResponse.data ?? []) as BookingRecord[]);
+        setPayments((paymentResponse.data ?? []) as PaymentRecord[]);
+      } catch (cause) { if (active) setError(cause instanceof Error ? cause.message : "Dashboard data is temporarily unavailable."); }
+      finally { if (active) setLoading(false); }
+    })();
+    return () => { active = false; };
+  }, [user]);
 
-  const confirmedGuests = activeGuests.filter(
-    (g) => g.rsvpStatus === "confirmed"
-  ).length;
-  const pendingGuests = activeGuests.filter(
-    (g) => g.rsvpStatus === "pending"
-  ).length;
+  const now = new Date();
+  const upcoming = events.filter((event) => new Date(`${event.date}T23:59:59`) >= now).sort((a, b) => a.date.localeCompare(b.date)).slice(0, 3);
+  const activeBookings = bookings.filter((booking) => ["pending_vendor_confirmation", "awaiting_payment", "confirmed"].includes(booking.status));
+  const outstandingPaise = bookings.reduce((sum, booking) => sum + Math.max(0, booking.total_amount - booking.paid_amount), 0);
+  const verifiedPaise = payments.filter((payment) => ["captured", "partially_refunded", "refunded"].includes(payment.status)).reduce((sum, payment) => sum + payment.amount, 0);
+  const activity: Activity[] = [
+    ...events.map((event) => ({ id: `event-${event.id}`, label: "Event plan saved", detail: event.title, createdAt: event.created_at, href: `/dashboard/events/${event.id}` })),
+    ...bookings.map((booking) => ({ id: `booking-${booking.id}`, label: "Booking updated", detail: `${booking.vendor_name} · ${booking.booking_reference}`, createdAt: booking.created_at, href: "/dashboard/payments" })),
+    ...payments.map((payment) => ({ id: `payment-${payment.id}`, label: "Payment record", detail: `${payment.status.replaceAll("_", " ")} · ${formatINR(payment.amount / 100)}`, createdAt: payment.verified_at || payment.created_at, href: "/dashboard/payments?tab=payments" })),
+  ].sort((a, b) => b.createdAt.localeCompare(a.createdAt)).slice(0, 5);
 
-  const completedTasks = activeChecklist.filter((c) => c.completed).length;
-  const checklistPct = activeChecklist.length
-    ? Math.round((completedTasks / activeChecklist.length) * 100)
-    : 0;
+  return <div className="space-y-8">
+    <section className="relative overflow-hidden rounded-[30px] p-7 sm:p-10 bg-gradient-to-br from-[#681B1D] via-[#53151A] to-[#2F1115] text-[#FFF3E3] border border-[#B77A36]/40 shadow-xl"><div className="absolute -right-16 -top-24 w-80 h-80 rounded-full border border-[#EAD2B0]/10"/><div className="relative flex flex-col md:flex-row md:items-end justify-between gap-6"><div><span className="inline-flex items-center gap-2 text-xs font-semibold text-[#EAD2B0]"><Sparkles className="w-4 h-4"/>EVNTORA CUSTOMER WORKSPACE</span><h1 className="mt-4 text-3xl sm:text-4xl font-serif font-bold">Welcome{profile?.full_name ? `, ${profile.full_name.split(" ")[0]}` : ""}</h1><p className="mt-2 text-sm text-[#FFF3E3]/75">Your plans, bookings and next steps — together in one place.</p></div><div className="flex flex-wrap gap-3"><Link href="/planner" className="inline-flex items-center gap-2 px-5 py-3 rounded-xl bg-[#EAD2B0] text-[#4B1117] text-xs font-bold shadow-md"><Plus className="w-4 h-4"/>Plan an Event</Link><Link href="/vendors" className="inline-flex items-center gap-2 px-5 py-3 rounded-xl border border-[#EAD2B0]/50 bg-white/5 hover:bg-white/10 text-[#FFF3E3] text-xs font-semibold"><Store className="w-4 h-4"/>Discover Vendors</Link></div></div></section>
 
-  return (
-    <div className="space-y-8 animate-in fade-in duration-200">
-      {/* Top Banner with Active Celebration */}
-      <div className="p-6 sm:p-8 rounded-3xl bg-gradient-to-br from-[#681B1D] to-[#4B1117] text-[#FFF3E3] border border-[#B77A36]/30 shadow-xl relative overflow-hidden flex flex-col md:flex-row md:items-center justify-between gap-6">
-        <div className="space-y-2 z-10">
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#FFF3E3]/10 text-[#B77A36] text-xs font-semibold border border-[#B77A36]/30 backdrop-blur-xs">
-            <Sparkles className="w-3.5 h-3.5" />
-            <span>Active Celebration Workspace</span>
-          </div>
-          <h1 className="text-2xl sm:text-4xl font-serif font-bold text-[#FFF3E3] tracking-tight">
-            {activeEvent?.title || "Royal Indian Celebration"}
-          </h1>
-          <div className="flex flex-wrap items-center gap-4 text-xs text-[#EAD2B0]/80">
-            <span className="flex items-center gap-1.5">
-              <MapPin className="w-3.5 h-3.5 text-[#B77A36]" />
-              {activeEvent?.city || "Rajasthan"}
-            </span>
-            <span>•</span>
-            <span className="flex items-center gap-1.5">
-              <Calendar className="w-3.5 h-3.5 text-[#B77A36]" />
-              {activeEvent?.date || "November 2026"}
-            </span>
-            <span>•</span>
-            <span className="flex items-center gap-1.5">
-              <Users className="w-3.5 h-3.5 text-[#B77A36]" />
-              {activeEvent?.guestCount || 350} Expected Guests
-            </span>
-          </div>
-        </div>
+    {error && <p role="alert" className="p-4 rounded-xl bg-rose-50 dark:bg-rose-950/20 text-rose-800 dark:text-rose-200">{error}</p>}
+    <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">{[
+      ["Events planned", loading ? "—" : String(events.length), CalendarDays], ["Active bookings", loading ? "—" : String(activeBookings.length), Store],
+      ["Outstanding booking balance", loading ? "—" : formatINR(outstandingPaise / 100), CreditCard], ["Recorded payments", loading ? "—" : formatINR(verifiedPaise / 100), CreditCard],
+    ].map(([label, value, Icon]) => { const MetricIcon = Icon as typeof CalendarDays; return <div key={String(label)} className="p-5 rounded-2xl bg-[#FFFCF6] dark:bg-[#241918] border border-[#EAD2B0] dark:border-[#4D3331]"><MetricIcon className="w-4 h-4 text-[#B77A36]"/><p className="mt-3 text-[11px] uppercase tracking-wider text-[#7D6B63] dark:text-[#D4C3B7]">{String(label)}</p><p className="mt-1 text-2xl font-serif font-bold text-[#681B1D] dark:text-[#EAD2B0]">{String(value)}</p></div>; })}</div>
 
-        <div className="flex items-center gap-3 z-10 shrink-0">
-          <Link
-            href="/dashboard/workspace"
-            className="px-5 py-2.5 rounded-xl bg-[#B77A36] hover:bg-[#D4B77D] text-[#681B1D] font-bold text-xs tracking-wide shadow-md transition-all flex items-center gap-1.5 cursor-pointer"
-          >
-            <span>View Full Blueprint</span>
-            <ArrowRight className="w-3.5 h-3.5" />
-          </Link>
-        </div>
-      </div>
+    {!loading && events.length === 0 && !error ? <section className="p-10 sm:p-14 rounded-3xl text-center bg-[#FFFCF6] dark:bg-[#241918] border border-[#EAD2B0] dark:border-[#4D3331]"><CalendarDays className="w-10 h-10 mx-auto text-[#B77A36]"/><h2 className="mt-4 text-2xl font-serif font-bold">Your event story starts here</h2><p className="mt-2 text-sm text-[#7D6B63] dark:text-[#D4C3B7]">Create your first plan to get a dedicated event workspace.</p><Link href="/planner" className="inline-flex mt-5 px-5 py-2.5 rounded-xl bg-[#681B1D] text-white text-xs font-bold">Plan an Event <ArrowRight className="w-4 h-4 ml-2"/></Link></section> : <div className="grid lg:grid-cols-[1.2fr_.8fr] gap-5"><section className="p-6 rounded-3xl bg-[#FFFCF6] dark:bg-[#241918] border border-[#EAD2B0] dark:border-[#4D3331]"><div className="flex items-center justify-between"><div><h2 className="text-xl font-serif font-bold">Coming up</h2><p className="mt-1 text-xs text-[#7D6B63] dark:text-[#D4C3B7]">Your next scheduled celebrations</p></div><Link href="/dashboard/events" className="text-xs font-semibold text-[#681B1D] dark:text-[#EAD2B0]">All events →</Link></div>{loading ? <p role="status" className="py-8 text-sm text-[#7D6B63]">Loading events…</p> : upcoming.length ? <div className="mt-4 divide-y divide-[#EAD2B0]/70 dark:divide-[#4D3331]">{upcoming.map((event) => <Link key={event.id} href={`/dashboard/events/${event.id}`} className="py-4 flex items-center justify-between gap-3 group"><div><span className="text-[10px] uppercase font-bold tracking-wider text-[#B77A36]">{event.category}</span><h3 className="mt-1 font-serif font-bold group-hover:text-[#681B1D] dark:group-hover:text-[#EAD2B0]">{event.title}</h3><p className="mt-1 text-xs text-[#7D6B63] dark:text-[#D4C3B7] flex items-center gap-3"><span className="inline-flex items-center gap-1"><MapPin className="w-3 h-3"/>{event.city}</span><span>{new Date(`${event.date}T00:00:00`).toLocaleDateString("en-IN", { dateStyle: "medium" })}</span></p></div><ArrowRight className="w-4 h-4 text-[#B77A36]"/></Link>)}</div> : <p className="py-8 text-sm text-[#7D6B63]">No upcoming events. Past event plans remain in My Events.</p>}</section>
 
-      {/* 4 Metric Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        {/* Total Budget Card */}
-        <div className="p-5 sm:p-6 rounded-2xl bg-[#FFFCF6] dark:bg-[#2E1F1E] border border-[#EAD2B0] dark:border-[#4D3331] space-y-3 shadow-xs">
-          <div className="flex items-center justify-between text-[#7D6B63] dark:text-[#D4C3B7] text-xs">
-            <span className="font-semibold uppercase tracking-wider">Committed Budget</span>
-            <Coins className="w-4 h-4 text-[#B77A36] dark:text-[#D4B77D]" />
-          </div>
-          <div className="text-2xl font-serif font-bold text-[#681B1D] dark:text-[#F4F0E7]">
-            {formatINR(totalSpent)}
-          </div>
-          <div className="space-y-1.5">
-            <div className="flex items-center justify-between text-[11px] text-[#7D6B63] dark:text-[#D4C3B7]">
-              <span>{budgetSpentPct}% of {formatINR(totalBudget)}</span>
-              <span className="text-[#681B1D] dark:text-[#EAD2B0] font-semibold">
-                {formatINR(remainingBudget)} left
-              </span>
-            </div>
-            <div className="w-full h-1.5 bg-[#F0EDE5] dark:bg-[#241918] rounded-full overflow-hidden">
-              <div
-                className="h-full bg-[#681B1D] dark:bg-[#EAD2B0] rounded-full transition-all duration-300"
-                style={{ width: `${Math.min(budgetSpentPct, 100)}%` }}
-              ></div>
-            </div>
-          </div>
-        </div>
+    <section className="p-6 rounded-3xl bg-[#FFFCF6] dark:bg-[#241918] border border-[#EAD2B0] dark:border-[#4D3331]"><div className="flex items-start justify-between gap-3"><div><h2 className="text-xl font-serif font-bold">Recent activity</h2><p className="mt-1 text-xs text-[#7D6B63] dark:text-[#D4C3B7]">From your saved records</p></div><Link href="/dashboard/payments" className="text-xs font-semibold text-[#681B1D] dark:text-[#EAD2B0]">Bookings →</Link></div>{loading ? <p role="status" className="py-8 text-sm text-[#7D6B63]">Loading activity…</p> : activity.length ? <div className="mt-4 space-y-4">{activity.map((item) => <Link key={item.id} href={item.href} className="flex gap-3"><span className="mt-1 w-2 h-2 rounded-full bg-[#B77A36] shrink-0"/><span className="min-w-0"><span className="block text-sm font-semibold">{item.label}</span><span className="block text-xs text-[#7D6B63] dark:text-[#D4C3B7] truncate">{item.detail}</span><span className="block text-[10px] text-[#9E897F] mt-1">{new Date(item.createdAt).toLocaleDateString("en-IN", { dateStyle: "medium" })}</span></span></Link>)}</div> : <p className="py-8 text-sm text-[#7D6B63]">Activity will appear here as you save an event or make a booking.</p>}</section></div>}
 
-        {/* Guest RSVP Card */}
-        <div className="p-5 sm:p-6 rounded-2xl bg-[#FFFCF6] dark:bg-[#2E1F1E] border border-[#EAD2B0] dark:border-[#4D3331] space-y-3 shadow-xs">
-          <div className="flex items-center justify-between text-[#7D6B63] dark:text-[#D4C3B7] text-xs">
-            <span className="font-semibold uppercase tracking-wider">RSVP Progress</span>
-            <Users className="w-4 h-4 text-[#681B1D] dark:text-[#EAD2B0]" />
-          </div>
-          <div className="text-2xl font-serif font-bold text-[#681B1D] dark:text-[#F4F0E7]">
-            {confirmedGuests}{" "}
-            <span className="text-sm font-sans text-[#7D6B63] dark:text-[#D4C3B7] font-normal">
-              Confirmed
-            </span>
-          </div>
-          <div className="space-y-1.5">
-            <div className="flex items-center justify-between text-[11px] text-[#7D6B63] dark:text-[#D4C3B7]">
-              <span>{pendingGuests} Pending</span>
-              <span>{activeGuests.length} Total</span>
-            </div>
-            <div className="w-full h-1.5 bg-[#F0EDE5] dark:bg-[#241918] rounded-full overflow-hidden">
-              <div
-                className="h-full bg-[#B77A36] dark:bg-[#D4B77D] rounded-full transition-all duration-300"
-                style={{
-                  width: `${
-                    activeGuests.length
-                      ? Math.round((confirmedGuests / activeGuests.length) * 100)
-                      : 0
-                  }%`,
-                }}
-              ></div>
-            </div>
-          </div>
-        </div>
-
-        {/* Checklist Completion */}
-        <div className="p-5 sm:p-6 rounded-2xl bg-[#FFFCF6] dark:bg-[#2E1F1E] border border-[#EAD2B0] dark:border-[#4D3331] space-y-3 shadow-xs">
-          <div className="flex items-center justify-between text-[#7D6B63] dark:text-[#D4C3B7] text-xs">
-            <span className="font-semibold uppercase tracking-wider">Checklist Tasks</span>
-            <CheckSquare className="w-4 h-4 text-[#681B1D] dark:text-[#EAD2B0]" />
-          </div>
-          <div className="text-2xl font-serif font-bold text-[#681B1D] dark:text-[#F4F0E7]">
-            {completedTasks} / {activeChecklist.length}
-          </div>
-          <div className="space-y-1.5">
-            <div className="flex items-center justify-between text-[11px] text-[#7D6B63] dark:text-[#D4C3B7]">
-              <span>{checklistPct}% Completed</span>
-              <span>{activeChecklist.length - completedTasks} Pending</span>
-            </div>
-            <div className="w-full h-1.5 bg-[#F0EDE5] dark:bg-[#241918] rounded-full overflow-hidden">
-              <div
-                className="h-full bg-[#681B1D] dark:bg-[#EAD2B0] rounded-full transition-all duration-300"
-                style={{ width: `${checklistPct}%` }}
-              ></div>
-            </div>
-          </div>
-        </div>
-
-        {/* Active Enquiries */}
-        <div className="p-5 sm:p-6 rounded-2xl bg-[#FFFCF6] dark:bg-[#2E1F1E] border border-[#EAD2B0] dark:border-[#4D3331] space-y-3 shadow-xs">
-          <div className="flex items-center justify-between text-[#7D6B63] dark:text-[#D4C3B7] text-xs">
-            <span className="font-semibold uppercase tracking-wider">Vendor Enquiries</span>
-            <Sparkles className="w-4 h-4 text-[#B77A36] dark:text-[#D4B77D]" />
-          </div>
-          <div className="text-2xl font-serif font-bold text-[#681B1D] dark:text-[#F4F0E7]">
-            {state.enquiries.length}{" "}
-            <span className="text-sm font-sans text-[#7D6B63] dark:text-[#D4C3B7] font-normal">
-              Active
-            </span>
-          </div>
-          <div className="flex items-center justify-between text-[11px] text-[#7D6B63] dark:text-[#D4C3B7] pt-1">
-            <span>Direct artisan quotes</span>
-            <Link
-              href="/dashboard/enquiries"
-              className="text-[#681B1D] dark:text-[#EAD2B0] font-semibold hover:underline"
-            >
-              View Status →
-            </Link>
-          </div>
-        </div>
-      </div>
-
-      {/* Main Grid: Recent Expenses & Key Tasks */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-        {/* Left: Recent Expenses */}
-        <div className="lg:col-span-7 p-6 sm:p-8 rounded-3xl bg-[#FFFCF6] dark:bg-[#2E1F1E] border border-[#EAD2B0] dark:border-[#4D3331] space-y-6 shadow-xs">
-          <div className="flex items-center justify-between">
-            <div className="space-y-1">
-              <h2 className="text-lg font-serif font-bold text-[#681B1D] dark:text-[#F4F0E7]">
-                Recent Committed Expenses
-              </h2>
-              <p className="text-xs text-[#7D6B63] dark:text-[#D4C3B7]">
-                Tracked payments against celebration milestones
-              </p>
-            </div>
-            <Link
-              href="/dashboard/budget"
-              className="text-xs text-[#681B1D] dark:text-[#EAD2B0] font-semibold hover:underline flex items-center gap-1"
-            >
-              <span>Manage Budget</span>
-              <ArrowRight className="w-3.5 h-3.5" />
-            </Link>
-          </div>
-
-          <div className="space-y-3">
-            {activeExpenses.slice(0, 4).map((exp) => (
-              <div
-                key={exp.id}
-                className="p-4 rounded-xl bg-[#FFF3E3] dark:bg-[#241918] border border-[#EAD2B0] dark:border-[#4D3331] flex items-center justify-between text-xs transition-colors"
-              >
-                <div>
-                  <h4 className="font-semibold text-[#30221D] dark:text-[#F4F0E7]">
-                    {exp.title}
-                  </h4>
-                  <span className="text-[11px] text-[#7D6B63] dark:text-[#D4C3B7]">
-                    {exp.category} • {exp.vendorName || "General Vendor"}
-                  </span>
-                </div>
-                <div className="text-right">
-                  <span className="font-serif font-bold text-[#681B1D] dark:text-[#F4F0E7] block text-sm">
-                    {formatINR(exp.amount)}
-                  </span>
-                  <span
-                    className={`text-[10px] font-semibold px-2 py-0.5 rounded-full inline-block ${
-                      exp.status === "paid"
-                        ? "bg-[#EAD2B0] dark:bg-[#681B1D]/50 text-[#681B1D] dark:text-[#EAD2B0]"
-                        : "bg-[#F4EBD9] dark:bg-[#B77A36]/20 text-[#B77A36] dark:text-[#D4B77D]"
-                    }`}
-                  >
-                    {exp.status.toUpperCase()}
-                  </span>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        {/* Right: Urgent Planning Tasks */}
-        <div className="lg:col-span-5 p-6 sm:p-8 rounded-3xl bg-[#FFFCF6] dark:bg-[#2E1F1E] border border-[#EAD2B0] dark:border-[#4D3331] space-y-6 shadow-xs">
-          <div className="flex items-center justify-between">
-            <div className="space-y-1">
-              <h2 className="text-lg font-serif font-bold text-[#681B1D] dark:text-[#F4F0E7]">
-                Milestone Checklist
-              </h2>
-              <p className="text-xs text-[#7D6B63] dark:text-[#D4C3B7]">
-                Tasks approaching planning deadline
-              </p>
-            </div>
-            <Link
-              href="/dashboard/checklist"
-              className="text-xs text-[#681B1D] dark:text-[#EAD2B0] font-semibold hover:underline flex items-center gap-1"
-            >
-              <span>All Tasks</span>
-              <ArrowRight className="w-3.5 h-3.5" />
-            </Link>
-          </div>
-
-          <div className="space-y-3">
-            {activeChecklist.slice(0, 4).map((chk) => (
-              <div
-                key={chk.id}
-                className="p-3.5 rounded-xl bg-[#FFF3E3] dark:bg-[#241918] border border-[#EAD2B0] dark:border-[#4D3331] flex items-start gap-3 text-xs"
-              >
-                <div
-                  className={`w-4 h-4 rounded mt-0.5 border flex items-center justify-center shrink-0 ${
-                    chk.completed
-                      ? "bg-[#681B1D] border-[#681B1D] text-[#FFF3E3]"
-                      : "border-[#EAD2B0] dark:border-[#4D3331]"
-                  }`}
-                >
-                  {chk.completed && "✓"}
-                </div>
-                <div className="space-y-0.5">
-                  <h4
-                    className={`text-xs ${
-                      chk.completed
-                        ? "line-through text-[#7D6B63] dark:text-[#D4C3B7]"
-                        : "text-[#30221D] dark:text-[#F4F0E7] font-medium"
-                    }`}
-                  >
-                    {chk.task}
-                  </h4>
-                  <span className="text-[10px] text-[#B77A36] dark:text-[#D4B77D] font-mono block">
-                    {chk.timelineStage}
-                  </span>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </div>
-    </div>
-  );
+    {!loading && bookings.some((booking) => ["pending_vendor_confirmation", "awaiting_payment"].includes(booking.status)) && <section className="p-5 rounded-2xl bg-amber-50 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-900/50 flex flex-col sm:flex-row sm:items-center justify-between gap-3"><div><p className="font-semibold text-amber-950 dark:text-amber-100">You have booking updates to review</p><p className="mt-1 text-xs text-amber-900/75 dark:text-amber-200/70">See vendor confirmations and any balances waiting for payment.</p></div><Link href="/dashboard/payments?tab=bookings" className="inline-flex items-center gap-2 text-xs font-bold text-amber-950 dark:text-amber-100">Review bookings <ArrowRight className="w-4 h-4"/></Link></section>}
+  </div>;
 }
