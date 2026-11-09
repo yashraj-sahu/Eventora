@@ -39,6 +39,7 @@ interface BookingData {
   total_amount: number; // in paise
   advance_amount: number; // in paise
   paid_amount: number; // in paise
+  allow_partial_payments: boolean;
   currency: string;
   status: string;
   cancellation_terms: string | null;
@@ -68,6 +69,7 @@ function CheckoutContent() {
   const { user, profile, isAuthenticated, isLoading: authLoading } = useAuth();
 
   const bookingId = searchParams.get("bookingId");
+  const requestedPurpose = searchParams.get("purpose");
 
   const [booking, setBooking] = useState<BookingData | null>(null);
   const [payments, setPayments] = useState<PaymentRecord[]>([]);
@@ -75,7 +77,8 @@ function CheckoutContent() {
   const [error, setError] = useState<string | null>(null);
 
   // Payment Purpose: advance or remaining or full
-  const [paymentPurpose, setPaymentPurpose] = useState<"advance" | "remaining" | "full">("advance");
+  const [paymentPurpose, setPaymentPurpose] = useState<"advance" | "remaining" | "full" | "partial">("advance");
+  const [partialAmountINR, setPartialAmountINR] = useState("");
   const [isProcessing, setIsProcessing] = useState(false);
 
   // Verified Receipt State
@@ -105,6 +108,7 @@ function CheckoutContent() {
 
         setBooking(data.booking);
         setPayments(data.payments || []);
+        if (requestedPurpose === "partial" && data.booking.allow_partial_payments) setPaymentPurpose("partial");
 
         // If booking already has advance paid, default purpose to remaining
         if (data.booking.paid_amount > 0 && data.booking.paid_amount < data.booking.total_amount) {
@@ -135,7 +139,7 @@ function CheckoutContent() {
       }
       loadBooking();
     }
-  }, [bookingId, isAuthenticated, authLoading, router]);
+  }, [bookingId, isAuthenticated, authLoading, router, requestedPurpose]);
 
   if (loading || authLoading) {
     return (
@@ -182,6 +186,8 @@ function CheckoutContent() {
     currentPayablePaise = advancePaise;
   } else if (paymentPurpose === "remaining" || paymentPurpose === "full") {
     currentPayablePaise = remainingPaise;
+  } else if (paymentPurpose === "partial") {
+    currentPayablePaise = Math.round(Number(partialAmountINR) * 100);
   }
 
   const payableINR = currentPayablePaise / 100;
@@ -207,6 +213,7 @@ function CheckoutContent() {
         body: JSON.stringify({
           bookingId: booking.id,
           purpose: paymentPurpose,
+          ...(paymentPurpose === "partial" ? { amountINR: Number(partialAmountINR) } : {}),
         }),
       });
 
@@ -459,20 +466,19 @@ function CheckoutContent() {
               {/* Terms & Guarantees */}
               <div className="space-y-3 pt-2">
                 <h3 className="text-xs uppercase font-bold tracking-wider text-[#30221D]/70 dark:text-[#FFF3E3]/70">
-                  Luxury Cancellation & Protection Terms
+                  Cancellation & Refund Terms
                 </h3>
                 <div className="p-4 rounded-2xl bg-[#FFF3E3]/50 dark:bg-[#1A1211] border border-[#EAD2B0] dark:border-[#4D3331] space-y-2 text-[11px] text-[#30221D]/70 dark:text-[#FFF3E3]/70 leading-relaxed">
                   <div className="flex items-start gap-2">
                     <ShieldCheck className="w-4 h-4 text-[#681B1D] dark:text-[#EAD2B0] shrink-0 mt-0.5" />
                     <span>
-                      <strong>Evntora Artisan Guarantee:</strong> Funds are held under standard merchant escrow until verified performance delivery.
+                      Cancellation and refund eligibility are subject to the agreed booking terms and authorized review. Refunds are not automatic.
                     </span>
                   </div>
                   <div className="flex items-start gap-2">
                     <Clock className="w-4 h-4 text-[#B77A36] shrink-0 mt-0.5" />
                     <span>
-                      {booking.cancellation_terms ||
-                        "Full refund up to 30 days prior to event; 50% refund up to 14 days prior to event date."}
+                      "No authoritative booking-specific cancellation policy is available in this checkout. Cancellation and refund eligibility are subject to the agreed booking terms and authorized review; no refund is automatic."
                     </span>
                   </div>
                 </div>
@@ -538,6 +544,13 @@ function CheckoutContent() {
                 <div className="p-3.5 rounded-xl bg-[#681B1D]/10 dark:bg-[#681B1D]/30 border border-[#B77A36]/30 text-xs text-[#681B1D] dark:text-[#EAD2B0] space-y-1">
                   <div className="font-bold">Advance Payment Received</div>
                   <div>You have already settled {formatINR(paidINR)}. Paying remaining balance now.</div>
+                </div>
+              )}
+
+              {booking.allow_partial_payments && remainingPaise > 0 && (
+                <div className="space-y-2 rounded-xl border border-[#EAD2B0] p-3 text-xs">
+                  <button type="button" onClick={() => setPaymentPurpose("partial")} className={`font-bold ${paymentPurpose === "partial" ? "text-[#681B1D]" : "text-[#7D6B63]"}`}>Choose a partial payment</button>
+                  {paymentPurpose === "partial" && <label className="block">Amount in INR (up to {formatINR(remainingINR)})<input type="number" min="1" max={remainingINR} step="0.01" required value={partialAmountINR} onChange={(event) => setPartialAmountINR(event.target.value)} className="mt-1 w-full rounded-lg border border-[#EAD2B0] bg-white p-2" /></label>}
                 </div>
               )}
 

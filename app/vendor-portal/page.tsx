@@ -5,6 +5,12 @@ import { useAuth } from "@/lib/auth-context";
 import { supabase } from "@/lib/supabase";
 import { VendorCatalogManager } from "@/components/vendors/VendorCatalogManager";
 import { VendorProfileEditor } from "@/components/vendors/VendorProfileEditor";
+import { BookingLifecyclePanel } from "@/components/booking/BookingLifecyclePanel";
+import { VendorAvailabilityManager } from "@/components/booking/VendorAvailabilityManager";
+import { VendorListingsManager } from "@/components/vendors/VendorListingsManager";
+import { VendorServiceAreasManager } from "@/components/vendors/VendorServiceAreasManager";
+import { VendorVerificationDocuments } from "@/components/vendors/VendorVerificationDocuments";
+import { VendorReviewsPanel } from "@/components/vendors/VendorReviewsPanel";
 import { formatINR } from "@/lib/utils";
 import {
   Store,
@@ -50,25 +56,53 @@ interface RealBooking {
 
 export default function VendorDashboardPage() {
   const { user, profile, vendorProfile, refreshProfile } = useAuth();
-  const [activeTab, setActiveTab] = useState<"bookings" | "packages" | "payments" | "reviews">("bookings");
+  const [activeTab, setActiveTabState] = useState("overview");
   const [bookings, setBookings] = useState<RealBooking[]>([]);
   const [loading, setLoading] = useState(true);
   const [actionInProgress, setActionInProgress] = useState<string | null>(null);
+  const [selectedBookingId, setSelectedBookingId] = useState<string | null>(null);
+  const [bookingActionError, setBookingActionError] = useState<string | null>(null);
+  const [bookingSearch, setBookingSearch] = useState("");
+  const [bookingStatusFilter, setBookingStatusFilter] = useState("all");
+  const [bookingDateFrom, setBookingDateFrom] = useState("");
+  const [bookingDateTo, setBookingDateTo] = useState("");
+  const [finance, setFinance] = useState<{ bookings: Array<{ id: string; booking_reference: string; event_date: string; status: string; total_amount: number; paid_amount: number; package_name: string | null }>; payments: Array<{ id: string; booking_id: string; amount: number; currency: string; status: string; purpose: string; verified_at: string | null; created_at: string }>; refunds: Array<{ id: string; booking_id: string; payment_id: string; amount: number; status: string; created_at: string }> }>({ bookings: [], payments: [], refunds: [] });
+  const [financeError, setFinanceError] = useState<string | null>(null);
+  const [financeLoading, setFinanceLoading] = useState(false);
+  const [financeFrom, setFinanceFrom] = useState("");
+  const [financeTo, setFinanceTo] = useState("");
 
   const businessName = vendorProfile?.business_name || "Your business";
   const city = vendorProfile?.city || "";
 
+  const setActiveTab = (section: string) => {
+    setActiveTabState(section);
+    const url = new URL(window.location.href);
+    url.searchParams.set("section", section);
+    if (section !== "bookings") url.searchParams.delete("bookingId");
+    window.history.pushState({}, "", url);
+  };
+
+  useEffect(() => {
+    const syncFromUrl = () => {
+      const params = new URLSearchParams(window.location.search);
+      setActiveTabState(params.get("section") || "overview");
+      if (params.get("bookingId")) setSelectedBookingId(params.get("bookingId"));
+    };
+    syncFromUrl();
+    window.addEventListener("popstate", syncFromUrl);
+    return () => window.removeEventListener("popstate", syncFromUrl);
+  }, []);
+
   const fetchBookings = async () => {
     try {
       // Query bookings for this vendor
-      let query = supabase
+      if (!vendorProfile?.id) { setBookings([]); setLoading(false); return; }
+      const query = supabase
         .from("bookings")
-        .select("*, profiles:customer_id(full_name, email, phone)")
+        .select("id,booking_reference,customer_id,vendor_name,vendor_category,package_name,event_date,event_city,guest_count,requirements,total_amount,advance_amount,paid_amount,status,created_at,profiles:customer_id(full_name,email,phone)")
+        .eq("vendor_profile_id", vendorProfile.id)
         .order("created_at", { ascending: false });
-
-      if (vendorProfile?.id) {
-        query = query.or(`vendor_profile_id.eq.${vendorProfile.id},vendor_name.eq."${businessName}"`);
-      }
 
       const { data, error } = await query;
       if (!error && data) {
@@ -86,20 +120,33 @@ export default function VendorDashboardPage() {
     fetchBookings();
   }, [vendorProfile]);
 
-  const handleUpdateBookingStatus = async (id: string, newStatus: string) => {
+  useEffect(() => {
+    if (activeTab !== "finances") return;
+    let active = true;
+    setFinanceError(null); setFinanceLoading(true);
+    const query = new URLSearchParams(); if (financeFrom) query.set("from", financeFrom); if (financeTo) query.set("to", financeTo);
+    fetch(`/api/vendors/finance${query.size ? `?${query}` : ""}`, { cache: "no-store" }).then(async (response) => {
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.error || "Financial records could not be loaded.");
+      if (active) setFinance(data);
+    }).catch((cause) => { if (active) setFinanceError(cause instanceof Error ? cause.message : "Financial records could not be loaded."); }).finally(() => { if (active) setFinanceLoading(false); });
+    return () => { active = false; };
+  }, [activeTab, financeFrom, financeTo]);
+
+  const handleUpdateBookingStatus = async (id: string, action: string) => {
     setActionInProgress(id);
+    setBookingActionError(null);
     try {
       const res = await fetch(`/api/bookings/${id}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ status: newStatus }),
+        body: JSON.stringify({ action, reason: action === "reject" ? "Vendor declined the request" : undefined }),
       });
-
-      if (res.ok) {
-        await fetchBookings();
-      }
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Booking could not be updated.");
+      await fetchBookings();
     } catch (err) {
-      console.error("Failed to update booking status:", err);
+      setBookingActionError(err instanceof Error ? err.message : "Booking could not be updated.");
     } finally {
       setActionInProgress(null);
     }
@@ -110,6 +157,11 @@ export default function VendorDashboardPage() {
   const totalPaidPaise = bookings.reduce((sum, b) => sum + (b.paid_amount || 0), 0);
   const pendingReceivablesPaise = grossValuePaise - totalPaidPaise;
   const confirmedCount = bookings.filter((b) => b.status === "confirmed").length;
+  const pendingCount = bookings.filter((b) => ["pending_vendor_confirmation", "awaiting_quotation", "quotation_sent", "awaiting_customer_decision"].includes(b.status)).length;
+  const upcomingBookings = bookings.filter((booking) => booking.event_date >= new Date().toISOString().slice(0, 10) && !["cancelled", "declined", "completed"].includes(booking.status)).slice(0, 5);
+  const displayedBookings = bookings.filter((booking) => (bookingStatusFilter === "all" || booking.status === bookingStatusFilter) && (!bookingDateFrom || booking.event_date >= bookingDateFrom) && (!bookingDateTo || booking.event_date <= bookingDateTo) && (!bookingSearch || `${booking.booking_reference} ${booking.event_city} ${booking.package_name || ""} ${booking.profiles?.full_name || ""}`.toLowerCase().includes(bookingSearch.toLowerCase())));
+  const capturedPaise = Math.max(0, finance.payments.filter((payment) => ["captured", "partially_refunded", "refunded"].includes(payment.status)).reduce((sum, payment) => sum + payment.amount, 0) - finance.refunds.filter((refund) => refund.status === "processed").reduce((sum, refund) => sum + refund.amount, 0));
+  const financeOutstandingPaise = finance.bookings.reduce((sum, booking) => sum + Math.max(0, booking.total_amount - booking.paid_amount), 0);
 
   return (
     <div className="space-y-8 animate-in fade-in duration-200">
@@ -118,20 +170,20 @@ export default function VendorDashboardPage() {
         <div className="space-y-1">
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#EAD2B0] dark:bg-[#681B1D]/50 text-[#681B1D] dark:text-[#EAD2B0] text-xs font-semibold border border-[#681B1D]/20 dark:border-[#EAD2B0]/30">
             <Store className="w-3.5 h-3.5 text-[#B77A36] dark:text-[#D4B77D]" />
-            <span>Artisan Partner Desk • {businessName}</span>
+            <span>Vendor workspace</span>
           </div>
           <h1 className="text-2xl sm:text-4xl font-serif font-bold text-[#681B1D] dark:text-[#F4F0E7]">
-            Partner Operations Hub
+            {activeTab === "overview" ? `Welcome${profile?.full_name ? `, ${profile.full_name.split(" ")[0]}` : ""}` : activeTab.replaceAll("-", " ").replace(/\b\w/g, (letter) => letter.toUpperCase())}
           </h1>
           <p className="text-xs text-[#7D6B63] dark:text-[#D4C3B7]">
-            Real-time management of client celebration requests, escrow receipts, and contracts
+            Manage business details, availability and customer bookings in one place.
           </p>
         </div>
 
         <div className="flex items-center gap-2">
           <span className="px-3.5 py-1.5 rounded-xl bg-[#EAD2B0] dark:bg-[#681B1D]/50 border border-[#681B1D]/20 dark:border-[#EAD2B0]/30 text-[#681B1D] dark:text-[#EAD2B0] text-xs font-semibold flex items-center gap-1.5 shadow-2xs">
             <CheckCircle2 className="w-4 h-4 text-[#681B1D] dark:text-[#EAD2B0]" />
-            <span>{vendorProfile?.approval_status === "approved" ? "Approved Vendor Desk" : "Application Pending Review"}</span>
+            <span>{vendorProfile?.approval_status === "approved" ? (vendorProfile?.is_published ? "Business is published" : "Approved · not published") : `Profile ${vendorProfile?.approval_status || "incomplete"}`}</span>
           </span>
         </div>
       </div>
@@ -140,74 +192,66 @@ export default function VendorDashboardPage() {
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <div className="p-5 sm:p-6 rounded-2xl bg-[#FFFCF6] dark:bg-[#2E1F1E] border border-[#EAD2B0] dark:border-[#4D3331] space-y-2 shadow-xs">
           <span className="text-[#7D6B63] dark:text-[#D4C3B7] text-xs uppercase tracking-wider font-semibold">
-            Gross Bookings Value
+            Booking Value
           </span>
           <div className="text-2xl sm:text-3xl font-serif font-bold text-[#681B1D] dark:text-[#D4B77D]">
             {formatINR(grossValuePaise / 100)}
           </div>
           <div className="text-[11px] text-[#681B1D] dark:text-[#EAD2B0] flex items-center gap-1 font-semibold">
             <TrendingUp className="w-3.5 h-3.5" />
-            <span>{bookings.length} active client orders</span>
+            <span>{bookings.length} booking records</span>
           </div>
         </div>
 
         <div className="p-5 sm:p-6 rounded-2xl bg-[#FFFCF6] dark:bg-[#2E1F1E] border border-[#EAD2B0] dark:border-[#4D3331] space-y-2 shadow-xs">
           <span className="text-[#7D6B63] dark:text-[#D4C3B7] text-xs uppercase tracking-wider font-semibold">
-            Advance Escrow Received
+            Customer Payments Recorded
           </span>
           <div className="text-2xl sm:text-3xl font-serif font-bold text-rose-800 dark:text-amber-700">
             {formatINR(totalPaidPaise / 100)}
           </div>
           <span className="text-[11px] text-[#7D6B63] dark:text-[#D4C3B7] block">
-            Verified via Razorpay Gateway
+            Payment totals by booking; see Finances
           </span>
         </div>
 
         <div className="p-5 sm:p-6 rounded-2xl bg-[#FFFCF6] dark:bg-[#2E1F1E] border border-[#EAD2B0] dark:border-[#4D3331] space-y-2 shadow-xs">
           <span className="text-[#7D6B63] dark:text-[#D4C3B7] text-xs uppercase tracking-wider font-semibold">
-            Pending Client Receivables
+            Outstanding Booking Balances
           </span>
           <div className="text-2xl sm:text-3xl font-serif font-bold text-amber-600 dark:text-amber-400">
             {formatINR(pendingReceivablesPaise / 100)}
           </div>
           <span className="text-[11px] text-[#7D6B63] dark:text-[#D4C3B7] block">
-            Due pre-event delivery
+            Based on current booking records
           </span>
         </div>
 
         <div className="p-5 sm:p-6 rounded-2xl bg-[#FFFCF6] dark:bg-[#2E1F1E] border border-[#EAD2B0] dark:border-[#4D3331] space-y-2 shadow-xs">
           <span className="text-[#7D6B63] dark:text-[#D4C3B7] text-xs uppercase tracking-wider font-semibold">
-            Confirmed Celebrations
+            Confirmed Bookings
           </span>
           <div className="text-2xl sm:text-3xl font-serif font-bold text-[#681B1D] dark:text-[#F4F0E7] flex items-center gap-1.5">
-            <span>{confirmedCount} Dates</span>
+            <span>{confirmedCount}</span>
           </div>
           <span className="text-[11px] text-[#7D6B63] dark:text-[#D4C3B7] block">
-            Scheduled across 2026-2027 season
+            Based on current booking status
           </span>
         </div>
       </div>
 
-      {/* Tabs */}
-      <div className="flex items-center gap-2 border-b border-[#EAD2B0] dark:border-[#4D3331] pb-3">
-        {(["bookings", "payments", "packages", "reviews"] as const).map((tab) => (
-          <button
-            key={tab}
-            onClick={() => setActiveTab(tab)}
-            className={`px-4 py-2 rounded-xl text-xs font-semibold capitalize transition-all cursor-pointer ${
-              activeTab === tab
-                ? "bg-[#681B1D] text-[#FFF3E3] dark:bg-[#2E1F1E] dark:text-[#EAD2B0] shadow-xs"
-                : "text-[#7D6B63] dark:text-[#D4C3B7] hover:text-[#681B1D] dark:hover:text-[#F4F0E7] hover:bg-[#EAD2B0]/50 dark:hover:bg-[#241918]"
-            }`}
-          >
-            {tab === "bookings" ? "Booking Requests & Orders" : tab === "payments" ? "Escrow & Settlements" : tab}
-          </button>
-        ))}
-      </div>
+      {activeTab === "overview" && <section className="grid gap-5 lg:grid-cols-[1.2fr_.8fr]">
+        <div className="rounded-3xl bg-gradient-to-br from-[#681B1D] to-[#3B1016] p-6 text-[#FFF3E3] shadow-lg sm:p-8"><p className="text-xs font-bold uppercase tracking-[.2em] text-[#EAD2B0]">Your business at a glance</p><h2 className="mt-3 font-serif text-3xl font-bold">{businessName}</h2><p className="mt-2 max-w-xl text-sm text-[#F3DFCA]">Respond to booking requests, keep your business details current, and manage the dates you can serve.</p><div className="mt-6 flex flex-wrap gap-3"><button onClick={() => setActiveTab("bookings")} className="rounded-xl bg-[#FFF3E3] px-4 py-2.5 text-sm font-bold text-[#681B1D]">Review {pendingCount} new request{pendingCount === 1 ? "" : "s"}</button><button onClick={() => setActiveTab("business-profile")} className="rounded-xl border border-[#EAD2B0]/60 px-4 py-2.5 text-sm font-semibold">Edit business profile</button></div></div>
+        <div className="rounded-3xl border border-[#EAD2B0] bg-[#FFFCF6] p-6 dark:border-[#4D3331] dark:bg-[#241918]"><h2 className="font-serif text-xl font-bold text-[#681B1D] dark:text-[#EAD2B0]">Business status</h2><p className="mt-3 text-sm">Approval: <strong className="capitalize">{vendorProfile?.approval_status || "Not available"}</strong></p><p className="mt-1 text-sm">Storefront: <strong>{vendorProfile?.is_published ? "Published" : "Not published"}</strong></p><p className="mt-1 text-sm">Verification: <strong>{vendorProfile?.is_verified ? "Verified" : "Not verified"}</strong></p><button onClick={() => setActiveTab("verification")} className="mt-4 text-sm font-semibold text-[#681B1D] underline dark:text-[#EAD2B0]">View verification status</button></div>
+        <div className="rounded-3xl border border-[#EAD2B0] bg-[#FFFCF6] p-5 dark:border-[#4D3331] dark:bg-[#241918] lg:col-span-2"><div className="mb-4 flex items-center justify-between"><h2 className="font-serif text-xl font-bold text-[#681B1D] dark:text-[#EAD2B0]">Upcoming bookings</h2><button onClick={() => setActiveTab("bookings")} className="text-sm font-semibold text-[#681B1D] underline dark:text-[#EAD2B0]">All bookings</button></div>{upcomingBookings.length ? <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">{upcomingBookings.map((booking) => <button key={booking.id} onClick={() => { setSelectedBookingId(booking.id); setActiveTab("bookings"); }} className="rounded-2xl border border-[#EAD2B0] p-4 text-left transition hover:border-[#B77A36] dark:border-[#4D3331]"><span className="font-mono text-xs text-[#B77A36]">{booking.booking_reference}</span><b className="mt-1 block">{booking.package_name || "Custom service"}</b><span className="mt-1 block text-xs text-[#7D6B63]">{new Date(`${booking.event_date}T00:00:00`).toLocaleDateString("en-IN", { dateStyle: "medium" })} · {booking.event_city}</span><span className="mt-2 inline-block rounded-full bg-[#EAD2B0]/50 px-2 py-1 text-[10px] capitalize">{booking.status.replaceAll("_", " ")}</span></button>)}</div> : <p className="rounded-2xl bg-[#FFF3E3] p-5 text-sm text-[#7D6B63] dark:bg-[#1A1211]">No upcoming bookings yet. New customer requests will appear here.</p>}</div>
+      </section>}
 
       {/* Bookings Tab */}
       {activeTab === "bookings" && (
         <div className="space-y-4">
+          {selectedBookingId && <BookingLifecyclePanel bookingId={selectedBookingId} onUpdated={() => void fetchBookings()} />}
+          {bookingActionError && <p role="alert" className="text-sm text-rose-700">{bookingActionError}</p>}
+          <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4"><input value={bookingSearch} onChange={(event) => setBookingSearch(event.target.value)} placeholder="Search customer, booking reference or location" className="rounded-xl border border-[#EAD2B0] bg-[#FFFCF6] px-4 py-3 text-sm dark:border-[#4D3331] dark:bg-[#241918]"/><select value={bookingStatusFilter} onChange={(event) => setBookingStatusFilter(event.target.value)} className="rounded-xl border border-[#EAD2B0] bg-[#FFFCF6] px-3 py-3 text-sm dark:border-[#4D3331] dark:bg-[#241918]"><option value="all">All statuses</option>{[...new Set(bookings.map((booking) => booking.status))].sort().map((status) => <option key={status} value={status}>{status.replaceAll("_", " ")}</option>)}</select><input aria-label="Event date from" type="date" value={bookingDateFrom} max={bookingDateTo || undefined} onChange={(event) => setBookingDateFrom(event.target.value)} className="rounded-xl border border-[#EAD2B0] bg-[#FFFCF6] px-3 py-3 text-sm dark:border-[#4D3331] dark:bg-[#241918]"/><input aria-label="Event date through" type="date" value={bookingDateTo} min={bookingDateFrom || undefined} onChange={(event) => setBookingDateTo(event.target.value)} className="rounded-xl border border-[#EAD2B0] bg-[#FFFCF6] px-3 py-3 text-sm dark:border-[#4D3331] dark:bg-[#241918]"/></div>
           <div className="flex items-center justify-between">
             <h2 className="text-lg font-serif font-bold text-[#681B1D] dark:text-[#F4F0E7]">
               Client Bookings & Orders
@@ -233,7 +277,7 @@ export default function VendorDashboardPage() {
             </div>
           ) : (
             <div className="space-y-4">
-              {bookings.map((booking) => {
+              {displayedBookings.map((booking) => {
                 const totalINR = booking.total_amount / 100;
                 const paidINR = (booking.paid_amount || 0) / 100;
                 const balanceINR = totalINR - paidINR;
@@ -267,7 +311,7 @@ export default function VendorDashboardPage() {
                           Client: {booking.profiles?.full_name || "Private Client"}
                         </h3>
                         <p className="text-xs text-[#7D6B63] dark:text-[#D4C3B7]">
-                          {booking.package_name || "Custom Service"} • {booking.event_city} • {booking.guest_count || 100} Guests
+                          {booking.package_name || "Custom Service"} • {booking.event_city} • {booking.guest_count ? `${booking.guest_count} Guests` : "Guest count not provided"}
                         </p>
                       </div>
 
@@ -295,20 +339,21 @@ export default function VendorDashboardPage() {
                       <div className="pt-2 flex items-center justify-end gap-2">
                         <button
                           disabled={actionInProgress === booking.id}
-                          onClick={() => handleUpdateBookingStatus(booking.id, "cancelled")}
+                          onClick={() => handleUpdateBookingStatus(booking.id, "reject")}
                           className="px-4 py-2 rounded-xl bg-[#FFF3E3] hover:bg-rose-50 text-rose-700 border border-rose-200 text-xs font-semibold cursor-pointer"
                         >
                           Decline Request
                         </button>
                         <button
                           disabled={actionInProgress === booking.id}
-                          onClick={() => handleUpdateBookingStatus(booking.id, "awaiting_payment")}
+                          onClick={() => handleUpdateBookingStatus(booking.id, "accept")}
                           className="px-4 py-2 rounded-xl bg-[#681B1D] hover:bg-[#4B1117] text-[#FFF3E3] text-xs font-bold uppercase tracking-wider cursor-pointer shadow-xs"
                         >
                           Accept & Enable Customer Payment
                         </button>
                       </div>
                     )}
+                    <button onClick={() => setSelectedBookingId(selectedBookingId === booking.id ? null : booking.id)} className="text-xs font-semibold text-[#681B1D] underline">{selectedBookingId === booking.id ? "Close booking details" : "Manage booking, quote & messages"}</button>
                   </div>
                 );
               })}
@@ -317,37 +362,16 @@ export default function VendorDashboardPage() {
         </div>
       )}
 
-      {/* Escrow & Payments Tab */}
-      {activeTab === "payments" && (
-        <div className="p-8 rounded-3xl bg-[#FFFCF6] dark:bg-[#2E1F1E] border border-[#EAD2B0] dark:border-[#4D3331] space-y-6 shadow-xs">
-          <div className="space-y-1">
-            <span className="text-[10px] uppercase font-bold tracking-widest text-[#B77A36] dark:text-[#D4B77D]">
-              Merchant Model Notice
-            </span>
-            <h2 className="text-xl font-serif font-bold text-[#681B1D] dark:text-[#F4F0E7]">
-              Escrow Payouts & Settlement Intelligence
-            </h2>
-            <p className="text-xs text-[#7D6B63] dark:text-[#D4C3B7] leading-relaxed max-w-2xl">
-              Evntora acts as the primary merchant collector via Razorpay. Customer advance deposits are held under platform escrow safeguards until verified performance delivery. Direct automated marketplace split settlements via Razorpay Route can be enabled upon completing regulatory bank account verification.
-            </p>
-          </div>
+      {activeTab === "finances" && <section className="space-y-5 rounded-3xl border border-[#EAD2B0] bg-[#FFFCF6] p-5 shadow-sm dark:border-[#4D3331] dark:bg-[#241918]">
+        <div><h2 className="font-serif text-2xl font-bold text-[#681B1D] dark:text-[#EAD2B0]">Finances</h2><p className="mt-1 text-sm text-[#7D6B63] dark:text-[#D4C3B7]">Booking value, captured customer payments and refunds from actual records. This is not a payout or wallet balance.</p></div>
+        <div className="flex flex-wrap items-end gap-3"><label className="text-xs">Payment/refund from<input type="date" value={financeFrom} max={financeTo || undefined} onChange={(event) => setFinanceFrom(event.target.value)} className="mt-1 block rounded-xl border border-[#EAD2B0] bg-white p-2 dark:border-[#4D3331] dark:bg-[#1A1211]"/></label><label className="text-xs">Through<input type="date" value={financeTo} min={financeFrom || undefined} onChange={(event) => setFinanceTo(event.target.value)} className="mt-1 block rounded-xl border border-[#EAD2B0] bg-white p-2 dark:border-[#4D3331] dark:bg-[#1A1211]"/></label>{(financeFrom || financeTo) && <button onClick={() => { setFinanceFrom(""); setFinanceTo(""); }} className="text-xs font-semibold text-[#681B1D] underline">Clear dates</button>}</div>
+        {financeError && <p role="alert" className="rounded-xl bg-rose-50 p-3 text-sm text-rose-800">{financeError}</p>}
+        {financeLoading && <p role="status" className="text-xs text-[#7D6B63]">Loading verified payment records…</p>}
+        <div className="grid gap-3 sm:grid-cols-3"><div className="rounded-2xl bg-[#FFF3E3] p-4 dark:bg-[#1A1211]"><span className="text-xs text-[#7D6B63]">Booking value</span><b className="mt-2 block text-xl">{formatINR(finance.bookings.reduce((sum, booking) => sum + booking.total_amount, 0) / 100)}</b></div><div className="rounded-2xl bg-[#FFF3E3] p-4 dark:bg-[#1A1211]"><span className="text-xs text-[#7D6B63]">Net captured payments</span><b className="mt-2 block text-xl">{formatINR(capturedPaise / 100)}</b></div><div className="rounded-2xl bg-[#FFF3E3] p-4 dark:bg-[#1A1211]"><span className="text-xs text-[#7D6B63]">Outstanding on bookings</span><b className="mt-2 block text-xl">{formatINR(financeOutstandingPaise / 100)}</b></div></div>
+        {!financeError && <div className="overflow-x-auto rounded-2xl border border-[#EAD2B0] dark:border-[#4D3331]"><table className="w-full min-w-[720px] text-left text-sm"><thead className="bg-[#FFF3E3] text-xs dark:bg-[#1A1211]"><tr><th className="p-3">Date</th><th className="p-3">Booking</th><th className="p-3">Purpose</th><th className="p-3">Amount</th><th className="p-3">Status</th></tr></thead><tbody>{finance.payments.map((payment) => { const booking = finance.bookings.find((item) => item.id === payment.booking_id); return <tr key={payment.id} className="border-t border-[#EAD2B0] dark:border-[#4D3331]"><td className="p-3">{new Date(payment.created_at).toLocaleDateString("en-IN")}</td><td className="p-3">{booking?.booking_reference || "Booking"}</td><td className="p-3 capitalize">{payment.purpose}</td><td className="p-3">{formatINR(payment.amount / 100)}</td><td className="p-3 capitalize">{payment.status.replaceAll("_", " ")}</td></tr>})}{finance.refunds.map((refund) => <tr key={refund.id} className="border-t border-[#EAD2B0] text-rose-700 dark:border-[#4D3331] dark:text-rose-300"><td className="p-3">{new Date(refund.created_at).toLocaleDateString("en-IN")}</td><td className="p-3">{finance.bookings.find((item) => item.id === refund.booking_id)?.booking_reference || "Booking"}</td><td className="p-3">Refund</td><td className="p-3">−{formatINR(refund.amount / 100)}</td><td className="p-3 capitalize">{refund.status}</td></tr>)}{!finance.payments.length && !finance.refunds.length && <tr><td colSpan={5} className="p-6 text-center text-[#7D6B63]">No payment or refund records for your bookings.</td></tr>}</tbody></table></div>}
+      </section>}
 
-          <div className="p-5 rounded-2xl bg-[#FFF3E3] dark:bg-[#241918] border border-[#EAD2B0] dark:border-[#4D3331] space-y-3">
-            <div className="flex items-center justify-between text-xs font-semibold text-[#30221D] dark:text-[#F4F0E7]">
-              <span>Verified Customer Advance Deposits in Escrow:</span>
-              <span className="font-serif font-bold text-lg text-rose-800 dark:text-amber-700">
-                {formatINR(totalPaidPaise / 100)}
-              </span>
-            </div>
-            <div className="flex items-center justify-between text-xs text-[#7D6B63] dark:text-[#D4C3B7]">
-              <span>Artisan Bank Account Status:</span>
-              <span className="text-rose-800 dark:text-amber-700 font-semibold flex items-center gap-1">
-                <ShieldCheck className="w-3.5 h-3.5" /> Verified for Escrow Disbursements
-              </span>
-            </div>
-          </div>
-        </div>
-      )}
+      {activeTab === "availability" && vendorProfile?.id && <VendorAvailabilityManager vendorProfileId={vendorProfile.id} />}
 
       {/* Packages Tab */}
       {activeTab === "packages" && (
@@ -357,8 +381,17 @@ export default function VendorDashboardPage() {
         </div>
       )}
 
+      {["listings", "create-listing", "published", "drafts", "pending-approval", "rejected"].includes(activeTab) && <VendorListingsManager filter={activeTab} />}
+      {activeTab === "portfolio" && <div className="rounded-3xl border border-[#EAD2B0] bg-[#FFFCF6] p-5 dark:border-[#4D3331] dark:bg-[#241918]"><h2 className="mb-4 font-serif text-2xl font-bold text-[#681B1D] dark:text-[#EAD2B0]">Portfolio</h2>{vendorProfile ? <VendorCatalogManager vendorId={vendorProfile.id} /> : <p>Complete vendor onboarding first.</p>}</div>}
+
+      {["business-profile", "locations"].includes(activeTab) && <section className="space-y-4">{vendorProfile ? <VendorProfileEditor profile={vendorProfile} onSaved={() => void refreshProfile()} /> : <p>Complete vendor onboarding to create your business profile.</p>}{activeTab === "locations" && <VendorServiceAreasManager/>}</section>}
+
+      {activeTab === "storefront" && <section className="rounded-3xl border border-[#EAD2B0] bg-[#FFFCF6] p-6 dark:border-[#4D3331] dark:bg-[#241918]"><h2 className="font-serif text-2xl font-bold text-[#681B1D] dark:text-[#EAD2B0]">Public storefront</h2><p className="mt-2 text-sm text-[#7D6B63]">{vendorProfile?.is_published && vendorProfile.approval_status === "approved" ? "Your approved vendor profile is publicly available." : "Your storefront is not currently public. Publication requires the existing approval workflow."}</p>{vendorProfile?.id && vendorProfile.is_published && vendorProfile.approval_status === "approved" && <a href={`/vendors/${vendorProfile.id}`} className="mt-4 inline-flex rounded-xl bg-[#681B1D] px-4 py-2.5 text-sm font-semibold text-white">Open public storefront</a>}</section>}
+
+      {activeTab === "verification" && <section className="space-y-4"><div className="rounded-3xl border border-[#EAD2B0] bg-[#FFFCF6] p-6 dark:border-[#4D3331] dark:bg-[#241918]"><h2 className="font-serif text-2xl font-bold text-[#681B1D] dark:text-[#EAD2B0]">Verification & documents</h2><div className="mt-4 grid gap-3 sm:grid-cols-2"><p className="rounded-xl bg-[#FFF3E3] p-4 dark:bg-[#1A1211]">Business review: <b className="capitalize">{vendorProfile?.approval_status || "Not available"}</b></p><p className="rounded-xl bg-[#FFF3E3] p-4 dark:bg-[#1A1211]">Verified badge: <b>{vendorProfile?.is_verified ? "Approved" : "Not verified"}</b></p></div><p className="mt-4 text-sm text-[#7D6B63] dark:text-[#D4C3B7]">Submitting a document does not automatically verify a business. An authorized administrator must review the submission.</p></div><VendorVerificationDocuments/></section>}
+
       {/* Reviews Tab */}
-      {activeTab === "reviews" && (
+      {activeTab === "reviews" && vendorProfile?.id ? <VendorReviewsPanel vendorId={vendorProfile.id} /> : activeTab === "reviews" ? (
         <div className="p-8 rounded-3xl bg-[#FFFCF6] dark:bg-[#2E1F1E] border border-[#EAD2B0] dark:border-[#4D3331] space-y-4 shadow-xs">
           <h2 className="text-lg font-serif font-bold text-[#681B1D] dark:text-[#F4F0E7]">
             Client Reviews
@@ -372,7 +405,7 @@ export default function VendorDashboardPage() {
             </span>
           </div>
         </div>
-      )}
+      ) : null}
     </div>
   );
 }

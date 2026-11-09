@@ -7,7 +7,7 @@ import { Navbar } from "@/components/layout/Navbar";
 import { Footer } from "@/components/layout/Footer";
 import { supabase } from "@/lib/supabase";
 import type { UserRole } from "@/types/database";
-import { portalHome, type PortalIntent } from "@/lib/portal-routing";
+import { authorizedWorkspaces, portalHome, rememberWorkspace, workspaceForPath, type PortalIntent } from "@/lib/portal-routing";
 import { Sparkles, Lock, Mail, ArrowRight, Eye, EyeOff, AlertCircle } from "lucide-react";
 
 function safeInternalRedirect(value: string, origin: string): boolean {
@@ -64,7 +64,8 @@ function SignInForm({ forcedPortal }: { forcedPortal?: PortalIntent }) {
           if (isMounted) setError(requestedPortal === "admin" ? "This account does not have authorized administrator access." : requestedPortal === "vendor" ? "This account does not have Vendor access yet. Register your business to add it." : "Customer access is not enabled for this account.");
           return;
         }
-        const role = requestedPortal ? requestedPortal : roles.includes("customer") ? "customer" : roles.includes("vendor") ? "vendor" : roles.includes("admin") || roles.includes("platform_owner") ? "admin" : null;
+        const workspaces = authorizedWorkspaces(roles as UserRole[]);
+        const role = requestedPortal ? requestedPortal : workspaces[0] ?? null;
         if (!role) { if (isMounted) setError("Your account is signed in, but its Evntora access setup is incomplete. Contact support."); return; }
         let vendorApproved = false;
         if (roles.includes("vendor")) {
@@ -76,7 +77,15 @@ function SignInForm({ forcedPortal }: { forcedPortal?: PortalIntent }) {
         if (!isMounted) return;
         const requestedTarget = safeInternalRedirect(rawRedirectTo, window.location.origin) ? rawRedirectTo : "";
         const targetPath = requestedTarget.split(/[?#]/, 1)[0];
-        const allowedTarget = requestedPortal === "admin" ? targetPath.startsWith("/admin") : requestedPortal === "vendor" ? targetPath.startsWith("/vendor-portal") || targetPath === "/planner" : targetPath.startsWith("/dashboard") || targetPath === "/checkout" || targetPath === "/planner";
+        const protectedTargetRole = workspaceForPath(targetPath);
+        const publicTarget = requestedTarget && !protectedTargetRole && !targetPath.startsWith("/signin") && !targetPath.startsWith("/signup") && targetPath !== "/admin/signin";
+        if (workspaces.length > 1 && !publicTarget) {
+          const target = requestedTarget ? `?returnTo=${encodeURIComponent(requestedTarget)}` : "";
+          window.location.assign(`/workspaces${target}`);
+          return;
+        }
+        rememberWorkspace(role, session.user.id);
+        const allowedTarget = requestedTarget && (!protectedTargetRole || protectedTargetRole === role);
         window.location.assign(allowedTarget ? requestedTarget : portalHome(role, vendorApproved));
       } catch (err) {
         console.warn("Session check error:", err);
@@ -123,12 +132,12 @@ function SignInForm({ forcedPortal }: { forcedPortal?: PortalIntent }) {
       }
 
       const assignedRoles = (memberships ?? []).map((item) => item.role as UserRole);
+      const workspaces = authorizedWorkspaces(assignedRoles);
       const has = (r: UserRole) => assignedRoles.includes(r);
       const isAdminUser = has("admin") || has("platform_owner");
 
-      if (requestedPortal === "admin" && !isAdminUser) {
-        setError("This account does not have authorized administrator access.");
-        await supabase.auth.signOut();
+      if (requestedPortal && !workspaces.includes(requestedPortal)) {
+        setError(requestedPortal === "admin" ? "This account does not have authorized administrator access." : requestedPortal === "vendor" ? "This account does not have Vendor access yet. Register your business to add it." : "Customer access is not enabled for this account.");
         setIsLoading(false);
         return;
       }
@@ -139,7 +148,7 @@ function SignInForm({ forcedPortal }: { forcedPortal?: PortalIntent }) {
         vendorApproved = vp?.approval_status === "approved";
       }
 
-      const primaryRole = requestedPortal || (has("customer") ? "customer" : has("vendor") ? "vendor" : isAdminUser ? "admin" : null);
+      const primaryRole = requestedPortal || workspaces[0] || null;
 
       if (!primaryRole) {
         setError("Your account is signed in, but no portal access is assigned.");
@@ -154,10 +163,19 @@ function SignInForm({ forcedPortal }: { forcedPortal?: PortalIntent }) {
         const targetsAdmin = path === "/admin" || path.startsWith("/admin/");
         const targetsVendor = path === "/vendor-portal" || path.startsWith("/vendor-portal/");
         const targetsCustomer = path === "/dashboard" || path.startsWith("/dashboard/");
-        const sameRoleTarget = (targetsAdmin && has("admin")) || (targetsVendor && has("vendor")) || (targetsCustomer && has("customer"));
+        const sameRoleTarget = (targetsAdmin && isAdminUser) || (targetsVendor && has("vendor")) || (targetsCustomer && has("customer"));
         const safePublicTarget = !targetsAdmin && !targetsVendor && !targetsCustomer && !path.startsWith("/signin") && !path.startsWith("/signup") && path !== "/admin/signin";
         const customerOnlyTarget = path === "/checkout";
         if (sameRoleTarget || (safePublicTarget && (!customerOnlyTarget || has("customer")))) redirectUrl = rawRedirectTo;
+      }
+
+      const redirectPath = redirectUrl.split(/[?#]/, 1)[0];
+      const redirectRole = workspaceForPath(redirectPath);
+      const isPublicDestination = safeInternalRedirect(redirectUrl, window.location.origin) && !redirectRole && !redirectPath.startsWith("/signin") && !redirectPath.startsWith("/signup") && redirectPath !== "/admin/signin";
+      if (workspaces.length > 1 && !isPublicDestination) {
+        redirectUrl = `/workspaces${safeInternalRedirect(rawRedirectTo, window.location.origin) ? `?returnTo=${encodeURIComponent(rawRedirectTo)}` : ""}`;
+      } else {
+        rememberWorkspace(primaryRole, data.user.id);
       }
 
       window.location.assign(redirectUrl);

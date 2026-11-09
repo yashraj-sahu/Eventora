@@ -16,7 +16,7 @@ export const CITIES: Destination[] = [
     name: "Jaipur",
     state: "Rajasthan",
     tagline: "The Pink City & Regal Forts",
-    image: "https://images.unsplash.com/photo-1603288967389-13e018698bf4?auto=format&fit=crop&w=1200&q=80",
+    image: "https://media.istockphoto.com/id/903877840/photo/the-crowd-and-vehicles-in-front-of-hawa-mahal.jpg?s=612x612&w=0&k=20&c=OB7q3UQsf0vpcno_6-6WLFhp3Ugota3B5IH3WdFYhUY=",
     venueCount: 62,
     featuredVenue: "Rambagh Palace & Fairmont Jaipur",
     popularFor: ["Palace Extravaganzas", "Regal Baraats", "Sangeet Spectacles"],

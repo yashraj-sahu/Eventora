@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import { useMarketplaceVendors } from "@/lib/use-marketplace";
 import { formatINR } from "@/lib/utils";
 import { Bookmark, Star, MapPin, ShieldCheck, ArrowRight, Trash2, Sparkles } from "lucide-react";
@@ -9,6 +10,7 @@ import { BookingModal } from "@/components/booking/BookingModal";
 import type { VendorItem } from "@/types";
 
 export default function SavedVendorsPage() {
+  const eventId = useSearchParams().get("eventId") ?? undefined;
   const { vendors, savedIds, loading, error, toggleSaved } = useMarketplaceVendors();
   const savedVendors = vendors.filter((vendor) => savedIds.includes(vendor.id));
   const [bookingModalOpen, setBookingModalOpen] = useState(false);
@@ -31,7 +33,7 @@ export default function SavedVendorsPage() {
         </div>
 
         <Link
-          href="/vendors"
+          href="/vendors?returnTo=%2Fdashboard%2Fsaved-vendors"
           className="px-5 py-2.5 rounded-xl bg-[#2E1F1E] hover:bg-[#4D3331] border border-[#4D3331] text-[#FFF3E3] font-semibold text-xs transition-all flex items-center gap-1.5 shrink-0"
         >
           <span>Discover More Artisans</span>
@@ -47,7 +49,7 @@ export default function SavedVendorsPage() {
             Browse our nationwide directory and click the bookmark icon to save venues, caterers, or photographers here.
           </p>
           <Link
-            href="/vendors"
+            href="/vendors?returnTo=%2Fdashboard%2Fsaved-vendors"
             className="inline-block px-5 py-2.5 rounded-xl bg-amber-500 text-[#1A1211] font-bold text-xs"
           >
             Explore Vendors
@@ -113,7 +115,7 @@ export default function SavedVendorsPage() {
                   <span>Book Now</span>
                 </button>
                 <Link
-                  href={`/vendors/${vendor.id}`}
+                  href={eventId ? `/vendors/${vendor.id}?eventId=${encodeURIComponent(eventId)}` : `/vendors/${vendor.id}?returnTo=${encodeURIComponent("/dashboard/saved-vendors")}`}
                   className="py-2.5 px-3 rounded-xl bg-[#2E1F1E] hover:bg-[#4D3331] text-[#FFF3E3] border border-[#4D3331] text-xs font-semibold text-center transition-all flex items-center justify-center gap-1"
                 >
                   <span>Profile</span>
@@ -130,6 +132,7 @@ export default function SavedVendorsPage() {
           isOpen={bookingModalOpen}
           onClose={() => setBookingModalOpen(false)}
           vendor={selectedVendorForBooking}
+          eventId={eventId}
         />
       )}
     </div>

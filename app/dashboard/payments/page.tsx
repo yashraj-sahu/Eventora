@@ -6,6 +6,8 @@ import { useSearchParams } from "next/navigation";
 import { useAuth } from "@/lib/auth-context";
 import { supabase } from "@/lib/supabase";
 import { formatINR } from "@/lib/utils";
+import { BookingLifecyclePanel } from "@/components/booking/BookingLifecyclePanel";
+import { CustomerSupportCases } from "@/components/dashboard/CustomerSupportCases";
 import {
   CreditCard,
   Coins,
@@ -61,6 +63,7 @@ export default function CustomerPaymentsPage() {
   const { user, profile } = useAuth();
   const searchParams = useSearchParams();
   const activeTab = searchParams.get("tab") === "bookings" ? "bookings" : "payments";
+  const selectedBookingId = searchParams.get("bookingId");
   const [payments, setPayments] = useState<PaymentItem[]>([]);
   const [pendingBookings, setPendingBookings] = useState<BookingBalanceItem[]>([]);
   const [bookings, setBookings] = useState<BookingBalanceItem[]>([]);
@@ -146,7 +149,7 @@ export default function CustomerPaymentsPage() {
         </div>
 
         <Link
-          href="/vendors"
+          href="/vendors?returnTo=%2Fdashboard%2Fpayments"
           className="px-4 py-2 rounded-xl bg-[#681B1D] hover:bg-[#4B1117] text-[#FFF3E3] text-xs font-bold uppercase tracking-wider flex items-center gap-1.5 shadow-sm transition-all shrink-0 cursor-pointer"
         >
           <span>Explore Artisans</span>
@@ -162,10 +165,11 @@ export default function CustomerPaymentsPage() {
       {activeTab === "bookings" ? (
         <section className="space-y-4">
           <div><h2 className="text-xl font-serif font-bold">Your vendor bookings</h2><p className="mt-1 text-xs text-[#7D6B63] dark:text-[#D4C3B7]">Statuses and balances are read from your booking records.</p></div>
+          {selectedBookingId && <BookingLifecyclePanel bookingId={selectedBookingId} />}
           {loading ? <p role="status" className="p-10 text-center">Loading bookings…</p> : bookings.length ? <div className="space-y-3">{bookings.map((booking) => {
             const canPay = ["awaiting_payment", "confirmed"].includes(booking.status) && booking.total_amount > booking.paid_amount;
-            return <article key={booking.id} className="p-5 sm:p-6 rounded-2xl bg-[#FFFCF6] dark:bg-[#241918] border border-[#EAD2B0] dark:border-[#4D3331] flex flex-col sm:flex-row sm:items-center justify-between gap-4"><div><span className="text-[10px] text-[#7D6B63] dark:text-[#D4C3B7] font-mono">{booking.booking_reference}</span><h3 className="mt-1 text-lg font-serif font-bold">{booking.vendor_name}</h3><p className="mt-1 text-xs text-[#7D6B63] dark:text-[#D4C3B7]">{booking.vendor_category} · {new Date(`${booking.event_date}T00:00:00`).toLocaleDateString("en-IN", { dateStyle: "medium" })}</p><p className="mt-2 text-xs">Paid {formatINR(booking.paid_amount / 100)} of {formatINR(booking.total_amount / 100)}{canPay ? ` · Balance ${formatINR((booking.total_amount - booking.paid_amount) / 100)}` : ""}</p></div><div className="flex items-center gap-3"><span className="px-3 py-1 rounded-full bg-[#EAD2B0]/50 dark:bg-[#681B1D]/40 text-[10px] font-bold uppercase">{booking.status.replaceAll("_", " ")}</span>{canPay && <Link href={`/checkout?bookingId=${booking.id}`} className="px-4 py-2 rounded-xl bg-[#681B1D] text-white text-xs font-bold">Pay balance</Link>}</div></article>;
-          })}</div> : <div className="p-12 text-center rounded-3xl bg-[#FFFCF6] dark:bg-[#241918] border border-[#EAD2B0] dark:border-[#4D3331]"><h3 className="font-serif text-xl font-bold">No bookings yet</h3><p className="mt-2 text-sm text-[#7D6B63] dark:text-[#D4C3B7]">Discover vendors to request a booking.</p><Link href="/vendors" className="inline-flex mt-4 px-4 py-2 rounded-xl bg-[#681B1D] text-white text-xs font-bold">Discover Vendors</Link></div>}
+            return <article key={booking.id} className="p-5 sm:p-6 rounded-2xl bg-[#FFFCF6] dark:bg-[#241918] border border-[#EAD2B0] dark:border-[#4D3331] flex flex-col sm:flex-row sm:items-center justify-between gap-4"><div><span className="text-[10px] text-[#7D6B63] dark:text-[#D4C3B7] font-mono">{booking.booking_reference}</span><h3 className="mt-1 text-lg font-serif font-bold">{booking.vendor_name}</h3><p className="mt-1 text-xs text-[#7D6B63] dark:text-[#D4C3B7]">{booking.vendor_category} · {new Date(`${booking.event_date}T00:00:00`).toLocaleDateString("en-IN", { dateStyle: "medium" })}</p><p className="mt-2 text-xs">Paid {formatINR(booking.paid_amount / 100)} of {formatINR(booking.total_amount / 100)}{canPay ? ` · Balance ${formatINR((booking.total_amount - booking.paid_amount) / 100)}` : ""}</p></div><div className="flex items-center gap-3"><span className="px-3 py-1 rounded-full bg-[#EAD2B0]/50 dark:bg-[#681B1D]/40 text-[10px] font-bold uppercase">{booking.status.replaceAll("_", " ")}</span><Link href={`/dashboard/payments?tab=bookings&bookingId=${booking.id}`} className="px-4 py-2 rounded-xl border border-[#681B1D] text-[#681B1D] text-xs font-bold">Manage</Link>{canPay && <Link href={`/checkout?bookingId=${booking.id}`} className="px-4 py-2 rounded-xl bg-[#681B1D] text-white text-xs font-bold">Pay balance</Link>}</div></article>;
+          })}</div> : <div className="p-12 text-center rounded-3xl bg-[#FFFCF6] dark:bg-[#241918] border border-[#EAD2B0] dark:border-[#4D3331]"><h3 className="font-serif text-xl font-bold">No bookings yet</h3><p className="mt-2 text-sm text-[#7D6B63] dark:text-[#D4C3B7]">Discover vendors to request a booking.</p><Link href="/vendors?returnTo=%2Fdashboard%2Fpayments" className="inline-flex mt-4 px-4 py-2 rounded-xl bg-[#681B1D] text-white text-xs font-bold">Discover Vendors</Link></div>}
         </section>
       ) : <>
 
@@ -378,6 +382,8 @@ export default function CustomerPaymentsPage() {
           </div>
         )}
       </div>
+
+      <CustomerSupportCases bookings={bookings.map((booking) => ({ id: booking.id, booking_reference: booking.booking_reference, vendor_name: booking.vendor_name }))} />
 
       {/* Receipt Modal */}
       {selectedReceipt && (

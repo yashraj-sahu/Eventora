@@ -1,0 +1,18 @@
+"use client";
+
+import { useEffect, useState } from "react";
+
+type ServiceArea = { id: string; city: string; region: string; created_at: string };
+export function VendorServiceAreasManager() {
+  const [areas, setAreas] = useState<ServiceArea[]>([]);
+  const [city, setCity] = useState("");
+  const [region, setRegion] = useState("");
+  const [error, setError] = useState<string | null>(null);
+  const [busy, setBusy] = useState(false);
+  const load = async () => { const response = await fetch("/api/vendors/service-areas", { cache: "no-store" }); const data = await response.json(); if (!response.ok) throw new Error(data.error || "Service areas could not be loaded."); setAreas(data.serviceAreas ?? []); };
+  useEffect(() => { void load().catch((cause) => setError(cause instanceof Error ? cause.message : "Service areas could not be loaded.")); }, []);
+  const add = async (event: React.FormEvent) => { event.preventDefault(); setBusy(true); setError(null); try { const response = await fetch("/api/vendors/service-areas", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ city, region }) }); const data = await response.json(); if (!response.ok) throw new Error(data.error || "Service area could not be saved."); setCity(""); setRegion(""); await load(); } catch (cause) { setError(cause instanceof Error ? cause.message : "Service area could not be saved."); } finally { setBusy(false); } };
+  const remove = async (id: string) => { setBusy(true); setError(null); try { const response = await fetch("/api/vendors/service-areas", { method: "DELETE", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ id }) }); const data = await response.json(); if (!response.ok) throw new Error(data.error || "Service area could not be removed."); await load(); } catch (cause) { setError(cause instanceof Error ? cause.message : "Service area could not be removed."); } finally { setBusy(false); } };
+  const input = "w-full rounded-xl border border-[#EAD2B0] bg-[#FFF3E3] px-3 py-2.5 text-sm dark:border-[#4D3331] dark:bg-[#1A1211]";
+  return <section className="space-y-4 rounded-3xl border border-[#EAD2B0] bg-[#FFFCF6] p-5 dark:border-[#4D3331] dark:bg-[#241918]"><div><h2 className="font-serif text-2xl font-bold text-[#681B1D] dark:text-[#EAD2B0]">Service areas</h2><p className="mt-1 text-sm text-[#7D6B63]">Add the cities and regions where you accept work. Published service areas can be shown to marketplace customers.</p></div><form onSubmit={(event) => void add(event)} className="grid gap-3 sm:grid-cols-[1fr_1fr_auto]"><label className="text-xs font-semibold">City<input className={`${input} mt-1`} required minLength={2} maxLength={120} value={city} onChange={(event) => setCity(event.target.value)}/></label><label className="text-xs font-semibold">State / region<input className={`${input} mt-1`} maxLength={120} value={region} onChange={(event) => setRegion(event.target.value)}/></label><button disabled={busy} className="self-end rounded-xl bg-[#681B1D] px-4 py-2.5 text-sm font-semibold text-white disabled:opacity-50">Add area</button></form>{error && <p role="alert" className="text-sm text-rose-700">{error}</p>}<ul className="space-y-2">{areas.map((area) => <li key={area.id} className="flex items-center justify-between rounded-xl border border-[#EAD2B0] p-3 text-sm dark:border-[#4D3331]"><span><b>{area.city}</b>{area.region && `, ${area.region}`}</span><button disabled={busy} onClick={() => void remove(area.id)} className="text-xs font-semibold text-rose-700 underline disabled:opacity-50">Remove</button></li>)}{!areas.length && <li className="rounded-xl bg-[#FFF3E3] p-4 text-sm text-[#7D6B63] dark:bg-[#1A1211]">No service areas added yet.</li>}</ul></section>;
+}

@@ -1,0 +1,6 @@
+"use client";
+import Link from "next/link";
+import { useState } from "react";
+import { AdminRecordsTable } from "@/components/admin/AdminRecordsTable";
+const views = [{id:"bookings",label:"Bookings"},{id:"payments",label:"Transactions"},{id:"refunds",label:"Refunds"}];
+export default function BookingsPage(){ const [view,setView]=useState("bookings"); const selected=views.find((item)=>item.id===view)!; return <div className="space-y-5"><nav className="flex flex-wrap items-center gap-2">{views.map((item)=><button key={item.id} onClick={()=>setView(item.id)} className={`rounded-full px-4 py-2 text-sm ${view===item.id?"bg-[#681B1D] text-white":"border border-[#EAD2B0] bg-[#FFFCF6]"}`}>{item.label}</button>)}<Link href="/admin/payments" className="ml-auto text-sm font-semibold text-[#681B1D] underline">Open refund operations</Link></nav><AdminRecordsTable resource={view} title={selected.label} description="Actual booking, captured payment and refund records. Refund execution remains in the existing protected Phase 1 flow." statuses={view==="bookings"?["pending_vendor_confirmation","awaiting_payment","awaiting_quotation","quotation_sent","confirmed","cancellation_requested","cancelled","completed"]:view==="payments"?["created","captured","failed","partially_refunded","refunded"]:["pending","processed","failed"]}/></div>; }

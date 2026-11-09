@@ -76,13 +76,23 @@ export async function POST(request: Request) {
     } else if (event.event === "payment.failed") {
       const entity = event.payload.payment?.entity;
       if (entity) {
-        const { data: payment, error: lookupPaymentError } = await supabase.from("payments").select("id,amount,currency")
+        const { data: payment, error: lookupPaymentError } = await supabase.from("payments").select("id,amount,currency,booking_id")
           .eq("razorpay_order_id", entity.order_id).maybeSingle();
         if (lookupPaymentError || !payment) return jsonError("Matching payment order is not available yet. Razorpay may retry.", 503);
         if (payment.amount !== entity.amount || payment.currency !== entity.currency) return jsonError("Webhook amount or currency does not match the stored order.", 409);
         const { error } = await supabase.from("payments").update({ status: "failed", error_code: entity.error_code || "PAYMENT_FAILED", error_description: entity.error_description || "Transaction failed" })
           .eq("id", payment.id).eq("status", "created");
         if (error) return jsonError("Payment failure could not be recorded. Razorpay may retry.", 503);
+        const { data: booking, error: bookingError } = await supabase.from("bookings").select("id,customer_id,vendor_id,booking_reference").eq("id", payment.booking_id).maybeSingle();
+        if (bookingError || !booking) return jsonError("Payment failure notification could not be reconciled. Razorpay may retry.", 503);
+        for (const [recipient, audience] of [[booking.customer_id, "customer"], [booking.vendor_id, "vendor"]] as const) {
+          const { error: notificationError } = await supabase.rpc("notify_booking_participant", {
+            p_booking_id: booking.id, p_recipient_id: recipient, p_event_type: "payment_failed",
+            p_title: "Payment attempt failed", p_message: `A payment attempt for booking ${booking.booking_reference} was not completed.`,
+            p_dedupe_key: `payment:${payment.id}:failed:${audience}`,
+          });
+          if (notificationError) console.warn("[razorpay-webhook] payment failure notification skipped", { code: notificationError.code });
+        }
       }
     } else if (event.event === "refund.processed") {
       const entity = event.payload.refund?.entity;

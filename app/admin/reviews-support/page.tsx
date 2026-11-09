@@ -1,0 +1,5 @@
+"use client";
+import { useState } from "react";
+import { AdminRecordsTable } from "@/components/admin/AdminRecordsTable";
+import { AdminSupportCases } from "@/components/admin/AdminSupportCases";
+export default function ReviewsSupportPage(){ const [view,setView]=useState("reviews"); return <div className="space-y-5"><nav className="flex gap-2"><button onClick={()=>setView("reviews")} className={`rounded-full px-4 py-2 text-sm ${view==="reviews"?"bg-[#681B1D] text-white":"border border-[#EAD2B0] bg-[#FFFCF6]"}`}>Reviews</button><button onClick={()=>setView("cases")} className={`rounded-full px-4 py-2 text-sm ${view==="cases"?"bg-[#681B1D] text-white":"border border-[#EAD2B0] bg-[#FFFCF6]"}`}>Support cases & reports</button></nav>{view==="reviews"?<AdminRecordsTable resource="reviews" title="Reviews" description="Published customer reviews. Authorized support administrators can hide or restore a review with an audited reason." statuses={["published","hidden"]}/>:<AdminSupportCases/>}</div>; }

@@ -1,10 +1,11 @@
 "use client";
 
-import { useState, useMemo, useEffect } from "react";
+import { useState, useMemo, useEffect, useRef } from "react";
 import Link from "next/link";
 import { Navbar } from "@/components/layout/Navbar";
 import { Footer } from "@/components/layout/Footer";
 import { useMarketplaceVendors } from "@/lib/use-marketplace";
+import { useAuth } from "@/lib/auth-context";
 import { formatINR } from "@/lib/utils";
 import { SearchableSelect, type SelectOption } from "@/components/ui/SearchableSelect";
 import {
@@ -41,6 +42,7 @@ function RoyalFlourishMotif() {
 
 export default function VendorsPage() {
   const { vendors, savedIds, loading, error, toggleSaved } = useMarketplaceVendors();
+  const { roles } = useAuth();
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCity, setSelectedCity] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("");
@@ -50,13 +52,43 @@ export default function VendorsPage() {
   const [bookingModalOpen, setBookingModalOpen] = useState(false);
   const [selectedVendorForBooking, setSelectedVendorForBooking] = useState<VendorItem | null>(null);
   const [eventId, setEventId] = useState<string | undefined>();
+  const [returnTo, setReturnTo] = useState("/dashboard");
+  const [managedCategories, setManagedCategories] = useState<string[]>([]);
+  const restoredPendingBooking = useRef(false);
 
   useEffect(() => {
     const city = new URLSearchParams(window.location.search).get("city");
     if (city) setSelectedCity(city);
     const selectedEventId = new URLSearchParams(window.location.search).get("eventId");
     if (selectedEventId) setEventId(selectedEventId);
+    const requestedReturnTo = new URLSearchParams(window.location.search).get("returnTo");
+    if (requestedReturnTo?.startsWith("/dashboard") && !requestedReturnTo.startsWith("//") && !requestedReturnTo.includes("\\")) setReturnTo(requestedReturnTo);
   }, []);
+
+  useEffect(() => {
+    let active = true;
+    fetch("/api/marketplace/categories", { cache: "no-store" }).then(async (response) => {
+      const data = await response.json();
+      if (response.ok && active) setManagedCategories((data.categories ?? []).map((item: { name: string }) => item.name));
+    }).catch(() => {});
+    return () => { active = false; };
+  }, []);
+
+  useEffect(() => {
+    if (loading || restoredPendingBooking.current || !roles.includes("customer")) return;
+    try {
+      const raw = sessionStorage.getItem("evntora_pending_booking");
+      if (!raw) return;
+      const pending = JSON.parse(raw) as { vendorProfileId?: string; eventId?: string; packageId?: string | null };
+      if (!pending.vendorProfileId) return;
+      const vendor = vendors.find((item) => item.id === pending.vendorProfileId);
+      if (!vendor) return;
+      restoredPendingBooking.current = true;
+      setEventId(pending.eventId);
+      setSelectedVendorForBooking(vendor);
+      setBookingModalOpen(true);
+    } catch { sessionStorage.removeItem("evntora_pending_booking"); }
+  }, [loading, roles, vendors]);
 
   const filteredVendors = useMemo(() => {
     return vendors.filter((v) => {
@@ -78,7 +110,7 @@ export default function VendorsPage() {
   }, [vendors, searchQuery, selectedCity, selectedCategory, selectedService, minimumPrice, maximumPrice]);
 
   const cityOptions: SelectOption[] = [{ value: "", label: "All published cities" }, ...Array.from(new Set(vendors.map((vendor) => vendor.city).filter(Boolean))).sort().map((city) => ({ value: city, label: city }))];
-  const categoryOptions: SelectOption[] = [{ value: "", label: "All published categories" }, ...Array.from(new Set(vendors.map((vendor) => vendor.category).filter(Boolean))).sort().map((category) => ({ value: category, label: category }))];
+  const categoryOptions: SelectOption[] = [{ value: "", label: "All published categories" }, ...Array.from(new Set([...managedCategories, ...vendors.map((vendor) => vendor.category).filter(Boolean)])).sort().map((category) => ({ value: category, label: category }))];
   const serviceOptions: SelectOption[] = [{ value: "", label: "All active services" }, ...Array.from(new Set(vendors.flatMap((vendor) => vendor.services).filter(Boolean))).sort().map((service) => ({ value: service, label: service }))];
 
   const handleResetFilters = () => {
@@ -109,6 +141,7 @@ export default function VendorsPage() {
           <p className="text-[#59453E] dark:text-[#D4C3B7] text-sm sm:text-base max-w-2xl leading-relaxed">
             Discover exceptional venues, photographers, caterers, decorators, and event professionals selected to bring your celebration to life.
           </p>
+          {roles.includes("customer") && <Link href={eventId ? `/dashboard/events/${encodeURIComponent(eventId)}` : returnTo} className="inline-flex items-center gap-2 text-xs font-semibold text-[#681B1D] dark:text-[#EAD2B0] hover:underline"><ArrowRight className="w-3.5 h-3.5 rotate-180"/>Return to {eventId ? "event workspace" : "Customer Dashboard"}</Link>}
         </div>
 
         {/* ── SEARCH & FILTERS BAR ── */}
@@ -301,7 +334,7 @@ export default function VendorsPage() {
                           <span>Book</span>
                         </button>
                         <Link
-                          href={`/vendors/${vendor.id}`}
+                          href={`/vendors/${vendor.id}${eventId || returnTo ? `?${new URLSearchParams({ ...(eventId ? { eventId } : {}), returnTo }).toString()}` : ""}`}
                           className="px-3 py-2 rounded-xl bg-[#FFFCF6] dark:bg-[#1A1211] hover:bg-[#EAD2B0]/30 text-[#30221D] dark:text-[#FFF3E3] border border-[#EAD2B0] dark:border-[#4D3331] text-xs font-semibold transition-all flex items-center gap-1 cursor-pointer shadow-2xs"
                         >
                           <span>Profile</span>

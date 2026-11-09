@@ -27,14 +27,17 @@ export default function VendorDetailPage({ params }: { params: Promise<{ id: str
   const resolvedParams = use(params);
   const searchParams = useSearchParams();
   const eventId = searchParams.get("eventId") ?? undefined;
+  const requestedReturnTo = searchParams.get("returnTo");
   const { vendors, savedIds, loading, error, toggleSaved } = useMarketplaceVendors();
   const vendor = vendors.find((v) => v.id === resolvedParams.id);
-  const { profile: signedInProfile } = useAuth();
+  const { profile: signedInProfile, roles } = useAuth();
   const [bookingModalOpen, setBookingModalOpen] = useState(false);
   const [selectedPackageForModal, setSelectedPackageForModal] = useState<string | undefined>(undefined);
+  const [selectedServiceForModal, setSelectedServiceForModal] = useState<string | undefined>(undefined);
   const [claimMessage, setClaimMessage] = useState("");
   const [claiming, setClaiming] = useState(false);
   const [confirmClaim, setConfirmClaim] = useState(false);
+  const [reviewReportMessage, setReviewReportMessage] = useState("");
 
   if (loading) return <main className="min-h-screen grid place-items-center">Loading vendor…</main>;
   if (error) return <main className="min-h-screen grid place-items-center">Unable to load this vendor right now.</main>;
@@ -49,6 +52,15 @@ export default function VendorDetailPage({ params }: { params: Promise<{ id: str
     setClaimMessage("This listing can only be claimed by an account with its verified business contact email.");
     setClaiming(false);
   };
+  const reportReview = async (reviewId: string) => {
+    if (!signedInProfile) { window.location.assign(`/signin?redirectTo=${encodeURIComponent(`/vendors/${vendor.id}`)}`); return; }
+    const reason = window.prompt("Why are you reporting this review?")?.trim();
+    if (!reason) return;
+    setReviewReportMessage("");
+    const response = await fetch("/api/support/cases", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ caseType: "review_report", reviewId, subject: "Reported vendor review", description: reason }) });
+    const data = await response.json().catch(() => ({}));
+    setReviewReportMessage(response.ok ? "Review report submitted for administrator review." : data.error || "The report could not be submitted.");
+  };
 
   return (
     <div className="min-h-screen flex flex-col bg-[#FFF3E3] dark:bg-[#1A1211] text-[#30221D] dark:text-[#FFF3E3] transition-colors duration-200">
@@ -57,12 +69,13 @@ export default function VendorDetailPage({ params }: { params: Promise<{ id: str
       <main className="flex-1 py-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full space-y-10">
         {/* Back Link */}
         <Link
-          href={eventId ? `/vendors?eventId=${encodeURIComponent(eventId)}` : "/vendors"}
+          href={eventId ? `/vendors?eventId=${encodeURIComponent(eventId)}&returnTo=${encodeURIComponent(requestedReturnTo?.startsWith("/dashboard") ? requestedReturnTo : `/dashboard/events/${eventId}`)}` : "/vendors?returnTo=%2Fdashboard"}
           className="inline-flex items-center gap-2 text-xs font-semibold text-[#30221D]/70 dark:text-[#FFF3E3]/70 hover:text-[#681B1D] dark:hover:text-[#EAD2B0] transition-colors"
         >
           <ArrowLeft className="w-3.5 h-3.5" />
           <span>Back to All Vendors</span>
         </Link>
+        {roles.includes("customer") && <Link href={eventId ? `/dashboard/events/${encodeURIComponent(eventId)}` : requestedReturnTo?.startsWith("/dashboard") ? requestedReturnTo : "/dashboard"} className="-mt-8 inline-flex items-center gap-2 text-xs font-semibold text-[#681B1D] dark:text-[#EAD2B0] hover:underline"><ArrowLeft className="w-3.5 h-3.5"/>Return to {eventId ? "event workspace" : "Customer Dashboard"}</Link>}
         {vendor.claimable && signedInProfile?.role !== "admin" && <div className="flex flex-col items-start gap-2"><button disabled={claiming} onClick={() => setConfirmClaim(true)} className="rounded-xl border border-[#681B1D] dark:border-[#EAD2B0] px-4 py-2 text-xs font-semibold text-[#681B1D] dark:text-[#EAD2B0] hover:bg-[#681B1D]/10 disabled:opacity-50 transition-colors">Claim this business</button>{confirmClaim && <div className="max-w-xl rounded-2xl border border-amber-300 bg-amber-50 dark:bg-[#2A1810] dark:border-amber-600/40 p-4 text-sm text-[#30221D] dark:text-[#FFF3E3]"><p>Claiming associates this listing with your account after we verify that your confirmed email matches the business contact email. Customer access stays available. Continue only if this email belongs to the business.</p><div className="mt-3 flex gap-2"><button disabled={claiming} onClick={() => void claimListing()} className="rounded-lg bg-[#681B1D] hover:bg-[#4B1117] px-3 py-2 text-xs font-semibold text-white transition-colors">{claiming ? "Verifying ownership…" : "Confirm verified claim"}</button><button disabled={claiming} onClick={() => setConfirmClaim(false)} className="rounded-lg border border-[#EAD2B0] dark:border-[#4D3331] px-3 py-2 text-xs">Cancel</button></div></div>}{claimMessage && <span role="status" className="text-xs text-[#B77A36]">{claimMessage}</span>}</div>}
 
         {/* Hero Visual Header */}
@@ -140,7 +153,10 @@ export default function VendorDetailPage({ params }: { params: Promise<{ id: str
               <p className="text-[#30221D] dark:text-[#FFF3E3] text-sm leading-relaxed whitespace-pre-line">
                 {vendor.description}
               </p>
+              {!!vendor.serviceAreas?.length && <p className="text-xs text-[#7D6B63] dark:text-[#D4C3B7]">Service areas: {vendor.serviceAreas.map((area) => `${area.city}${area.region ? `, ${area.region}` : ""}`).join(" · ")}</p>}
             </div>
+
+            {!!vendor.listings?.length && <div className="space-y-4 rounded-3xl border border-[#EAD2B0] bg-[#FFFDF9] p-8 shadow-sm dark:border-[#4D3331] dark:bg-[#231715]"><h2 className="font-serif text-xl font-bold text-[#681B1D] dark:text-[#FFF3E3]">Services and listings</h2><div className="grid gap-3 sm:grid-cols-2">{vendor.listings.map((listing) => <article key={listing.id} className="rounded-2xl border border-[#EAD2B0] p-4 dark:border-[#4D3331]"><span className="text-[10px] font-bold uppercase tracking-wider text-[#B77A36]">{listing.category}{listing.subcategory ? ` · ${listing.subcategory}` : ""}</span><h3 className="mt-1 font-serif text-lg font-bold">{listing.name}</h3><p className="mt-2 text-sm text-[#7D6B63]">{listing.description}</p><div className="mt-3 flex flex-wrap gap-3 text-xs"><span className="font-semibold capitalize">{listing.pricing_model.replaceAll("_", " ")}{listing.starting_price !== null ? ` · ${formatINR(listing.starting_price / 100)}` : ""}</span>{listing.capacity && <span>Capacity: {listing.capacity}</span>}{listing.duration_minutes && <span>{listing.duration_minutes} min</span>}</div>{!!listing.addons?.length && <div className="mt-3 border-t border-[#EAD2B0] pt-3 dark:border-[#4D3331]"><p className="text-xs font-semibold">Optional add-ons</p><ul className="mt-2 space-y-1 text-xs text-[#7D6B63]">{listing.addons.map((addon) => <li key={addon.id}>{addon.name} · {formatINR(addon.price / 100)}{addon.description ? ` — ${addon.description}` : ""}</li>)}</ul><p className="mt-2 text-[10px] text-[#7D6B63]">Final selection and terms are confirmed through the booking quotation.</p></div>}{listing.vendor_service_id && <button onClick={() => { setSelectedServiceForModal(listing.vendor_service_id || undefined); setSelectedPackageForModal(undefined); setBookingModalOpen(true); }} className="mt-4 rounded-xl bg-[#681B1D] px-4 py-2 text-xs font-bold text-white">Request this service</button>}</article>)}</div></div>}
 
             {/* Gallery Images */}
             {vendor.galleryImages.length > 0 && (
@@ -156,6 +172,8 @@ export default function VendorDetailPage({ params }: { params: Promise<{ id: str
                 </div>
               </div>
             )}
+
+            {!!vendor.reviews?.length && <div className="space-y-4 rounded-3xl border border-[#EAD2B0] bg-[#FFFDF9] p-8 shadow-sm dark:border-[#4D3331] dark:bg-[#231715]"><h2 className="font-serif text-xl font-bold text-[#681B1D] dark:text-[#FFF3E3]">Customer reviews</h2>{reviewReportMessage && <p role="status" className="text-sm text-[#715D54]">{reviewReportMessage}</p>}{vendor.reviews.map((review) => <article key={review.id} className="border-b border-[#EAD2B0] pb-4 last:border-0 dark:border-[#4D3331]"><p className="font-semibold text-[#B77A36]">{"★".repeat(review.rating)}{"☆".repeat(5-review.rating)}</p><p className="mt-1 text-sm">{review.review_text}</p>{review.vendor_response && <p className="mt-3 rounded-xl bg-[#FFF3E3] p-3 text-sm dark:bg-[#1A1211]"><b>Vendor response</b><span className="mt-1 block">{review.vendor_response}</span></p>}<button type="button" onClick={() => void reportReview(review.id)} className="mt-2 text-xs text-[#806D63] underline">Report review</button></article>)}</div>}
 
             {/* Services Offered */}
             <div className="p-8 rounded-3xl bg-[#FFFDF9] dark:bg-[#231715] border border-[#EAD2B0] dark:border-[#4D3331] shadow-sm space-y-4">
@@ -197,6 +215,7 @@ export default function VendorDetailPage({ params }: { params: Promise<{ id: str
                         type="button"
                         onClick={() => {
                           setSelectedPackageForModal(pkg.name);
+                          setSelectedServiceForModal(undefined);
                           setBookingModalOpen(true);
                         }}
                         className="px-4 py-2 rounded-xl bg-[#681B1D] hover:bg-[#4B1117] text-[#FFF3E3] text-xs font-bold uppercase tracking-wider flex items-center gap-1.5 cursor-pointer shadow-xs transition-all"
@@ -228,6 +247,7 @@ export default function VendorDetailPage({ params }: { params: Promise<{ id: str
                   type="button"
                   onClick={() => {
                     setSelectedPackageForModal(undefined);
+                    setSelectedServiceForModal(undefined);
                     setBookingModalOpen(true);
                   }}
                   className="w-full py-3 rounded-xl bg-[#681B1D] hover:bg-[#4B1117] text-[#FFF3E3] text-xs font-bold uppercase tracking-wider flex items-center justify-center gap-2 shadow-sm transition-all cursor-pointer"
@@ -270,6 +290,7 @@ export default function VendorDetailPage({ params }: { params: Promise<{ id: str
         onClose={() => setBookingModalOpen(false)}
         vendor={vendor}
         initialPackageName={selectedPackageForModal}
+        initialServiceId={selectedServiceForModal}
         eventId={eventId}
       />
 

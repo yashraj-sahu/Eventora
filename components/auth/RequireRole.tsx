@@ -120,7 +120,7 @@ export function RequireRole({ role, children }: { role: PortalIntent; children: 
                   setEnabling(false);
                   return;
                 }
-                window.location.assign("/dashboard");
+                window.location.assign("/workspaces");
               }}
               className="rounded-full bg-gradient-to-r from-[#681B1D] to-[#4B1117] px-6 py-2.5 text-xs font-semibold text-[#FFF3E3] border border-[#B77A36]/40 shadow-sm disabled:opacity-60 cursor-pointer"
             >

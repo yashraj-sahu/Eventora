@@ -1,232 +1,49 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import {
-  ShieldCheck,
-  Users,
-  Store,
-  AlertTriangle,
-  CheckCircle2,
-  Check,
-  X,
-} from "lucide-react";
+import Link from "next/link";
+import { Activity, CalendarDays, CreditCard, Store, Users, RotateCw } from "lucide-react";
+
+type Metrics = Record<string, number | null>;
+type ActivityItem = { id: number; title: string; body: string; created_at: string; entity_type: string | null; entity_id: string | null };
+const cards: Array<[keyof Metrics, string, string, typeof Users]> = [
+  ["customers", "Customers", "Active customer memberships", Users], ["vendors", "Vendors", "Vendor accounts", Store],
+  ["verifiedVendors", "Verified vendors", "Approved vendor profiles", Store], ["pendingVerifications", "Pending verifications", "Documents awaiting review", Activity],
+  ["activeListings", "Active listings", "Published marketplace listings", Store], ["pendingListings", "Pending listings", "Listings awaiting moderation", Store],
+  ["bookings", "Bookings", "Persisted booking records", CalendarDays], ["confirmedBookings", "Confirmed bookings", "Confirmed or in progress", CalendarDays],
+  ["grossBookingValuePaise", "Gross booking value", "Booking totals · not platform revenue", CreditCard], ["recordedPaymentsPaise", "Captured payment volume", "Gross captured amounts · before refunds", CreditCard],
+  ["outstandingBalancePaise", "Outstanding balances", "Open booking balance estimates", CreditCard], ["refundsPaise", "Refunds recorded", "Pending and completed refund amounts", CreditCard],
+];
+const currency = (paise: number | null | undefined) => paise === null || paise === undefined ? "Restricted" : new Intl.NumberFormat("en-IN", { style: "currency", currency: "INR", maximumFractionDigits: 0 }).format(paise / 100);
 
 export default function AdminOverviewPage() {
-  const [activeTab, setActiveTab] = useState<"vendors" | "events" | "users">(
-    "vendors"
-  );
-
-  const [pendingVendors, setPendingVendors] = useState<Array<{ id: string; business_name: string; business_category: string; city: string; created_at: string; approval_status: string; is_published: boolean }>>([]);
-  const [queueLoading, setQueueLoading] = useState(true);
-  const [queueError, setQueueError] = useState("");
-  const [newListing, setNewListing] = useState({ business_name: "", business_category: "", city: "", address: "", business_description: "", contact_email: "", contact_phone: "" });
-  const loadVendors = async () => {
-    setQueueLoading(true); setQueueError("");
-    try { const response = await fetch("/api/vendors/admin"); const data = await response.json(); if (!response.ok) throw new Error(data.error); setPendingVendors(data.vendors); }
-    catch (cause) { setQueueError(cause instanceof Error ? cause.message : "Unable to load vendor queue"); }
-    finally { setQueueLoading(false); }
-  };
-  useEffect(() => { void loadVendors(); }, []);
-  const updateVendor = async (id: string, action: string) => {
-    const response = await fetch("/api/vendors/admin", { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ id, action }) });
-    if (response.ok) await loadVendors(); else setQueueError("Unable to update vendor listing");
-  };
-  const createListing = async (event: React.FormEvent) => {
-    event.preventDefault(); setQueueError("");
-    const response = await fetch("/api/vendors", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(newListing) });
-    const data = await response.json();
-    if (!response.ok) { setQueueError(data.error || "Unable to create listing"); return; }
-    setNewListing({ business_name: "", business_category: "", city: "", address: "", business_description: "", contact_email: "", contact_phone: "" });
-    await loadVendors();
-  };
-
-  return (
-    <div className="space-y-8 animate-in fade-in duration-200">
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-[#EAD2B0] dark:border-[#4D3331] pb-6">
-        <div className="space-y-1">
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#EAD2B0] dark:bg-[#681B1D]/50 text-[#681B1D] dark:text-[#EAD2B0] text-xs font-semibold border border-[#681B1D]/20 dark:border-[#EAD2B0]/30">
-            <ShieldCheck className="w-3.5 h-3.5 text-[#B77A36] dark:text-[#D4B77D]" />
-            <span>Evntora Platform Governance</span>
-          </div>
-          <h1 className="text-2xl sm:text-4xl font-serif font-bold text-[#681B1D] dark:text-[#F4F0E7]">
-            Admin Master Console
-          </h1>
-          <p className="text-xs text-[#7D6B63] dark:text-[#D4C3B7]">
-            Nationwide operational telemetry, artisan compliance auditing, and celebration oversight
-          </p>
-        </div>
-
-        <div className="flex items-center gap-2">
-          <span className="px-3 py-1.5 rounded-xl bg-[#FFF3E3] dark:bg-[#2E1F1E] border border-[#EAD2B0] dark:border-[#4D3331] text-[#681B1D] dark:text-[#EAD2B0] text-xs font-mono font-semibold">
-            Vendor records: {pendingVendors.length}
-          </span>
-        </div>
-      </div>
-
-      {/* 4 Core Metrics */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <div className="p-5 sm:p-6 rounded-2xl bg-[#FFFCF6] dark:bg-[#2E1F1E] border border-[#EAD2B0] dark:border-[#4D3331] space-y-2 shadow-xs">
-          <span className="text-[#7D6B63] dark:text-[#D4C3B7] text-xs uppercase tracking-wider font-semibold">
-            Gross Merchandise Value (GMV)
-          </span>
-          <div className="text-2xl sm:text-3xl font-serif font-bold text-[#681B1D] dark:text-[#D4B77D]">
-            —
-          </div>
-          <div className="text-[11px] text-[#681B1D] dark:text-[#EAD2B0] flex items-center gap-1 font-semibold">
-            <span>Payment reporting is not connected here.</span>
-          </div>
-        </div>
-
-        <div className="p-5 sm:p-6 rounded-2xl bg-[#FFFCF6] dark:bg-[#2E1F1E] border border-[#EAD2B0] dark:border-[#4D3331] space-y-2 shadow-xs">
-          <span className="text-[#7D6B63] dark:text-[#D4C3B7] text-xs uppercase tracking-wider font-semibold">
-            Active Celebrations
-          </span>
-          <div className="text-2xl sm:text-3xl font-serif font-bold text-[#681B1D] dark:text-[#F4F0E7]">
-            —
-          </div>
-          <span className="text-[11px] text-[#7D6B63] dark:text-[#D4C3B7] block">
-            Across 14 royal hubs
-          </span>
-        </div>
-
-        <div className="p-5 sm:p-6 rounded-2xl bg-[#FFFCF6] dark:bg-[#2E1F1E] border border-[#EAD2B0] dark:border-[#4D3331] space-y-2 shadow-xs">
-          <span className="text-[#7D6B63] dark:text-[#D4C3B7] text-xs uppercase tracking-wider font-semibold">
-            Verified Artisans
-          </span>
-          <div className="text-2xl sm:text-3xl font-serif font-bold text-[#681B1D] dark:text-[#F4F0E7]">
-            {pendingVendors.filter((v) => v.approval_status === "approved" && v.is_published).length} Partners
-          </div>
-          <span className="text-[11px] text-[#681B1D] dark:text-[#EAD2B0] block font-semibold">
-            Approved and published listings
-          </span>
-        </div>
-
-        <div className="p-5 sm:p-6 rounded-2xl bg-[#FFFCF6] dark:bg-[#2E1F1E] border border-[#EAD2B0] dark:border-[#4D3331] space-y-2 shadow-xs">
-          <span className="text-[#7D6B63] dark:text-[#D4C3B7] text-xs uppercase tracking-wider font-semibold">
-            Pending Verifications
-          </span>
-          <div className="text-2xl sm:text-3xl font-serif font-bold text-[#B77A36] dark:text-[#D4B77D]">
-            {pendingVendors.filter((v) => v.approval_status === "pending").length}
-          </div>
-          <span className="text-[11px] text-[#7D6B63] dark:text-[#D4C3B7] block">
-            Requires compliance audit
-          </span>
-        </div>
-      </div>
-
-      {/* Tabs */}
-      <div className="flex items-center gap-2 border-b border-[#EAD2B0] dark:border-[#4D3331] pb-3">
-        {(["vendors", "events", "users"] as const).map((tab) => (
-          <button
-            key={tab}
-            onClick={() => setActiveTab(tab)}
-            className={`px-4 py-2 rounded-xl text-xs font-semibold capitalize transition-all cursor-pointer ${
-              activeTab === tab
-                ? "bg-[#681B1D] text-[#FFF3E3] dark:bg-[#2E1F1E] dark:text-[#EAD2B0] shadow-xs"
-                : "text-[#7D6B63] dark:text-[#D4C3B7] hover:text-[#681B1D] dark:hover:text-[#F4F0E7] hover:bg-[#EAD2B0]/50 dark:hover:bg-[#241918]"
-            }`}
-          >
-            {tab === "vendors"
-              ? "Vendor Approval Queue"
-              : tab === "events"
-              ? "Active Celebrations"
-              : "Registered Users"}
-          </button>
-        ))}
-      </div>
-
-      {/* Pending Vendors Tab */}
-      {activeTab === "vendors" && (
-        <div className="space-y-4">
-          <form onSubmit={createListing} className="grid gap-3 rounded-2xl border border-[#EAD2B0] dark:border-[#4D3331] bg-[#FFFCF6] dark:bg-[#2E1F1E] p-5 sm:grid-cols-2 lg:grid-cols-4">
-            <input required maxLength={160} placeholder="Business name" value={newListing.business_name} onChange={(e) => setNewListing({ ...newListing, business_name: e.target.value })} className="rounded-xl border border-[#EAD2B0] bg-[#FFF3E3] px-3 py-2 text-sm" />
-            <input required maxLength={80} placeholder="Category (custom allowed)" value={newListing.business_category} onChange={(e) => setNewListing({ ...newListing, business_category: e.target.value })} className="rounded-xl border border-[#EAD2B0] bg-[#FFF3E3] px-3 py-2 text-sm" />
-            <input required maxLength={120} placeholder="City / region" value={newListing.city} onChange={(e) => setNewListing({ ...newListing, city: e.target.value })} className="rounded-xl border border-[#EAD2B0] bg-[#FFF3E3] px-3 py-2 text-sm" />
-            <input maxLength={300} placeholder="Business address" value={newListing.address} onChange={(e) => setNewListing({ ...newListing, address: e.target.value })} className="rounded-xl border border-[#EAD2B0] bg-[#FFF3E3] px-3 py-2 text-sm" />
-            <input type="email" placeholder="Verified business email (for claims)" value={newListing.contact_email} onChange={(e) => setNewListing({ ...newListing, contact_email: e.target.value })} className="rounded-xl border border-[#EAD2B0] bg-[#FFF3E3] px-3 py-2 text-sm" />
-            <input placeholder="Phone" value={newListing.contact_phone} onChange={(e) => setNewListing({ ...newListing, contact_phone: e.target.value })} className="rounded-xl border border-[#EAD2B0] bg-[#FFF3E3] px-3 py-2 text-sm" />
-            <textarea maxLength={5000} placeholder="Business description" value={newListing.business_description} onChange={(e) => setNewListing({ ...newListing, business_description: e.target.value })} className="rounded-xl border border-[#EAD2B0] bg-[#FFF3E3] px-3 py-2 text-sm lg:col-span-2" />
-            <button className="rounded-xl bg-[#681B1D] px-3 py-2 text-xs font-semibold text-white">Add unclaimed listing</button>
-          </form>
-          <div className="flex items-center justify-between">
-            <h2 className="text-lg font-serif font-bold text-[#681B1D] dark:text-[#F4F0E7]">
-              Artisan Verification Desk
-            </h2>
-            <span className="text-xs text-[#7D6B63] dark:text-[#D4C3B7]">
-              {pendingVendors.length} listings logged
-            </span>
-          </div>
-
-          <div className="space-y-3">
-            {queueLoading ? <p className="p-8 text-center">Loading vendor listings…</p> : queueError ? <p className="p-8 text-center text-rose-600">{queueError}</p> : pendingVendors.length === 0 ? <p className="p-8 text-center text-[#7D6B63]">No vendor listings yet.</p> : pendingVendors.map((vendor) => (
-              <div
-                key={vendor.id}
-                className="p-5 sm:p-6 rounded-2xl bg-[#FFFCF6] dark:bg-[#2E1F1E] border border-[#EAD2B0] dark:border-[#4D3331] flex flex-col sm:flex-row sm:items-center justify-between gap-4 shadow-xs"
-              >
-                <div className="space-y-1">
-                  <div className="flex items-center gap-2">
-                    <h3 className="text-base font-serif font-bold text-[#681B1D] dark:text-[#F4F0E7]">
-                      {vendor.business_name}
-                    </h3>
-                    <span className="text-[10px] px-2 py-0.5 rounded-full bg-[#EAD2B0] dark:bg-[#681B1D]/50 text-[#681B1D] dark:text-[#EAD2B0] font-semibold">
-                      {vendor.business_category}
-                    </span>
-                  </div>
-                  <div className="flex flex-wrap items-center gap-4 text-xs text-[#7D6B63] dark:text-[#D4C3B7]">
-                    <span>Location: {vendor.city}</span>
-                    <span>•</span>
-                    <span>Applied: {new Date(vendor.created_at).toLocaleDateString()}</span>
-                    <span>•</span>
-                    <span>Status: {vendor.approval_status}{vendor.is_published ? " · published" : " · hidden"}</span>
-                  </div>
-                </div>
-
-                <div className="flex items-center gap-2 shrink-0">
-                  {vendor.approval_status === "approved" ? <button onClick={() => void updateVendor(vendor.id, "suspend")} className="px-3.5 py-1.5 rounded-xl text-rose-600 text-xs font-medium">Suspend listing</button> : <>
-                      <button
-                        onClick={() => void updateVendor(vendor.id, "approve")}
-                        className="px-3.5 py-1.5 rounded-xl bg-[#681B1D] hover:bg-[#4B1117] text-[#FFF3E3] text-xs font-semibold transition-all flex items-center gap-1.5 cursor-pointer"
-                      >
-                        <Check className="w-3.5 h-3.5 text-[#B77A36]" />
-                        <span>Approve Partner</span>
-                      </button>
-                      <button
-                        onClick={() => void updateVendor(vendor.id, "reject")}
-                        className="px-3.5 py-1.5 rounded-xl text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/20 text-xs font-medium transition-all cursor-pointer"
-                      >
-                        Reject
-                      </button>
-                  </>}
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
-
-      {/* Events Tab */}
-      {activeTab === "events" && (
-        <div className="p-6 rounded-2xl bg-[#FFFCF6] dark:bg-[#2E1F1E] border border-[#EAD2B0] dark:border-[#4D3331] space-y-4">
-          <h2 className="text-lg font-serif font-bold text-[#681B1D] dark:text-[#F4F0E7]">
-            Nationwide Event Blueprint Telemetry
-          </h2>
-          <p className="text-xs text-[#7D6B63] dark:text-[#D4C3B7]">
-            Monitoring real-time milestones, venue locks, and culinary vendor contracts across India.
-          </p>
-        </div>
-      )}
-
-      {/* Users Tab */}
-      {activeTab === "users" && (
-        <div className="p-6 rounded-2xl bg-[#FFFCF6] dark:bg-[#2E1F1E] border border-[#EAD2B0] dark:border-[#4D3331] space-y-4">
-          <h2 className="text-lg font-serif font-bold text-[#681B1D] dark:text-[#F4F0E7]">
-            Platform Member Accounts
-          </h2>
-          <p className="text-xs text-[#7D6B63] dark:text-[#D4C3B7]">
-            Supabase Auth synchronized user records with role-based access control.
-          </p>
-        </div>
-      )}
+  const [metrics, setMetrics] = useState<Metrics | null>(null);
+  const [activity, setActivity] = useState<ActivityItem[]>([]);
+  const [permissions, setPermissions] = useState<string[]>([]);
+  const [isOwner, setIsOwner] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+  const [from, setFrom] = useState("");
+  const [to, setTo] = useState("");
+  useEffect(() => {
+    let active = true;
+    const params = new URLSearchParams(); if (from) params.set("from", new Date(from).toISOString()); if (to) params.set("to", new Date(`${to}T23:59:59`).toISOString());
+    setLoading(true); setError("");
+    fetch(`/api/admin/dashboard?${params}`, { cache: "no-store" }).then(async (response) => { const data = await response.json(); if (!response.ok) throw new Error(data.error || "Dashboard data is unavailable."); if (active) { setMetrics(data.metrics); setActivity(data.recentActivity ?? []); setPermissions(data.permissions ?? []); setIsOwner(Boolean(data.isOwner)); } }).catch((cause) => { if (active) setError(cause instanceof Error ? cause.message : "Dashboard data is unavailable."); }).finally(() => { if (active) setLoading(false); });
+    return () => { active = false; };
+  }, [from, to]);
+  const quickLinks = [
+    { label: "Review marketplace", href: "/admin/marketplace", allowed: isOwner || permissions.some((permission) => ["vendor_read", "vendor_verification", "listing_moderation"].includes(permission)) },
+    { label: "View bookings", href: "/admin/bookings", allowed: isOwner || permissions.some((permission) => ["booking_support", "finance_read"].includes(permission)) },
+    { label: "Open analytics", href: "/admin/analytics", allowed: isOwner || permissions.some((permission) => ["analytics_finance", "user_read", "vendor_read", "finance_read"].includes(permission)) },
+    { label: "Manage administrators", href: "/admin/administrators", allowed: isOwner },
+  ].filter((link) => link.allowed);
+  return <div className="space-y-8">
+    <header className="flex flex-wrap items-end justify-between gap-4"><div><p className="text-xs font-semibold uppercase tracking-[.2em] text-[#B77A36]">Platform Overview</p><h1 className="mt-2 font-serif text-3xl sm:text-4xl font-bold text-[#681B1D] dark:text-[#EAD2B0]">Admin Dashboard</h1><p className="mt-2 text-sm text-[#715D54] dark:text-[#D4C3B7]">Current platform activity from authorized Evntora records.</p></div><div className="flex flex-wrap items-center gap-2"><label className="text-xs">From <input type="date" value={from} onChange={(event)=>setFrom(event.target.value)} className="ml-1 rounded-lg border border-[#EAD2B0] bg-white px-2 py-2"/></label><label className="text-xs">To <input type="date" value={to} onChange={(event)=>setTo(event.target.value)} className="ml-1 rounded-lg border border-[#EAD2B0] bg-white px-2 py-2"/></label></div></header>
+    {error && <div role="alert" className="rounded-2xl border border-red-200 bg-red-50 p-4 text-sm text-red-800">{error}</div>}
+    <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">{cards.map(([key,label,caption,Icon])=><article key={key} className="rounded-2xl border border-[#EAD2B0] bg-[#FFFCF6] p-5 shadow-sm dark:border-[#4D3331] dark:bg-[#241918]"><div className="flex items-center justify-between"><p className="text-xs font-semibold uppercase tracking-wider text-[#806D63]">{label}</p><Icon size={18} className="text-[#B77A36]"/></div><p className="mt-4 font-serif text-3xl font-bold text-[#681B1D] dark:text-[#EAD2B0]">{loading ? "…" : key.toString().toLowerCase().includes("paise") ? currency(metrics?.[key]) : metrics?.[key] === null || metrics?.[key] === undefined ? "Restricted" : Number(metrics[key]).toLocaleString("en-IN")}</p><p className="mt-2 text-xs text-[#806D63]">{caption}</p></article>)}</div>
+    <div className="grid gap-5 xl:grid-cols-[1.4fr_1fr]"><section className="rounded-2xl border border-[#EAD2B0] bg-[#FFFCF6] p-5 dark:border-[#4D3331] dark:bg-[#241918]"><div className="mb-4 flex items-center justify-between"><div><h2 className="font-serif text-xl font-bold text-[#681B1D] dark:text-[#EAD2B0]">Recent platform activity</h2><p className="mt-1 text-xs text-[#806D63]">Events visible to your assigned administrative permissions.</p></div><Activity size={18} className="text-[#B77A36]"/></div>{loading ? <p className="py-8 text-sm text-[#806D63]">Loading activity…</p> : activity.length ? <ul className="divide-y divide-[#EAD2B0] dark:divide-[#4D3331]">{activity.map((item)=><li key={item.id} className="py-3"><p className="text-sm font-semibold">{item.title}</p><p className="mt-1 text-xs text-[#806D63]">{item.body}</p><time className="mt-1 block text-[11px] text-[#9A887F]">{new Date(item.created_at).toLocaleString("en-IN")}</time></li>)}</ul> : <div className="rounded-xl bg-[#FFF3E3] p-6 text-sm text-[#806D63] dark:bg-[#1A1211]">No recent activity is recorded for your permissions.</div>}</section>
+      <section className="rounded-2xl border border-[#EAD2B0] bg-[#FFFCF6] p-5 dark:border-[#4D3331] dark:bg-[#241918]"><h2 className="font-serif text-xl font-bold text-[#681B1D] dark:text-[#EAD2B0]">Quick access</h2><div className="mt-4 grid gap-2">{quickLinks.map(({label,href})=><Link key={href} href={href} className="flex items-center justify-between rounded-xl border border-[#EAD2B0] px-4 py-3 text-sm hover:bg-[#FFF3E3] dark:border-[#4D3331] dark:hover:bg-[#342322]">{label}<RotateCw size={14}/></Link>)}</div><p className="mt-4 text-xs text-[#806D63]">Financial measures distinguish booking value from captured payments and refunds.</p></section>
     </div>
-  );
+  </div>;
 }

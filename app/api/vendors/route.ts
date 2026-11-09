@@ -16,26 +16,36 @@ export async function GET(request: Request) {
   if (error) return NextResponse.json({ error: "Unable to load vendors" }, { status: 500 });
   const ids = (vendors ?? []).map((v) => v.id);
   if (!ids.length) return NextResponse.json({ vendors: [] });
-  const [services, packages, portfolio] = await Promise.all([
+  const [services, packages, portfolio, listings, areas, reviews] = await Promise.all([
     supabase.from("vendor_services").select("*").in("vendor_profile_id", ids).eq("is_active", true).order("sort_order"),
     supabase.from("vendor_packages").select("*").in("vendor_profile_id", ids).eq("is_active", true).order("sort_order"),
     supabase.from("vendor_portfolio").select("*").in("vendor_profile_id", ids).order("sort_order"),
+    supabase.from("vendor_listings").select("id,vendor_profile_id,vendor_service_id,name,category,subcategory,description,pricing_model,starting_price,capacity,duration_minutes,booking_requirements,terms").in("vendor_profile_id", ids).eq("status", "published").order("created_at", { ascending: false }),
+    supabase.from("vendor_service_areas").select("vendor_profile_id,city,region").in("vendor_profile_id", ids).order("city"),
+    supabase.from("vendor_reviews").select("id,vendor_profile_id,rating,review_text,vendor_response,created_at").in("vendor_profile_id", ids).order("created_at", { ascending: false }).limit(1000),
   ]);
-  if (services.error || packages.error || portfolio.error) return NextResponse.json({ error: "Unable to load vendor details" }, { status: 500 });
+  const listingIds = (listings.data ?? []).map((listing) => listing.id);
+  const { data: addons, error: addonError } = listingIds.length ? await supabase.from("vendor_listing_addons").select("id,listing_id,name,description,price").in("listing_id", listingIds).eq("is_active", true) : { data: [], error: null };
+  if (services.error || packages.error || portfolio.error || listings.error || areas.error || reviews.error || addonError) return NextResponse.json({ error: "Unable to load vendor details" }, { status: 500 });
   return NextResponse.json({ vendors: (vendors ?? []).map((vendor) => ({
     ...vendor,
     vendor_services: (services.data ?? []).filter((item) => item.vendor_profile_id === vendor.id),
     vendor_packages: (packages.data ?? []).filter((item) => item.vendor_profile_id === vendor.id),
     vendor_portfolio: (portfolio.data ?? []).filter((item) => item.vendor_profile_id === vendor.id),
+    vendor_listings: (listings.data ?? []).filter((item) => item.vendor_profile_id === vendor.id).map((listing) => ({ ...listing, addons: (addons ?? []).filter((addon) => addon.listing_id === listing.id) })),
+    vendor_service_areas: (areas.data ?? []).filter((item) => item.vendor_profile_id === vendor.id),
+    vendor_reviews: (reviews.data ?? []).filter((item) => item.vendor_profile_id === vendor.id),
+    rating: (reviews.data ?? []).filter((item) => item.vendor_profile_id === vendor.id).length ? (reviews.data ?? []).filter((item) => item.vendor_profile_id === vendor.id).reduce((sum, item) => sum + item.rating, 0) / (reviews.data ?? []).filter((item) => item.vendor_profile_id === vendor.id).length : null,
+    review_count: (reviews.data ?? []).filter((item) => item.vendor_profile_id === vendor.id).length,
   })) });
 }
 
 export async function POST(request: Request) {
   const { user, supabase, error: authError } = await getAuthenticatedUser(request);
   if (!user || authError) return NextResponse.json({ error: "Sign in required" }, { status: 401 });
-  const { data: roles, error: roleError } = await supabase.from("user_roles").select("role").eq("user_id", user.id).eq("is_active", true);
+  const { data: canReviewVendors, error: roleError } = await supabase.rpc("has_admin_permission", { p_permission: "vendor_verification" });
   if (roleError) return NextResponse.json({ error: "Account access could not be verified" }, { status: 503 });
-  if (!roles?.some((item) => item.role === "admin" || item.role === "platform_owner")) return NextResponse.json({ error: "Administrator access required" }, { status: 403 });
+  if (!canReviewVendors) return NextResponse.json({ error: "Vendor verification permission required" }, { status: 403 });
   let body: Record<string, unknown>;
   try { body = await request.json(); } catch { return NextResponse.json({ error: "Invalid JSON" }, { status: 400 }); }
   const businessName = typeof body.business_name === "string" ? body.business_name.trim() : "";

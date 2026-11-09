@@ -1,7 +1,8 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
-import { getAuthenticatedUser, createAdminSupabaseClient } from "@/lib/supabase-server";
+import { createAdminSupabaseClient } from "@/lib/supabase-server";
 import { processRazorpayRefund } from "@/lib/razorpay-server";
+import { requireAdminPermission } from "@/lib/admin-access";
 
 const refundInput = z.object({
   paymentId: z.string().uuid(),
@@ -19,11 +20,9 @@ function parseReservation(value: unknown): RefundReservation | null {
 }
 
 export async function POST(request: Request) {
-  const { user, supabase: sessionClient, error: authError } = await getAuthenticatedUser(request);
-  if (!user || authError) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  const { data: roles, error: roleError } = await sessionClient.from("user_roles").select("role").eq("user_id", user.id).eq("is_active", true);
-  if (roleError) return NextResponse.json({ error: "Account access could not be verified." }, { status: 503 });
-  if (!roles?.some((item) => item.role === "admin" || item.role === "platform_owner")) return NextResponse.json({ error: "Administrator access is required to issue refunds." }, { status: 403 });
+  const access = await requireAdminPermission("refund_issue", request);
+  if (!access.ok) return NextResponse.json({ error: access.error }, { status: access.status });
+  const user = access.user;
 
   const parsed = refundInput.safeParse(await request.json().catch(() => null));
   if (!parsed.success) return NextResponse.json({ error: "Provide a valid payment, refund amount and request key." }, { status: 400 });
@@ -43,6 +42,22 @@ export async function POST(request: Request) {
     }
     const reservation = parseReservation(data);
     if (!reservation) return NextResponse.json({ error: "Refund reservation could not be read." }, { status: 503 });
+    if (reservation.status === "reserved") {
+      const { data: refundContext, error: refundContextError } = await supabase.from("refunds").select("booking_id").eq("id", reservation.refundId).maybeSingle();
+      if (!refundContextError && refundContext) {
+        const { data: booking } = await supabase.from("bookings").select("id,customer_id,vendor_id,booking_reference").eq("id", refundContext.booking_id).maybeSingle();
+        if (booking) {
+          for (const [recipient, audience] of [[booking.customer_id, "customer"], [booking.vendor_id, "vendor"]] as const) {
+            const { error: notificationError } = await supabase.rpc("notify_booking_participant", {
+              p_booking_id: booking.id, p_recipient_id: recipient, p_event_type: "refund_initiated",
+              p_title: "Refund initiated", p_message: `A refund request was initiated for booking ${booking.booking_reference}.`,
+              p_dedupe_key: `refund:${reservation.refundId}:initiated:${audience}`,
+            });
+            if (notificationError) console.warn("[payment-refund] initiation notification skipped", { code: notificationError.code });
+          }
+        }
+      }
+    }
     if (reservation.status === "processed") return NextResponse.json({ success: true, refundId: reservation.providerRefundId, amount: reservation.amount, status: "processed", idempotent: true });
     if (reservation.status === "pending") return NextResponse.json({ success: true, refundId: reservation.providerRefundId, amount: reservation.amount, status: "pending", message: "This refund request is already reserved and will not be submitted twice." }, { status: 202 });
     if (reservation.status === "failed") return NextResponse.json({ error: "This request key was already used for a failed refund. Reconcile it before starting a new request." }, { status: 409 });

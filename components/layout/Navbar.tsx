@@ -17,6 +17,7 @@ import {
   CalendarCheck,
 } from "lucide-react";
 import { useAuth } from "@/lib/auth-context";
+import { authorizedWorkspaces, rememberWorkspace, portalHome } from "@/lib/portal-routing";
 import { ThemeToggle } from "@/components/ui/ThemeToggle";
 
 const navLinks = [
@@ -51,7 +52,7 @@ const portalLinks = [
 ];
 
 function AccountMenu({ onClose }: { onClose: () => void }) {
-  const { profile, roles, signOut } = useAuth();
+  const { user, profile, roles, vendorProfile, signOut } = useAuth();
 
   const handleSignOut = async () => {
     onClose();
@@ -59,13 +60,16 @@ function AccountMenu({ onClose }: { onClose: () => void }) {
     window.location.assign("/");
   };
 
-  const portalHref = roles.includes("customer")
+  const homeHref = roles.includes("customer")
     ? "/dashboard"
     : roles.includes("vendor")
     ? "/vendor-portal"
     : roles.some((role) => role === "admin" || role === "platform_owner")
     ? "/admin"
     : "/signin";
+  const workspaces = authorizedWorkspaces(roles);
+  const portalHref = workspaces.length > 1 ? "/workspaces" : homeHref;
+  const settingsHref = roles.includes("customer") ? "/dashboard/settings" : roles.includes("vendor") ? "/vendor-portal/settings" : "/admin";
 
   return (
     <div className="absolute right-0 mt-2 w-64 bg-[#FFF3E3] dark:bg-[#2E1F1E] rounded-2xl shadow-xl border border-[#EAD2B0] dark:border-[#4D3331] py-2 z-50 animate-in fade-in zoom-in-95 duration-150">
@@ -93,7 +97,7 @@ function AccountMenu({ onClose }: { onClose: () => void }) {
         <span>My Dashboard</span>
       </Link>
       <Link
-        href={`${portalHref}/settings`}
+        href={settingsHref}
         onClick={onClose}
         className="flex items-center gap-2.5 px-4 py-2.5 text-xs font-semibold text-[#30221D] dark:text-[#FFF3E3] hover:text-[#681B1D] dark:hover:text-[#EAD2B0] hover:bg-[#EAD2B0]/30 dark:hover:bg-[#3D2624] transition-colors"
       >
@@ -101,12 +105,12 @@ function AccountMenu({ onClose }: { onClose: () => void }) {
         <span>Account Settings</span>
       </Link>
 
-      {roles.filter((role) => role === "customer" || role === "vendor" || role === "admin" || role === "platform_owner").length > 1 && (
+      {workspaces.length > 1 && (
         <div className="border-t border-[#EAD2B0] dark:border-[#4D3331] mt-1 pt-1">
           <p className="px-4 py-1 text-[10px] font-bold uppercase tracking-wider text-[#B77A36] dark:text-[#EAD2B0]">Switch workspace</p>
-          {roles.includes("customer") && <Link href="/dashboard" onClick={onClose} className="block px-4 py-2 text-xs font-medium text-[#30221D] dark:text-[#FFF3E3] hover:bg-[#EAD2B0]/30 dark:hover:bg-[#3D2624]">Customer Workspace</Link>}
-          {roles.includes("vendor") && <Link href="/vendor-portal" onClick={onClose} className="block px-4 py-2 text-xs font-medium text-[#30221D] dark:text-[#FFF3E3] hover:bg-[#EAD2B0]/30 dark:hover:bg-[#3D2624]">Vendor Hub</Link>}
-          {(roles.includes("admin") || roles.includes("platform_owner")) && <Link href="/admin" onClick={onClose} className="block px-4 py-2 text-xs font-medium text-[#30221D] dark:text-[#FFF3E3] hover:bg-[#EAD2B0]/30 dark:hover:bg-[#3D2624]">Admin Desk</Link>}
+          {roles.includes("customer") && <Link href="/dashboard" onClick={() => { if (user) rememberWorkspace("customer", user.id); onClose(); }} className="block px-4 py-2 text-xs font-medium text-[#30221D] dark:text-[#FFF3E3] hover:bg-[#EAD2B0]/30 dark:hover:bg-[#3D2624]">Customer Workspace</Link>}
+          {roles.includes("vendor") && <Link href={portalHome("vendor", vendorProfile?.approval_status === "approved")} onClick={() => { if (user) rememberWorkspace("vendor", user.id); onClose(); }} className="block px-4 py-2 text-xs font-medium text-[#30221D] dark:text-[#FFF3E3] hover:bg-[#EAD2B0]/30 dark:hover:bg-[#3D2624]">Vendor Hub</Link>}
+          {(roles.includes("admin") || roles.includes("platform_owner")) && <Link href="/admin" onClick={() => { if (user) rememberWorkspace("admin", user.id); onClose(); }} className="block px-4 py-2 text-xs font-medium text-[#30221D] dark:text-[#FFF3E3] hover:bg-[#EAD2B0]/30 dark:hover:bg-[#3D2624]">Admin Desk</Link>}
         </div>
       )}
 
@@ -165,7 +169,18 @@ function PortalsDropdown({ onClose }: { onClose: () => void }) {
 
 export function Navbar() {
   const pathname = usePathname();
-  const { user, profile, roles, isLoading, signOut } = useAuth();
+  const { user, profile, roles, vendorProfile, isLoading, signOut } = useAuth();
+  const workspaces = authorizedWorkspaces(roles);
+  const homeHref = workspaces.length === 1 ? portalHome(workspaces[0], vendorProfile?.approval_status === "approved") : "/dashboard";
+  const activeEventId = pathname.match(/^\/dashboard\/events\/([^/]+)/)?.[1];
+  const dashboardReturnTo = activeEventId ? `/dashboard/events/${activeEventId}` : "/dashboard";
+  const contextualNavHref = (href: string) => {
+    if (!pathname.startsWith("/dashboard") || (href !== "/planner" && href !== "/vendors")) return href;
+    const query = new URLSearchParams({ returnTo: dashboardReturnTo });
+    if (activeEventId && href === "/vendors") query.set("eventId", activeEventId);
+    if (activeEventId && href === "/planner") query.set("eventId", activeEventId);
+    return `${href}?${query.toString()}`;
+  };
   const [scrolled, setScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [accountMenuOpen, setAccountMenuOpen] = useState(false);
@@ -245,7 +260,7 @@ export function Navbar() {
               return (
                 <Link
                   key={link.href}
-                  href={link.href}
+                  href={contextualNavHref(link.href)}
                   className={`text-xs xl:text-[13px] font-semibold transition-colors py-1.5 px-1 relative ${
                     isActive
                       ? "text-[#681B1D] dark:text-[#EAD2B0]"
@@ -367,7 +382,7 @@ export function Navbar() {
             {navLinks.map((link) => (
               <Link
                 key={link.href}
-                href={link.href}
+                href={contextualNavHref(link.href)}
                 onClick={() => setMobileMenuOpen(false)}
                 className="flex items-center justify-between px-3 py-2.5 rounded-lg text-sm font-medium text-[#30221D] dark:text-[#FFF3E3] hover:bg-[#EAD2B0]/30 hover:text-[#681B1D] transition-colors"
               >
@@ -405,6 +420,7 @@ export function Navbar() {
 
           <div className="pt-3 border-t border-[#EAD2B0] dark:border-[#4D3331] space-y-2">
             {isAuthenticated ? (
+              <>
               <div className="flex items-center justify-between px-3 py-2.5 rounded-xl bg-[#FFFCF6] dark:bg-[#2E1F1E] border border-[#EAD2B0] dark:border-[#4D3331]">
                 <div className="flex items-center gap-2">
                   <div className="w-7 h-7 rounded-full bg-[#681B1D] flex items-center justify-center text-[#FFF3E3] font-bold text-xs">
@@ -427,6 +443,9 @@ export function Navbar() {
                   Sign out
                 </button>
               </div>
+              <Link href={workspaces.length > 1 ? "/workspaces" : homeHref} onClick={() => setMobileMenuOpen(false)} className="block px-3 py-2 text-xs font-semibold text-[#681B1D] dark:text-[#EAD2B0]">My Dashboard</Link>
+              {workspaces.length > 1 && workspaces.map((workspace) => <Link key={workspace} href={portalHome(workspace, vendorProfile?.approval_status === "approved")} onClick={() => { if (user) rememberWorkspace(workspace, user.id); setMobileMenuOpen(false); }} className="block px-3 py-2 text-xs font-medium text-[#59453E] dark:text-[#D4C3B7] hover:text-[#681B1D]">Switch to {workspace === "customer" ? "Customer Workspace" : workspace === "vendor" ? "Vendor Hub" : "Admin Desk"}</Link>)}
+              </>
             ) : (
               <Link
                 href="/signin"

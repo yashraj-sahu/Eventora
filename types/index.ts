@@ -160,6 +160,7 @@ export interface Vendor {
   shortBio: string;
   description: string;
   services: string[];
+  serviceOptions?: { id: string; name: string; description: string | null }[];
   experienceYears: number;
   pastEventsCount: number;
   contactPhone: string;
@@ -171,6 +172,9 @@ export interface Vendor {
     price: number;
     features: string[];
   }[];
+  listings?: MarketplaceVendorListing[];
+  serviceAreas?: Array<{ city: string; region: string }>;
+  reviews?: Array<{ id: string; rating: number; review_text: string; vendor_response: string | null; created_at: string }>;
 }
 
 export type VendorItem = Vendor;
@@ -205,6 +209,18 @@ export interface MarketplaceVendor {
   vendor_services?: MarketplaceVendorService[];
   vendor_packages?: MarketplaceVendorPackage[];
   vendor_portfolio?: MarketplaceVendorPortfolio[];
+  vendor_listings?: MarketplaceVendorListing[];
+  vendor_service_areas?: Array<{ vendor_profile_id: string; city: string; region: string }>;
+  vendor_reviews?: Array<{ id: string; vendor_profile_id: string; rating: number; review_text: string; vendor_response: string | null; created_at: string }>;
+  rating?: number | null;
+  review_count?: number;
+}
+
+export interface MarketplaceVendorListing {
+  id: string; vendor_profile_id: string; vendor_service_id: string | null; name: string; category: string; subcategory: string | null; description: string;
+  pricing_model: "fixed" | "starting_at" | "custom_quote"; starting_price: number | null; capacity: number | null;
+  duration_minutes: number | null; booking_requirements: string | null; terms: string | null;
+  addons?: Array<{ id: string; listing_id: string; name: string; description: string | null; price: number }>;
 }
 
 export interface MarketplaceVendorService {
@@ -248,8 +264,8 @@ export function marketplaceVendorToLegacy(mv: MarketplaceVendor): VendorItem {
     name: mv.business_name,
     category: mv.business_category as VendorCategory,
     city: mv.city,
-    rating: null,
-    reviewCount: null,
+    rating: mv.rating ?? null,
+    reviewCount: mv.review_count ?? null,
     priceRange: mv.price_range,
     startingPrice: mv.starting_price > 0 ? mv.starting_price : null,
     priceUnit: (mv.price_unit || "per event") as Vendor["priceUnit"],
@@ -260,6 +276,7 @@ export function marketplaceVendorToLegacy(mv: MarketplaceVendor): VendorItem {
     shortBio: mv.short_bio || mv.business_description?.slice(0, 120) || "",
     description: mv.business_description || "",
     services: mv.vendor_services?.map((s) => s.name) || [],
+    serviceOptions: mv.vendor_services?.map((service) => ({ id: service.id, name: service.name, description: service.description })) || [],
     experienceYears: mv.experience_years,
     pastEventsCount: mv.past_events_count,
     contactPhone: mv.contact_phone || "",
@@ -272,6 +289,9 @@ export function marketplaceVendorToLegacy(mv: MarketplaceVendor): VendorItem {
         price: p.price / 100,
         features: Array.isArray(p.features) ? p.features : [],
       })) || [],
+    listings: mv.vendor_listings || [],
+    serviceAreas: mv.vendor_service_areas?.map((area) => ({ city: area.city, region: area.region })).filter((area) => Boolean(area.city)) || [],
+    reviews: mv.vendor_reviews || [],
   };
 }
 

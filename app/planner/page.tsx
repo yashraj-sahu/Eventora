@@ -971,6 +971,7 @@
 
 import { useState, useEffect, Suspense, useRef } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
+import Link from "next/link";
 import { Navbar } from "@/components/layout/Navbar";
 import { Footer } from "@/components/layout/Footer";
 import { EVENT_CATEGORIES } from "@/data/categories";
@@ -1056,7 +1057,56 @@ function PlannerContent() {
   const [plannerError, setPlannerError] = useState("");
   const [saveAuthModalOpen, setSaveAuthModalOpen] = useState(false);
   const [saveAfterResume, setSaveAfterResume] = useState(false);
+  const [eventContextLoading, setEventContextLoading] = useState(Boolean(searchParams.get("eventId")));
   const resumeSaveStarted = useRef(false);
+
+  const requestedEventId = searchParams.get("eventId");
+  const requestedReturnTo = searchParams.get("returnTo");
+  const plannerReturnTo = requestedReturnTo && requestedReturnTo.startsWith("/dashboard") && !requestedReturnTo.startsWith("//") && !requestedReturnTo.includes("\\")
+    ? requestedReturnTo
+    : requestedEventId ? `/dashboard/events/${encodeURIComponent(requestedEventId)}` : "/dashboard";
+
+  useEffect(() => {
+    if (!requestedEventId || searchParams.get("resume") === "1") {
+      setEventContextLoading(false);
+      return;
+    }
+    if (authLoading) return;
+    if (!customerSession) {
+      setEventContextLoading(false);
+      setPlannerError("Sign in with Customer access to load or update this event. Your event context is preserved in this link.");
+      return;
+    }
+    let active = true;
+    setEventContextLoading(true);
+    void (async () => {
+      try {
+        const response = await fetch(`/api/ai/events?eventId=${encodeURIComponent(requestedEventId)}`, { cache: "no-store" });
+        const data = await response.json();
+        if (!response.ok) throw new Error(data.error || "This event could not be loaded.");
+        if (!active) return;
+        const event = data.event;
+        setSavedEventId(event.id);
+        setEventType(event.category);
+        setCity(event.city);
+        setDate(event.date);
+        setGuestCount(String(event.guest_count));
+        setBudgetINR(String(event.total_budget));
+        setVenuePreference(event.venue_preference ?? "");
+        setStyleTheme(event.style_theme ?? "");
+        setRequirements(event.planning_requirements ?? "");
+        setBlueprint(null);
+        setFeasibility(null);
+        setStep(1);
+        setPlannerError("");
+      } catch (error) {
+        if (active) setPlannerError(error instanceof Error ? error.message : "This event could not be loaded.");
+      } finally {
+        if (active) setEventContextLoading(false);
+      }
+    })();
+    return () => { active = false; };
+  }, [requestedEventId, authLoading, customerSession, searchParams]);
 
   useEffect(() => {
     if (searchParams.get("resume") !== "1") return;
@@ -1166,6 +1216,10 @@ function PlannerContent() {
     confirmLimitations = false
   ) => {
     setPlannerError("");
+    if (eventContextLoading) {
+      setPlannerError("Loading your selected event. Please try again in a moment.");
+      return;
+    }
 
     if (!confirmLimitations) {
       setFeasibility(null);
@@ -1280,13 +1334,15 @@ function PlannerContent() {
     }
     if (!isCustomerReadyForSave()) return;
     const eventId = await persistBlueprint();
-    if (eventId) router.push(`/dashboard/workspace?eventId=${encodeURIComponent(eventId)}`);
+    if (eventId) router.push(`/dashboard/events/${encodeURIComponent(eventId)}`);
   };
 
   const handleProceedToMarketplace = async () => {
     if (!blueprint) return;
     if (customerSession && !(await persistBlueprint())) return;
-    router.push("/vendors?city=" + encodeURIComponent(city));
+    const params = new URLSearchParams({ city, returnTo: plannerReturnTo });
+    if (savedEventId) params.set("eventId", savedEventId);
+    router.push(`/vendors?${params.toString()}`);
   };
 
   useEffect(() => {
@@ -1312,7 +1368,7 @@ function PlannerContent() {
       if (eventId) {
         sessionStorage.removeItem("evntora-planner-auth-draft");
         setSaveAfterResume(false);
-        router.replace(`/dashboard/workspace?eventId=${encodeURIComponent(eventId)}`);
+        router.replace(`/dashboard/events/${encodeURIComponent(eventId)}`);
       } else {
         resumeSaveStarted.current = false;
         setSaveAfterResume(false);
@@ -1323,6 +1379,7 @@ function PlannerContent() {
   return (
     <div className="min-h-screen flex flex-col bg-[#FFF3E3] dark:bg-[#1A1211] text-[#30221D] dark:text-[#F4F0E7] transition-colors duration-200">
       <Navbar />
+      {(customerSession || requestedReturnTo || requestedEventId) && <div className="max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8 pt-4"><Link href={plannerReturnTo} className="inline-flex items-center gap-2 text-xs font-semibold text-[#681B1D] dark:text-[#EAD2B0] hover:underline"><ArrowRight className="w-3.5 h-3.5 rotate-180"/>Return to {requestedEventId ? "event workspace" : "Customer Dashboard"}</Link></div>}
 
       <main className="flex-1 py-12 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full space-y-12">
         {/* Header — clean, refined, badge & duplicate ask AI button removed */}

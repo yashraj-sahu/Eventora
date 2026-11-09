@@ -1,9 +1,16 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 import type { Database, UserRole } from "@/types/database";
+import { authorizedWorkspaces, workspaceForPath, WORKSPACE_COOKIE } from "@/lib/portal-routing";
 
-const roleHome = (roles: UserRole[], vendorApproved: boolean) =>
-  roles.includes("customer") ? "/dashboard" : roles.includes("vendor") ? (vendorApproved ? "/vendor-portal" : "/vendor-portal/pending") : roles.includes("admin") ? "/admin" : "/signin";
+const roleHome = (roles: UserRole[], vendorApproved: boolean) => {
+  const workspaces = authorizedWorkspaces(roles);
+  if (workspaces.length > 1) return "/workspaces";
+  if (workspaces[0] === "customer") return "/dashboard";
+  if (workspaces[0] === "vendor") return vendorApproved ? "/vendor-portal" : "/vendor-portal/pending";
+  if (workspaces[0] === "admin") return "/admin";
+  return "/signin";
+};
 
 export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
@@ -40,6 +47,11 @@ export async function proxy(request: NextRequest) {
     const roles = (rows ?? []).map((row) => row.role).filter((role): role is UserRole => role === "customer" || role === "vendor" || role === "admin" || role === "platform_owner");
     const authorized = portal === "admin" ? roles.some((role) => role === "admin" || role === "platform_owner") : roles.includes(portal);
     if (!authorized) return redirect(roleHome(roles, false), { access: `${portal}-required` });
+    const workspaces = authorizedWorkspaces(roles);
+    const selectedWorkspace = request.cookies.get(WORKSPACE_COOKIE)?.value;
+    if (workspaces.length > 1 && workspaceForPath(pathname) !== selectedWorkspace) {
+      return redirect("/workspaces", { returnTo: `${pathname}${request.nextUrl.search}` });
+    }
     if (isVendor) {
       const { data: vendor } = await supabase.from("vendor_profiles").select("approval_status").eq("user_id", user.id).maybeSingle();
       const approved = vendor?.approval_status === "approved";
