@@ -8,6 +8,10 @@ export const metadata: Metadata = {
   title: "EVNTORA — Every Celebration, Beautifully Planned",
   description:
     "India's premier AI-powered event planning and luxury vendor marketplace for weddings, royal galas, and bespoke celebrations.",
+  icons: {
+    icon: "/icon.svg",
+    shortcut: "/icon.svg",
+  },
   verification: {
     google: "7CWlGR9FChJOtTIeTtg2dZczL20oW9fMW_TzM9ajWOY",
   },
