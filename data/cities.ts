@@ -1,4 +1,4 @@
-import { Destination } from "@/types";
+import type { Destination } from "../types";
 
 export const CITIES: Destination[] = [
   {
@@ -7,7 +7,6 @@ export const CITIES: Destination[] = [
     state: "Rajasthan",
     tagline: "The City of Lakes & Royal Grandeur",
     image: "https://images.unsplash.com/photo-1599661046289-e31897846e41?auto=format&fit=crop&w=1200&q=80",
-    venueCount: 48,
     featuredVenue: "The Oberoi Udaivilas & Jagmandir Island Palace",
     popularFor: ["Royal Destination Weddings", "Lakeside Galas", "Heritage Soirées"],
   },
@@ -17,7 +16,6 @@ export const CITIES: Destination[] = [
     state: "Rajasthan",
     tagline: "The Pink City & Regal Forts",
     image: "https://media.istockphoto.com/id/903877840/photo/the-crowd-and-vehicles-in-front-of-hawa-mahal.jpg?s=612x612&w=0&k=20&c=OB7q3UQsf0vpcno_6-6WLFhp3Ugota3B5IH3WdFYhUY=",
-    venueCount: 62,
     featuredVenue: "Rambagh Palace & Fairmont Jaipur",
     popularFor: ["Palace Extravaganzas", "Regal Baraats", "Sangeet Spectacles"],
   },
@@ -27,7 +25,6 @@ export const CITIES: Destination[] = [
     state: "Goa",
     tagline: "Sun-Drenched Coastal Celebrations",
     image: "https://images.unsplash.com/photo-1512343879784-a960bf40e7f2?auto=format&fit=crop&w=1200&q=80",
-    venueCount: 54,
     featuredVenue: "W Goa & Taj Exotica Resort & Spa",
     popularFor: ["Beachfront Sunset Vows", "Sundowner Cocktails", "Bohemian Afterparties"],
   },
@@ -37,7 +34,6 @@ export const CITIES: Destination[] = [
     state: "Maharashtra",
     tagline: "Maximum City Glamour & Seafront Luxury",
     image: "https://images.unsplash.com/photo-1570168007204-dfb528c6958f?auto=format&fit=crop&w=1200&q=80",
-    venueCount: 95,
     featuredVenue: "The Taj Mahal Palace & Jio World Convention Centre",
     popularFor: ["Bollywood Glamour Weddings", "Corporate Global Summits", "Elite Rooftop Cocktails"],
   },
@@ -47,7 +43,6 @@ export const CITIES: Destination[] = [
     state: "National Capital Region",
     tagline: "Imperial Grandeur & Sprawling Farmhouses",
     image: "https://images.unsplash.com/photo-1587474260584-136574528ed5?auto=format&fit=crop&w=1200&q=80",
-    venueCount: 120,
     featuredVenue: "The Leela Palace New Delhi & Chattarpur Farm Estates",
     popularFor: ["Monumental Wedding Farmhouses", "High-Stakes Corporate Galas", "Opulent Receptions"],
   },
@@ -57,9 +52,8 @@ export const CITIES: Destination[] = [
     state: "Karnataka",
     tagline: "Lush Garden Venues & Tech Innovation Galas",
     image: "https://images.unsplash.com/photo-1596176530529-78163a4f7af2?auto=format&fit=crop&w=1200&q=80",
-    venueCount: 78,
     featuredVenue: "The Leela Palace Bengaluru & Bangalore Palace Grounds",
-    popularFor: ["Contemporary Green Weddings", "Tech Industry Galas", "Artisan Garden Dinners"],
+    popularFor: ["Contemporary Green Weddings", "Tech Industry Galas", "Vendor Garden Dinners"],
   },
 ];
 

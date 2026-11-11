@@ -1,4 +1,4 @@
-import { EventCategory, VendorCategory } from "@/types";
+import type { EventCategory, VendorCategory } from "../types";
 
 export interface EventCategoryInfo {
   id: EventCategory;
@@ -79,18 +79,17 @@ export interface VendorCategoryInfo {
   name: string;
   iconName: string;
   description: string;
-  count: number;
 }
 
 export const VENDOR_CATEGORIES: VendorCategoryInfo[] = [
-  { id: "Venues", name: "Venues & Palaces", iconName: "Building2", description: "Royal palaces, 5-star ballrooms, beach resorts & farmhouses", count: 420 },
-  { id: "Photographers", name: "Cinematography & Photos", iconName: "Camera", description: "Editorial wedding photographers & documentary cinematographers", count: 310 },
-  { id: "Caterers", name: "Gourmet Catering & Chefs", iconName: "Utensils", description: "Master culinary teams, royal thalis & global fusion live counters", count: 280 },
-  { id: "Decorators", name: "Haute Decor & Production", iconName: "Palette", description: "Floral arch sculptors, thematic stage designers & lighting engineers", count: 340 },
-  { id: "Makeup artists", name: "Bridal & Glamour Styling", iconName: "Sparkles", description: "Celebrity bridal makeup artists, hair stylists & draping experts", count: 215 },
-  { id: "DJs", name: "DJs & Sound Systems", iconName: "Disc", description: "Chart-topping Bollywood, electronic, and retro celebration DJs", count: 185 },
-  { id: "Event planners", name: "Bespoke Planners", iconName: "CalendarDays", description: "Full-service luxury wedding planners & turnkey event producers", count: 160 },
-  { id: "Florists", name: "Botanical & Floral Artists", iconName: "Flower2", description: "Imported exotic blooms, fragrant Indian marigolds & installations", count: 140 },
-  { id: "Entertainment providers", name: "Live Artists & Bands", iconName: "Music", description: "Sufi ensembles, dhol players, celebrity performers & anchor hosts", count: 195 },
+  { id: "Venues", name: "Venues & Palaces", iconName: "Building2", description: "Royal palaces, 5-star ballrooms, beach resorts & farmhouses" },
+  { id: "Photographers", name: "Cinematography & Photos", iconName: "Camera", description: "Editorial wedding photographers & documentary cinematographers" },
+  { id: "Caterers", name: "Gourmet Catering & Chefs", iconName: "Utensils", description: "Master culinary teams, royal thalis & global fusion live counters" },
+  { id: "Decorators", name: "Haute Decor & Production", iconName: "Palette", description: "Floral arch sculptors, thematic stage designers & lighting engineers" },
+  { id: "Makeup artists", name: "Bridal & Glamour Styling", iconName: "Sparkles", description: "Celebrity bridal makeup artists, hair stylists & draping experts" },
+  { id: "DJs", name: "DJs & Sound Systems", iconName: "Disc", description: "Chart-topping Bollywood, electronic, and retro celebration DJs" },
+  { id: "Event planners", name: "Bespoke Planners", iconName: "CalendarDays", description: "Full-service luxury wedding planners & turnkey event producers" },
+  { id: "Florists", name: "Botanical & Floral Artists", iconName: "Flower2", description: "Imported exotic blooms, fragrant Indian marigolds & installations" },
+  { id: "Entertainment providers", name: "Live Artists & Bands", iconName: "Music", description: "Sufi ensembles, dhol players, celebrity performers & anchor hosts" },
 ];
 

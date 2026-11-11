@@ -339,7 +339,7 @@ export default function SignUpPage() {
               </Link>
             </p>
             <p>
-              Registering an artisan business?{" "}
+              Registering an Vendor business?{" "}
               <Link href="/signup/vendor" className="text-[#681B1D] dark:text-[#EAD2B0] hover:underline font-semibold">
                 Vendor registration →
               </Link>

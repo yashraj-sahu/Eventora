@@ -104,7 +104,7 @@ export function BudgetShowcase() {
                   {formatINR(amount)}
                 </div>
                 <p className="text-[11px] text-[#7D6B63] dark:text-[#D4C3B7] leading-snug">
-                  Calibrated for top 1% verified artisans and premium production standards.
+                  Calibrated for top 1% verified Vendors and premium production standards.
                 </p>
               </div>
             );

@@ -43,7 +43,7 @@ export function FeaturedVendors() {
         <div className="space-y-3 max-w-2xl">
           <div className="inline-flex items-center gap-2 text-xs uppercase tracking-[0.2em] text-[#B77A36] dark:text-[#EAD2B0] font-bold">
             <span className="w-6 h-[1px] bg-[#B77A36]" />
-            <span>Curated Artisans & Estates</span>
+            <span>Curated Vendors & Estates</span>
           </div>
           <h2 className="text-3xl sm:text-5xl font-serif font-bold text-[#30221D] dark:text-[#FFF3E3] tracking-tight">
             Find the right vendors for your event.

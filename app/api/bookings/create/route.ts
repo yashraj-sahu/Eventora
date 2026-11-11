@@ -4,7 +4,7 @@ import { getAuthenticatedUser, createAdminSupabaseClient } from "@/lib/supabase-
 
 const bookingInput = z.object({
   vendorProfileId: z.string().uuid(),
-  eventId: z.string().uuid().nullable().optional(),
+  eventId: z.string().uuid(),
   packageId: z.string().uuid().nullable(),
   serviceId: z.string().uuid().nullable().optional(),
   eventDate: z.string().date(),
@@ -23,6 +23,17 @@ export async function POST(request: Request) {
   if (!roles?.some((role) => role.role === "customer")) return NextResponse.json({ error: "Enable Customer access before requesting a booking." }, { status: 403 });
   const parsed = bookingInput.safeParse(await request.json().catch(() => null));
   if (!parsed.success) return NextResponse.json({ error: "Review the event and package details, then try again." }, { status: 400 });
+  if (parsed.data.serviceId) {
+    const { data: listedService, error: listingError } = await sessionClient.from("vendor_listings")
+      .select("id")
+      .eq("vendor_profile_id", parsed.data.vendorProfileId)
+      .eq("vendor_service_id", parsed.data.serviceId)
+      .eq("status", "published")
+      .limit(1)
+      .maybeSingle();
+    if (listingError) return NextResponse.json({ error: "The selected service could not be verified." }, { status: 503 });
+    if (!listedService) return NextResponse.json({ error: "Choose a currently published vendor service." }, { status: 400 });
+  }
   try {
     const db = createAdminSupabaseClient();
     const { data, error } = await db.rpc("create_booking_request", {

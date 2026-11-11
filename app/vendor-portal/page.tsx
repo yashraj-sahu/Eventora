@@ -1,11 +1,13 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useAuth } from "@/lib/auth-context";
 import { supabase } from "@/lib/supabase";
 import { VendorCatalogManager } from "@/components/vendors/VendorCatalogManager";
 import { VendorProfileEditor } from "@/components/vendors/VendorProfileEditor";
 import { BookingLifecyclePanel } from "@/components/booking/BookingLifecyclePanel";
+import { VendorQuoteAmountForm } from "@/components/booking/VendorQuoteAmountForm";
 import { VendorAvailabilityManager } from "@/components/booking/VendorAvailabilityManager";
 import { VendorListingsManager } from "@/components/vendors/VendorListingsManager";
 import { VendorServiceAreasManager } from "@/components/vendors/VendorServiceAreasManager";
@@ -56,12 +58,17 @@ interface RealBooking {
 
 export default function VendorDashboardPage() {
   const { user, profile, vendorProfile, refreshProfile } = useAuth();
-  const [activeTab, setActiveTabState] = useState("overview");
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const activeTab = searchParams.get("section") || "overview";
   const [bookings, setBookings] = useState<RealBooking[]>([]);
+  const [sentQuotationAmounts, setSentQuotationAmounts] = useState<Record<string, number>>({});
   const [loading, setLoading] = useState(true);
+  const [bookingsError, setBookingsError] = useState<string | null>(null);
   const [actionInProgress, setActionInProgress] = useState<string | null>(null);
-  const [selectedBookingId, setSelectedBookingId] = useState<string | null>(null);
+  const selectedBookingId = searchParams.get("bookingId");
   const [bookingActionError, setBookingActionError] = useState<string | null>(null);
+  const [proposalBookingId, setProposalBookingId] = useState<string | null>(null);
   const [bookingSearch, setBookingSearch] = useState("");
   const [bookingStatusFilter, setBookingStatusFilter] = useState("all");
   const [bookingDateFrom, setBookingDateFrom] = useState("");
@@ -75,26 +82,18 @@ export default function VendorDashboardPage() {
   const businessName = vendorProfile?.business_name || "Your business";
   const city = vendorProfile?.city || "";
 
-  const setActiveTab = (section: string) => {
-    setActiveTabState(section);
-    const url = new URL(window.location.href);
-    url.searchParams.set("section", section);
-    if (section !== "bookings") url.searchParams.delete("bookingId");
-    window.history.pushState({}, "", url);
+  const navigateToSection = (section: string, bookingId?: string | null) => {
+    const params = new URLSearchParams(searchParams.toString());
+    params.set("section", section);
+    if (section === "bookings" && bookingId) params.set("bookingId", bookingId);
+    else params.delete("bookingId");
+    router.push(`/vendor-portal?${params.toString()}`, { scroll: false });
   };
-
-  useEffect(() => {
-    const syncFromUrl = () => {
-      const params = new URLSearchParams(window.location.search);
-      setActiveTabState(params.get("section") || "overview");
-      if (params.get("bookingId")) setSelectedBookingId(params.get("bookingId"));
-    };
-    syncFromUrl();
-    window.addEventListener("popstate", syncFromUrl);
-    return () => window.removeEventListener("popstate", syncFromUrl);
-  }, []);
+  const setActiveTab = (section: string) => navigateToSection(section);
+  const setSelectedBookingId = (bookingId: string | null) => navigateToSection("bookings", bookingId);
 
   const fetchBookings = async () => {
+    setBookingsError(null);
     try {
       // Query bookings for this vendor
       if (!vendorProfile?.id) { setBookings([]); setLoading(false); return; }
@@ -108,9 +107,24 @@ export default function VendorDashboardPage() {
       if (!error && data) {
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         setBookings(data as any);
+        const { data: quotationData, error: quotationError } = await supabase.from("booking_quotations")
+          .select("booking_id,total_amount,version")
+          .eq("vendor_profile_id", vendorProfile.id)
+          .eq("status", "sent")
+          .order("version", { ascending: false });
+        if (!quotationError) {
+          const amounts: Record<string, number> = {};
+          for (const quotation of quotationData ?? []) {
+            if (amounts[quotation.booking_id] === undefined) amounts[quotation.booking_id] = quotation.total_amount;
+          }
+          setSentQuotationAmounts(amounts);
+        }
+      } else if (error) {
+        setBookingsError("Booking records could not be loaded. Refresh and try again.");
       }
     } catch (err) {
       console.error("Error loading vendor bookings:", err);
+      setBookingsError("Booking records could not be loaded. Refresh and try again.");
     } finally {
       setLoading(false);
     }
@@ -152,14 +166,44 @@ export default function VendorDashboardPage() {
     }
   };
 
+  const handleCompleteServiceTask = async (booking: RealBooking) => {
+    setActionInProgress(booking.id);
+    setBookingActionError(null);
+    try {
+      // The API enforces the normal confirmed -> in_progress -> completed
+      // lifecycle; this single task control advances through both valid steps.
+      const actions = booking.status === "confirmed" ? ["start", "complete"] : ["complete"];
+      for (const action of actions) {
+        const response = await fetch(`/api/bookings/${booking.id}`, {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ action }),
+        });
+        const data = await response.json().catch(() => ({}));
+        if (!response.ok) throw new Error(data.error || "The service task could not be updated.");
+      }
+      await fetchBookings();
+    } catch (cause) {
+      setBookingActionError(cause instanceof Error ? cause.message : "The service task could not be updated.");
+      await fetchBookings();
+    } finally {
+      setActionInProgress(null);
+    }
+  };
+
   // Metrics calculated from real bookings
-  const grossValuePaise = bookings.reduce((sum, b) => sum + b.total_amount, 0);
-  const totalPaidPaise = bookings.reduce((sum, b) => sum + (b.paid_amount || 0), 0);
-  const pendingReceivablesPaise = grossValuePaise - totalPaidPaise;
+  const pricedBookings = bookings.filter((booking) => booking.total_amount > 0 && ["awaiting_payment", "confirmed", "in_progress", "completed", "cancellation_requested"].includes(booking.status));
+  const outstandingBookings = pricedBookings.filter((booking) => ["awaiting_payment", "confirmed", "in_progress", "cancellation_requested"].includes(booking.status));
+  const grossValuePaise = pricedBookings.reduce((sum, b) => sum + b.total_amount, 0);
+  const totalPaidPaise = pricedBookings.reduce((sum, b) => sum + (b.paid_amount || 0), 0);
+  const pendingReceivablesPaise = outstandingBookings.reduce((sum, booking) => sum + Math.max(0, booking.total_amount - (booking.paid_amount || 0)), 0);
   const confirmedCount = bookings.filter((b) => b.status === "confirmed").length;
   const pendingCount = bookings.filter((b) => ["pending_vendor_confirmation", "awaiting_quotation", "quotation_sent", "awaiting_customer_decision"].includes(b.status)).length;
-  const upcomingBookings = bookings.filter((booking) => booking.event_date >= new Date().toISOString().slice(0, 10) && !["cancelled", "declined", "completed"].includes(booking.status)).slice(0, 5);
-  const displayedBookings = bookings.filter((booking) => (bookingStatusFilter === "all" || booking.status === bookingStatusFilter) && (!bookingDateFrom || booking.event_date >= bookingDateFrom) && (!bookingDateTo || booking.event_date <= bookingDateTo) && (!bookingSearch || `${booking.booking_reference} ${booking.event_city} ${booking.package_name || ""} ${booking.profiles?.full_name || ""}`.toLowerCase().includes(bookingSearch.toLowerCase())));
+  const upcomingBookings = bookings.filter((booking) => booking.event_date >= new Date().toISOString().slice(0, 10) && ["awaiting_payment", "confirmed", "in_progress", "cancellation_requested"].includes(booking.status)).slice(0, 5);
+  const vendorBookings = bookings.filter((booking) => !["awaiting_quotation", "quotation_sent", "quotation_revision_requested", "declined"].includes(booking.status));
+  const displayedBookings = vendorBookings.filter((booking) => (bookingStatusFilter === "all" || booking.status === bookingStatusFilter) && (!bookingDateFrom || booking.event_date >= bookingDateFrom) && (!bookingDateTo || booking.event_date <= bookingDateTo) && (!bookingSearch || `${booking.booking_reference} ${booking.event_city} ${booking.package_name || ""} ${booking.profiles?.full_name || ""}`.toLowerCase().includes(bookingSearch.toLowerCase())));
+  const quoteRequests = bookings.filter((booking) => ["awaiting_quotation", "quotation_revision_requested", "quotation_sent"].includes(booking.status));
+  const serviceTasks = bookings.filter((booking) => ["confirmed", "in_progress", "completed"].includes(booking.status));
   const capturedPaise = Math.max(0, finance.payments.filter((payment) => ["captured", "partially_refunded", "refunded"].includes(payment.status)).reduce((sum, payment) => sum + payment.amount, 0) - finance.refunds.filter((refund) => refund.status === "processed").reduce((sum, refund) => sum + refund.amount, 0));
   const financeOutstandingPaise = finance.bookings.reduce((sum, booking) => sum + Math.max(0, booking.total_amount - booking.paid_amount), 0);
 
@@ -188,11 +232,11 @@ export default function VendorDashboardPage() {
         </div>
       </div>
 
-      {/* 4 Real Metric Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      {/* Keep Service Tasks focused on actionable work instead of overview metrics. */}
+      {activeTab !== "service-tasks" && <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <div className="p-5 sm:p-6 rounded-2xl bg-[#FFFCF6] dark:bg-[#2E1F1E] border border-[#EAD2B0] dark:border-[#4D3331] space-y-2 shadow-xs">
           <span className="text-[#7D6B63] dark:text-[#D4C3B7] text-xs uppercase tracking-wider font-semibold">
-            Booking Value
+            Agreed Booking Value
           </span>
           <div className="text-2xl sm:text-3xl font-serif font-bold text-[#681B1D] dark:text-[#D4B77D]">
             {formatINR(grossValuePaise / 100)}
@@ -238,41 +282,59 @@ export default function VendorDashboardPage() {
             Based on current booking status
           </span>
         </div>
-      </div>
+      </div>}
 
       {activeTab === "overview" && <section className="grid gap-5 lg:grid-cols-[1.2fr_.8fr]">
         <div className="rounded-3xl bg-gradient-to-br from-[#681B1D] to-[#3B1016] p-6 text-[#FFF3E3] shadow-lg sm:p-8"><p className="text-xs font-bold uppercase tracking-[.2em] text-[#EAD2B0]">Your business at a glance</p><h2 className="mt-3 font-serif text-3xl font-bold">{businessName}</h2><p className="mt-2 max-w-xl text-sm text-[#F3DFCA]">Respond to booking requests, keep your business details current, and manage the dates you can serve.</p><div className="mt-6 flex flex-wrap gap-3"><button onClick={() => setActiveTab("bookings")} className="rounded-xl bg-[#FFF3E3] px-4 py-2.5 text-sm font-bold text-[#681B1D]">Review {pendingCount} new request{pendingCount === 1 ? "" : "s"}</button><button onClick={() => setActiveTab("business-profile")} className="rounded-xl border border-[#EAD2B0]/60 px-4 py-2.5 text-sm font-semibold">Edit business profile</button></div></div>
         <div className="rounded-3xl border border-[#EAD2B0] bg-[#FFFCF6] p-6 dark:border-[#4D3331] dark:bg-[#241918]"><h2 className="font-serif text-xl font-bold text-[#681B1D] dark:text-[#EAD2B0]">Business status</h2><p className="mt-3 text-sm">Approval: <strong className="capitalize">{vendorProfile?.approval_status || "Not available"}</strong></p><p className="mt-1 text-sm">Storefront: <strong>{vendorProfile?.is_published ? "Published" : "Not published"}</strong></p><p className="mt-1 text-sm">Verification: <strong>{vendorProfile?.is_verified ? "Verified" : "Not verified"}</strong></p><button onClick={() => setActiveTab("verification")} className="mt-4 text-sm font-semibold text-[#681B1D] underline dark:text-[#EAD2B0]">View verification status</button></div>
-        <div className="rounded-3xl border border-[#EAD2B0] bg-[#FFFCF6] p-5 dark:border-[#4D3331] dark:bg-[#241918] lg:col-span-2"><div className="mb-4 flex items-center justify-between"><h2 className="font-serif text-xl font-bold text-[#681B1D] dark:text-[#EAD2B0]">Upcoming bookings</h2><button onClick={() => setActiveTab("bookings")} className="text-sm font-semibold text-[#681B1D] underline dark:text-[#EAD2B0]">All bookings</button></div>{upcomingBookings.length ? <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">{upcomingBookings.map((booking) => <button key={booking.id} onClick={() => { setSelectedBookingId(booking.id); setActiveTab("bookings"); }} className="rounded-2xl border border-[#EAD2B0] p-4 text-left transition hover:border-[#B77A36] dark:border-[#4D3331]"><span className="font-mono text-xs text-[#B77A36]">{booking.booking_reference}</span><b className="mt-1 block">{booking.package_name || "Custom service"}</b><span className="mt-1 block text-xs text-[#7D6B63]">{new Date(`${booking.event_date}T00:00:00`).toLocaleDateString("en-IN", { dateStyle: "medium" })} · {booking.event_city}</span><span className="mt-2 inline-block rounded-full bg-[#EAD2B0]/50 px-2 py-1 text-[10px] capitalize">{booking.status.replaceAll("_", " ")}</span></button>)}</div> : <p className="rounded-2xl bg-[#FFF3E3] p-5 text-sm text-[#7D6B63] dark:bg-[#1A1211]">No upcoming bookings yet. New customer requests will appear here.</p>}</div>
+        <div className="rounded-3xl border border-[#EAD2B0] bg-[#FFFCF6] p-5 dark:border-[#4D3331] dark:bg-[#241918] lg:col-span-2"><div className="mb-4 flex items-center justify-between"><h2 className="font-serif text-xl font-bold text-[#681B1D] dark:text-[#EAD2B0]">Upcoming bookings</h2><button onClick={() => setActiveTab("bookings")} className="text-sm font-semibold text-[#681B1D] underline dark:text-[#EAD2B0]">All bookings</button></div>{upcomingBookings.length ? <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">{upcomingBookings.map((booking) => <button key={booking.id} onClick={() => navigateToSection("bookings", booking.id)} className="rounded-2xl border border-[#EAD2B0] p-4 text-left transition hover:border-[#B77A36] dark:border-[#4D3331]"><span className="font-mono text-xs text-[#B77A36]">{booking.booking_reference}</span><b className="mt-1 block">{booking.package_name || "Custom service"}</b><span className="mt-1 block text-xs text-[#7D6B63]">{new Date(`${booking.event_date}T00:00:00`).toLocaleDateString("en-IN", { dateStyle: "medium" })} · {booking.event_city}</span><span className="mt-2 inline-block rounded-full bg-[#EAD2B0]/50 px-2 py-1 text-[10px] capitalize">{booking.status.replaceAll("_", " ")}</span></button>)}</div> : <p className="rounded-2xl bg-[#FFF3E3] p-5 text-sm text-[#7D6B63] dark:bg-[#1A1211]">No upcoming bookings yet. New customer requests will appear here.</p>}</div>
+      </section>}
+
+      {activeTab === "quote-requests" && <section className="space-y-4 rounded-3xl border border-[#EAD2B0] bg-[#FFFCF6] p-5 dark:border-[#4D3331] dark:bg-[#241918]">
+        <div><h2 className="font-serif text-2xl font-bold text-[#681B1D] dark:text-[#EAD2B0]">Incoming quotation requests</h2><p className="mt-1 text-sm text-[#7D6B63] dark:text-[#D4C3B7]">Review the customer's event details and prepare a proposal from the existing booking record.</p></div>
+        {bookingsError && <p role="alert" className="rounded-xl bg-rose-50 p-3 text-sm text-rose-800">{bookingsError}</p>}
+        {!bookingsError && (loading ? <p role="status" className="py-8 text-sm text-[#7D6B63]">Loading quotation requests…</p> : quoteRequests.length ? <div className="space-y-4">{quoteRequests.map((booking) => <article key={booking.id} className="rounded-2xl border border-[#EAD2B0] p-4 dark:border-[#4D3331]"><div className="flex flex-wrap items-start justify-between gap-2"><div><p className="font-mono text-xs text-[#B77A36]">{booking.booking_reference}</p><h3 className="mt-1 font-serif text-lg font-bold">{booking.package_name || booking.vendor_category || "Custom service request"}</h3></div><span className="rounded-full bg-[#EAD2B0]/55 px-2.5 py-1 text-[10px] font-semibold capitalize text-[#681B1D]">{booking.status.replaceAll("_", " ")}</span></div><p className="mt-3 text-sm">{booking.profiles?.full_name || "Customer"} · {booking.event_city} · {booking.guest_count ? `${booking.guest_count} guests` : "Guest count not provided"}</p><p className="mt-1 text-xs text-[#7D6B63]">Event date: {new Date(`${booking.event_date}T00:00:00`).toLocaleDateString("en-IN", { dateStyle: "medium" })} · Submitted: {new Date(booking.created_at).toLocaleDateString("en-IN", { dateStyle: "medium" })}</p>{booking.requirements && <p className="mt-3 rounded-xl bg-[#FFF3E3] p-3 text-sm dark:bg-[#1A1211]"><b>Requirements:</b> {booking.requirements}</p>}{booking.status === "quotation_sent" ? <div className="mt-4 rounded-xl bg-[#EAD2B0]/30 p-4 text-sm"><b>Quotation sent</b><p className="mt-1">{sentQuotationAmounts[booking.id] != null ? `Proposed total: ${formatINR(sentQuotationAmounts[booking.id] / 100)}.` : "The proposal is saved; its total will appear after the quotation record loads."} Waiting for the customer to respond.</p></div> : <div className="mt-4"><button type="button" aria-expanded={proposalBookingId === booking.id} onClick={() => setProposalBookingId((current) => current === booking.id ? null : booking.id)} className="inline-flex items-center gap-2 rounded-xl bg-[#681B1D] px-4 py-2.5 text-xs font-semibold text-white">{proposalBookingId === booking.id ? "Close amount form" : "Enter amount and send quotation"}<ArrowRight className="h-4 w-4"/></button>{proposalBookingId === booking.id && <div className="mt-4 border-t border-[#EAD2B0] pt-4"><VendorQuoteAmountForm bookingId={booking.id} bookingReference={booking.booking_reference} serviceName={booking.package_name || booking.vendor_category || "Requested service"} onSent={(amountPaise) => { setSentQuotationAmounts((current) => ({ ...current, [booking.id]: amountPaise })); void fetchBookings(); }} /></div>}</div>}</article>)}</div> : <div className="rounded-2xl bg-[#FFF3E3] p-8 text-center dark:bg-[#1A1211]"><FileText className="mx-auto h-8 w-8 text-[#B77A36]"/><h3 className="mt-3 font-serif text-lg font-bold">No quotation requests waiting</h3><p className="mt-1 text-sm text-[#7D6B63]">Custom service requests that need a proposal will appear here.</p></div>)}
+      </section>}
+
+      {activeTab === "service-tasks" && <section className="space-y-4 rounded-3xl border border-[#EAD2B0] bg-[#FFFCF6] p-5 dark:border-[#4D3331] dark:bg-[#241918]">
+        <h2 className="font-serif text-2xl font-bold text-[#681B1D] dark:text-[#EAD2B0]">Service Tasks</h2>
+        {bookingsError && <p role="alert" className="rounded-xl bg-rose-50 p-3 text-sm text-rose-800">{bookingsError}</p>}
+        {loading ? <p role="status" className="p-6 text-sm text-[#7D6B63]">Loading service tasks…</p> : serviceTasks.length ? <div className="space-y-3">{serviceTasks.map((booking) => {
+          const workDone = booking.status === "completed";
+          return <article key={booking.id} className="rounded-2xl border border-[#EAD2B0] p-4 dark:border-[#4D3331] sm:flex sm:items-center sm:justify-between sm:gap-4"><div><p className="font-mono text-xs text-[#B77A36]">{booking.booking_reference}</p><h3 className="mt-1 font-serif text-lg font-bold">{booking.package_name || booking.vendor_category}</h3><p className="mt-1 text-sm">{booking.profiles?.full_name || "Customer"} · {booking.event_city} · {new Date(`${booking.event_date}T00:00:00`).toLocaleDateString("en-IN", { dateStyle: "medium" })}</p></div><label className="mt-3 inline-flex cursor-pointer items-center gap-2 text-sm font-semibold sm:mt-0"><input type="checkbox" checked={workDone} disabled={workDone || actionInProgress === booking.id} onChange={() => void handleCompleteServiceTask(booking)} aria-label={`Work ${workDone ? "done" : "not done"} for ${booking.package_name || booking.vendor_category}`} className="h-5 w-5 accent-[#681B1D] disabled:cursor-default"/>{actionInProgress === booking.id ? "Saving…" : workDone ? "Done" : "Mark done"}</label></article>;
+        })}</div> : <div className="rounded-2xl bg-[#FFF3E3] p-8 text-center dark:bg-[#1A1211]"><h3 className="font-serif text-lg font-bold">No service tasks yet</h3><p className="mt-1 text-sm text-[#7D6B63]">A task appears after the customer accepts your quotation, pays the required advance and the booking is confirmed.</p></div>}
+        {bookingActionError && <p role="alert" className="text-sm text-rose-700">{bookingActionError}</p>}
       </section>}
 
       {/* Bookings Tab */}
       {activeTab === "bookings" && (
         <div className="space-y-4">
-          {selectedBookingId && <BookingLifecyclePanel bookingId={selectedBookingId} onUpdated={() => void fetchBookings()} />}
           {bookingActionError && <p role="alert" className="text-sm text-rose-700">{bookingActionError}</p>}
-          <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4"><input value={bookingSearch} onChange={(event) => setBookingSearch(event.target.value)} placeholder="Search customer, booking reference or location" className="rounded-xl border border-[#EAD2B0] bg-[#FFFCF6] px-4 py-3 text-sm dark:border-[#4D3331] dark:bg-[#241918]"/><select value={bookingStatusFilter} onChange={(event) => setBookingStatusFilter(event.target.value)} className="rounded-xl border border-[#EAD2B0] bg-[#FFFCF6] px-3 py-3 text-sm dark:border-[#4D3331] dark:bg-[#241918]"><option value="all">All statuses</option>{[...new Set(bookings.map((booking) => booking.status))].sort().map((status) => <option key={status} value={status}>{status.replaceAll("_", " ")}</option>)}</select><input aria-label="Event date from" type="date" value={bookingDateFrom} max={bookingDateTo || undefined} onChange={(event) => setBookingDateFrom(event.target.value)} className="rounded-xl border border-[#EAD2B0] bg-[#FFFCF6] px-3 py-3 text-sm dark:border-[#4D3331] dark:bg-[#241918]"/><input aria-label="Event date through" type="date" value={bookingDateTo} min={bookingDateFrom || undefined} onChange={(event) => setBookingDateTo(event.target.value)} className="rounded-xl border border-[#EAD2B0] bg-[#FFFCF6] px-3 py-3 text-sm dark:border-[#4D3331] dark:bg-[#241918]"/></div>
+          {bookingsError && <p role="alert" className="rounded-xl bg-rose-50 p-3 text-sm text-rose-800">{bookingsError}</p>}
+          <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4"><input value={bookingSearch} onChange={(event) => setBookingSearch(event.target.value)} placeholder="Search customer, booking reference or location" className="rounded-xl border border-[#EAD2B0] bg-[#FFFCF6] px-4 py-3 text-sm dark:border-[#4D3331] dark:bg-[#241918]"/><select value={bookingStatusFilter} onChange={(event) => setBookingStatusFilter(event.target.value)} className="rounded-xl border border-[#EAD2B0] bg-[#FFFCF6] px-3 py-3 text-sm dark:border-[#4D3331] dark:bg-[#241918]"><option value="all">All statuses</option>{[...new Set(vendorBookings.map((booking) => booking.status))].sort().map((status) => <option key={status} value={status}>{status.replaceAll("_", " ")}</option>)}</select><input aria-label="Event date from" type="date" value={bookingDateFrom} max={bookingDateTo || undefined} onChange={(event) => setBookingDateFrom(event.target.value)} className="rounded-xl border border-[#EAD2B0] bg-[#FFFCF6] px-3 py-3 text-sm dark:border-[#4D3331] dark:bg-[#241918]"/><input aria-label="Event date through" type="date" value={bookingDateTo} min={bookingDateFrom || undefined} onChange={(event) => setBookingDateTo(event.target.value)} className="rounded-xl border border-[#EAD2B0] bg-[#FFFCF6] px-3 py-3 text-sm dark:border-[#4D3331] dark:bg-[#241918]"/></div>
           <div className="flex items-center justify-between">
             <h2 className="text-lg font-serif font-bold text-[#681B1D] dark:text-[#F4F0E7]">
               Client Bookings & Orders
             </h2>
             <span className="text-xs text-[#7D6B63] dark:text-[#D4C3B7]">
-              {bookings.length} client booking(s) recorded
+              {vendorBookings.length} accepted or direct-package booking(s)
             </span>
           </div>
 
           {loading ? (
             <div className="p-8 text-center text-xs text-[#7D6B63] dark:text-[#D4C3B7]">
-              Loading artisan bookings...
+              Loading Vendor bookings...
             </div>
-          ) : bookings.length === 0 ? (
+          ) : bookingsError ? (
+            <div className="rounded-3xl border border-rose-200 bg-rose-50 p-8 text-center text-sm text-rose-800">Booking data is unavailable, so the inbox cannot be shown as empty.</div>
+          ) : vendorBookings.length === 0 ? (
             <div className="p-12 text-center rounded-3xl bg-[#FFFCF6] dark:bg-[#2E1F1E] border border-[#EAD2B0] dark:border-[#4D3331] space-y-3">
               <Store className="w-8 h-8 text-[#7D6B63]/50 mx-auto" />
               <h3 className="text-sm font-bold text-[#30221D] dark:text-[#F4F0E7]">
                 No Bookings Received Yet
               </h3>
               <p className="text-xs text-[#7D6B63] dark:text-[#D4C3B7] max-w-sm mx-auto">
-                When customers book your packages or services from your profile, bookings and payment locks will appear here.
+                Quote requests stay in Quote Requests. Accepted quotations and direct-package requests will appear here with their payment progress.
               </p>
             </div>
           ) : (
@@ -280,7 +342,7 @@ export default function VendorDashboardPage() {
               {displayedBookings.map((booking) => {
                 const totalINR = booking.total_amount / 100;
                 const paidINR = (booking.paid_amount || 0) / 100;
-                const balanceINR = totalINR - paidINR;
+                const balanceINR = Math.max(0, totalINR - paidINR);
 
                 return (
                   <div
@@ -323,7 +385,7 @@ export default function VendorDashboardPage() {
                           {formatINR(totalINR)}
                         </div>
                         <span className="text-[11px] text-rose-800 dark:text-amber-700 font-semibold block">
-                          Paid: {formatINR(paidINR)} | Due: {formatINR(balanceINR)}
+                          {paidINR > 0 ? `Payment done · ${formatINR(paidINR)} received` : "Payment not done"} · Remaining {formatINR(balanceINR)}
                         </span>
                       </div>
                     </div>
@@ -353,7 +415,8 @@ export default function VendorDashboardPage() {
                         </button>
                       </div>
                     )}
-                    <button onClick={() => setSelectedBookingId(selectedBookingId === booking.id ? null : booking.id)} className="text-xs font-semibold text-[#681B1D] underline">{selectedBookingId === booking.id ? "Close booking details" : "Manage booking, quote & messages"}</button>
+                    <button aria-expanded={selectedBookingId === booking.id} onClick={() => setSelectedBookingId(selectedBookingId === booking.id ? null : booking.id)} className="text-xs font-semibold text-[#681B1D] underline">{selectedBookingId === booking.id ? "Close booking details" : "View payment details"}</button>
+                    {selectedBookingId === booking.id && <div className="border-t border-[#EAD2B0] pt-4"><BookingLifecyclePanel bookingId={booking.id} onUpdated={() => void fetchBookings()} /></div>}
                   </div>
                 );
               })}
@@ -401,7 +464,7 @@ export default function VendorDashboardPage() {
               —
             </span>
             <span className="text-xs text-[#7D6B63] dark:text-[#D4C3B7]">
-              Reviews are not connected yet.
+              Complete your vendor profile to access customer reviews here.
             </span>
           </div>
         </div>

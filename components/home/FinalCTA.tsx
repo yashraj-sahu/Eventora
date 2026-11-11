@@ -53,7 +53,7 @@ export function FinalCTA() {
             </span>
             <span className="flex items-center gap-1.5">
               <CheckCircle2 className="w-4 h-4 text-[#EAD2B0]" />
-              <span>Top 1% Verified Indian Artisans</span>
+              <span>Top 1% Verified Indian Vendors</span>
             </span>
             <span className="flex items-center gap-1.5">
               <CheckCircle2 className="w-4 h-4 text-[#EAD2B0]" />

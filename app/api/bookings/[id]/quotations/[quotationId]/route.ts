@@ -8,7 +8,12 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
   const { id, quotationId } = await params;
   const access = await getBookingAccess(request, id);
   if ("response" in access) return access.response;
-  if (access.role !== "customer") return NextResponse.json({ error: "Only the customer for this booking can respond to its quotation." }, { status: 403 });
+  // A user can hold more than one workspace role. The booking owner plus an
+  // active customer membership determine customer access; a helper's selected
+  // display role must not block a legitimate customer response.
+  const customerRole = await access.db.from("user_roles").select("user_id").eq("user_id", access.user.id).eq("role", "customer").eq("is_active", true).maybeSingle();
+  if (customerRole.error) return NextResponse.json({ error: "Customer booking access could not be verified." }, { status: 503 });
+  if (!customerRole.data || access.booking.customer_id !== access.user.id) return NextResponse.json({ error: "Only the customer for this booking can respond to its quotation." }, { status: 403 });
   const parsed = responseSchema.safeParse(await request.json().catch(() => null));
   if (!parsed.success) return NextResponse.json({ error: "Choose a valid quotation action." }, { status: 400 });
   const { data, error } = await access.db.rpc("respond_to_booking_quotation", {

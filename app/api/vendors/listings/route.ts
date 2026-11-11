@@ -9,7 +9,12 @@ const listingInput = z.object({
   subcategory: z.string().trim().max(120).optional().nullable(),
   description: z.string().max(5000).default(""),
   pricingModel: z.enum(["fixed", "starting_at", "custom_quote"]),
+  pricingUnit: z.enum(["per_hour", "per_day", "per_event", "per_guest", "per_item", "per_package", "custom_quote"]).default("per_event"),
   startingPrice: z.number().int().nonnegative().nullable().optional(),
+  minimumQuantity: z.number().positive().max(100000).nullable().optional(),
+  pricingDetails: z.record(z.string(), z.unknown()).default({}),
+  inclusions: z.array(z.string().trim().min(1).max(200)).max(30).default([]),
+  exclusions: z.array(z.string().trim().min(1).max(200)).max(30).default([]),
   capacity: z.number().int().min(1).max(100000).nullable().optional(),
   durationMinutes: z.number().int().min(1).max(10080).nullable().optional(),
   bookingRequirements: z.string().max(3000).optional().nullable(),
@@ -61,8 +66,10 @@ export async function POST(request: Request) {
   }
   const parsed = listingInput.safeParse(body);
   if (!parsed.success) return NextResponse.json({ error: "Enter valid listing details." }, { status: 400 });
-  const { id, pricingModel, startingPrice, capacity, durationMinutes, bookingRequirements, terms, subcategory, status, ...fields } = parsed.data;
-  const update = { ...fields, pricing_model: pricingModel, starting_price: startingPrice ?? null, capacity: capacity ?? null, duration_minutes: durationMinutes ?? null, booking_requirements: bookingRequirements ?? null, terms: terms ?? null, subcategory: subcategory ?? null, status: status ?? "draft" };
+  const { id, pricingModel, pricingUnit, startingPrice, minimumQuantity, pricingDetails, inclusions, exclusions, capacity, durationMinutes, bookingRequirements, terms, subcategory, status, ...fields } = parsed.data;
+  if (pricingModel !== "custom_quote" && startingPrice == null) return NextResponse.json({ error: "A starting price is required for fixed or starting-at listings." }, { status: 400 });
+  if (pricingModel === "custom_quote" && startingPrice != null) return NextResponse.json({ error: "Custom-quotation listings must not publish a fixed price." }, { status: 400 });
+  const update = { ...fields, pricing_model: pricingModel, pricing_unit: pricingModel === "custom_quote" ? "custom_quote" : pricingUnit, starting_price: startingPrice ?? null, minimum_quantity: minimumQuantity ?? null, pricing_details: pricingDetails, inclusions, exclusions, capacity: capacity ?? null, duration_minutes: durationMinutes ?? null, booking_requirements: bookingRequirements ?? null, terms: terms ?? null, subcategory: subcategory ?? null, status: status ?? "draft" };
   const result = id
     ? await access.supabase.from("vendor_listings").update(update).eq("id", id).eq("vendor_profile_id", access.vendorId).select("id,status,vendor_service_id").maybeSingle()
     : await access.supabase.from("vendor_listings").insert({ ...update, vendor_profile_id: access.vendorId }).select("id,status,vendor_service_id").single();

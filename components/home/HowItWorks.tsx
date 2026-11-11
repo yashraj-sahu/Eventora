@@ -51,14 +51,14 @@ export function HowItWorks() {
       num: "03",
       title: "Curated Vendor Matching",
       icon: Store,
-      tagline: "Top 1% Verified Indian Artisans",
+      tagline: "Top 1% Verified Indian Vendors",
       desc: "Discover vetted heritage venues, award-winning cinematographers, master royal caterers, and renowned DJs. Send direct enquiries, review portfolios, and book with confidence.",
       features: [
         "Strict 100% verification of past events and client testimonials",
         "Direct inquiry routing with no agency commissions",
         "Package comparisons with transparent inclusion lists",
       ],
-      previewHeadline: "Matching Top 1% Verified Artisans",
+      previewHeadline: "Matching Top 1% Verified Vendors",
       previewSub: "Direct access to palace estates & master caterers.",
     },
     {
@@ -86,7 +86,7 @@ export function HowItWorks() {
     {
       feature: "Vendor Discovery & Verification",
       traditional: "Limited to individual planner's informal network & kickbacks",
-      evntora: "Strictly vetted top 1% nationwide artisans with verified client audits",
+      evntora: "Strictly vetted top 1% nationwide Vendors with verified client audits",
     },
     {
       feature: "Event Blueprint Turnaround",

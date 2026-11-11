@@ -4,7 +4,7 @@ export function Testimonials() {
   const pillars = [
     {
       icon: ShieldCheck,
-      title: "Vetted Top 1% Artisans",
+      title: "Vetted Top 1% Vendors",
       desc: "Every palace venue, culinary master, and cinematographer is verified through rigorous quality standards, on-ground audits, and past client track records.",
       badge: "Quality Guarantee",
     },

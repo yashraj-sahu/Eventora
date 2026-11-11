@@ -7,6 +7,7 @@ import { useAuth } from "@/lib/auth-context";
 import { supabase } from "@/lib/supabase";
 import { formatINR } from "@/lib/utils";
 import { BookingLifecyclePanel } from "@/components/booking/BookingLifecyclePanel";
+import { CustomerQuotationResponse } from "@/components/booking/CustomerQuotationResponse";
 import { CustomerSupportCases } from "@/components/dashboard/CustomerSupportCases";
 import {
   CreditCard,
@@ -53,6 +54,7 @@ interface BookingBalanceItem {
   vendor_category: string;
   event_date: string;
   total_amount: number;
+  advance_amount: number;
   paid_amount: number;
   status: string;
   currency?: string;
@@ -68,6 +70,7 @@ export default function CustomerPaymentsPage() {
   const [pendingBookings, setPendingBookings] = useState<BookingBalanceItem[]>([]);
   const [bookings, setBookings] = useState<BookingBalanceItem[]>([]);
   const [loading, setLoading] = useState(true);
+  const [bookingRefresh, setBookingRefresh] = useState(0);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedReceipt, setSelectedReceipt] = useState<PaymentItem | null>(null);
 
@@ -111,7 +114,7 @@ export default function CustomerPaymentsPage() {
     }
 
     loadPaymentData();
-  }, [user]);
+  }, [user, bookingRefresh]);
 
   // Aggregate Metrics
   const totalPaidPaise = payments
@@ -149,10 +152,10 @@ export default function CustomerPaymentsPage() {
         </div>
 
         <Link
-          href="/vendors?returnTo=%2Fdashboard%2Fpayments"
+          href="/dashboard/vendors?returnTo=%2Fdashboard%2Fpayments"
           className="px-4 py-2 rounded-xl bg-[#681B1D] hover:bg-[#4B1117] text-[#FFF3E3] text-xs font-bold uppercase tracking-wider flex items-center gap-1.5 shadow-sm transition-all shrink-0 cursor-pointer"
         >
-          <span>Explore Artisans</span>
+          <span>Explore Vendors</span>
           <ArrowRight className="w-4 h-4" />
         </Link>
       </div>
@@ -168,8 +171,12 @@ export default function CustomerPaymentsPage() {
           {selectedBookingId && <BookingLifecyclePanel bookingId={selectedBookingId} />}
           {loading ? <p role="status" className="p-10 text-center">Loading bookings…</p> : bookings.length ? <div className="space-y-3">{bookings.map((booking) => {
             const canPay = ["awaiting_payment", "confirmed"].includes(booking.status) && booking.total_amount > booking.paid_amount;
-            return <article key={booking.id} className="p-5 sm:p-6 rounded-2xl bg-[#FFFCF6] dark:bg-[#241918] border border-[#EAD2B0] dark:border-[#4D3331] flex flex-col sm:flex-row sm:items-center justify-between gap-4"><div><span className="text-[10px] text-[#7D6B63] dark:text-[#D4C3B7] font-mono">{booking.booking_reference}</span><h3 className="mt-1 text-lg font-serif font-bold">{booking.vendor_name}</h3><p className="mt-1 text-xs text-[#7D6B63] dark:text-[#D4C3B7]">{booking.vendor_category} · {new Date(`${booking.event_date}T00:00:00`).toLocaleDateString("en-IN", { dateStyle: "medium" })}</p><p className="mt-2 text-xs">Paid {formatINR(booking.paid_amount / 100)} of {formatINR(booking.total_amount / 100)}{canPay ? ` · Balance ${formatINR((booking.total_amount - booking.paid_amount) / 100)}` : ""}</p></div><div className="flex items-center gap-3"><span className="px-3 py-1 rounded-full bg-[#EAD2B0]/50 dark:bg-[#681B1D]/40 text-[10px] font-bold uppercase">{booking.status.replaceAll("_", " ")}</span><Link href={`/dashboard/payments?tab=bookings&bookingId=${booking.id}`} className="px-4 py-2 rounded-xl border border-[#681B1D] text-[#681B1D] text-xs font-bold">Manage</Link>{canPay && <Link href={`/checkout?bookingId=${booking.id}`} className="px-4 py-2 rounded-xl bg-[#681B1D] text-white text-xs font-bold">Pay balance</Link>}</div></article>;
-          })}</div> : <div className="p-12 text-center rounded-3xl bg-[#FFFCF6] dark:bg-[#241918] border border-[#EAD2B0] dark:border-[#4D3331]"><h3 className="font-serif text-xl font-bold">No bookings yet</h3><p className="mt-2 text-sm text-[#7D6B63] dark:text-[#D4C3B7]">Discover vendors to request a booking.</p><Link href="/vendors?returnTo=%2Fdashboard%2Fpayments" className="inline-flex mt-4 px-4 py-2 rounded-xl bg-[#681B1D] text-white text-xs font-bold">Discover Vendors</Link></div>}
+            const quotePending = ["awaiting_quotation", "quotation_sent", "quotation_revision_requested"].includes(booking.status);
+            return <article key={booking.id} className="p-5 sm:p-6 rounded-2xl bg-[#FFFCF6] dark:bg-[#241918] border border-[#EAD2B0] dark:border-[#4D3331]">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4"><div><span className="text-[10px] text-[#7D6B63] dark:text-[#D4C3B7] font-mono">{booking.booking_reference}</span><h3 className="mt-1 text-lg font-serif font-bold">{booking.vendor_name}</h3><p className="mt-1 text-xs text-[#7D6B63] dark:text-[#D4C3B7]">{booking.vendor_category} · {new Date(`${booking.event_date}T00:00:00`).toLocaleDateString("en-IN", { dateStyle: "medium" })}</p><p className="mt-2 text-xs">{booking.total_amount > 0 ? `Paid ${formatINR(booking.paid_amount / 100)} of ${formatINR(booking.total_amount / 100)}${canPay ? ` · Remaining ${formatINR((booking.total_amount - booking.paid_amount) / 100)}` : ""}` : quotePending ? "Awaiting an agreed vendor quotation · no payment is due yet" : "No payable amount is recorded for this request"}</p></div><div className="flex items-center gap-3"><span className="px-3 py-1 rounded-full bg-[#EAD2B0]/50 dark:bg-[#681B1D]/40 text-[10px] font-bold uppercase">{booking.status === "quotation_sent" ? "Quotation received" : booking.status.replaceAll("_", " ")}</span><Link href={`/dashboard/payments?tab=bookings&bookingId=${booking.id}`} className="px-4 py-2 rounded-xl border border-[#681B1D] text-[#681B1D] text-xs font-bold">Manage</Link>{canPay && <Link href={`/checkout?bookingId=${booking.id}`} className="px-4 py-2 rounded-xl bg-[#681B1D] text-white text-xs font-bold">{booking.paid_amount < booking.advance_amount ? "Pay required advance" : "Pay remaining balance"}</Link>}</div></div>
+              {booking.status === "quotation_sent" && <CustomerQuotationResponse bookingId={booking.id} onRespond={() => setBookingRefresh((value) => value + 1)} />}
+            </article>;
+          })}</div> : <div className="p-12 text-center rounded-3xl bg-[#FFFCF6] dark:bg-[#241918] border border-[#EAD2B0] dark:border-[#4D3331]"><h3 className="font-serif text-xl font-bold">No bookings yet</h3><p className="mt-2 text-sm text-[#7D6B63] dark:text-[#D4C3B7]">Discover vendors to request a booking.</p><Link href="/dashboard/vendors?returnTo=%2Fdashboard%2Fpayments" className="inline-flex mt-4 px-4 py-2 rounded-xl bg-[#681B1D] text-white text-xs font-bold">Discover Vendors</Link></div>}
         </section>
       ) : <>
 
@@ -305,7 +312,7 @@ export default function CustomerPaymentsPage() {
                 <tr className="border-b border-[#EAD2B0] dark:border-[#4D3331] text-[#7D6B63] dark:text-[#D4C3B7] uppercase tracking-wider text-[10px]">
                   <th className="py-3 px-3">Date</th>
                   <th className="py-3 px-3">Booking Ref</th>
-                  <th className="py-3 px-3">Artisan Service</th>
+                  <th className="py-3 px-3">Vendor Service</th>
                   <th className="py-3 px-3">Transaction ID</th>
                   <th className="py-3 px-3">Purpose</th>
                   <th className="py-3 px-3">Amount</th>
@@ -334,7 +341,7 @@ export default function CustomerPaymentsPage() {
                       </td>
 
                       <td className="py-3.5 px-3 font-semibold text-[#30221D] dark:text-[#F4F0E7]">
-                        {p.bookings?.vendor_name || "Artisan Service"}
+                        {p.bookings?.vendor_name || "Vendor Service"}
                       </td>
 
                       <td className="py-3.5 px-3 font-mono text-[11px] text-[#7D6B63] dark:text-[#D4C3B7]">

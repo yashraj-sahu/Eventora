@@ -8,6 +8,7 @@ import { Navbar } from "@/components/layout/Navbar";
 import { Footer } from "@/components/layout/Footer";
 import { useAuth } from "@/lib/auth-context";
 import { formatINR } from "@/lib/utils";
+import { isValidCheckoutPaymentAmountPaise, minimumPartialPaymentPaise } from "@/lib/payment-amounts";
 import {
   ShieldCheck,
   CheckCircle2,
@@ -108,7 +109,7 @@ function CheckoutContent() {
 
         setBooking(data.booking);
         setPayments(data.payments || []);
-        if (requestedPurpose === "partial" && data.booking.allow_partial_payments) setPaymentPurpose("partial");
+        if (requestedPurpose === "partial") setPaymentPurpose("partial");
 
         // If booking already has advance paid, default purpose to remaining
         if (data.booking.paid_amount > 0 && data.booking.paid_amount < data.booking.total_amount) {
@@ -180,6 +181,7 @@ function CheckoutContent() {
   const advancePaise = booking.advance_amount;
   const paidPaise = booking.paid_amount || 0;
   const remainingPaise = Math.max(0, totalPaise - paidPaise);
+  const minimumPartialPaise = minimumPartialPaymentPaise(advancePaise, paidPaise);
 
   let currentPayablePaise = 0;
   if (paymentPurpose === "advance") {
@@ -191,6 +193,9 @@ function CheckoutContent() {
   }
 
   const payableINR = currentPayablePaise / 100;
+  const paymentAmountValid = isValidCheckoutPaymentAmountPaise(
+    currentPayablePaise, remainingPaise, paymentPurpose, booking.allow_partial_payments, minimumPartialPaise,
+  );
   const totalINR = totalPaise / 100;
   const advanceINR = advancePaise / 100;
   const remainingINR = remainingPaise / 100;
@@ -354,7 +359,7 @@ function CheckoutContent() {
             </div>
 
             <div className="flex items-center justify-between border-b border-[#EAD2B0] dark:border-[#4D3331] pb-3">
-              <span className="text-[#30221D]/70 dark:text-[#FFF3E3]/70">Booked Artisan / Venue:</span>
+              <span className="text-[#30221D]/70 dark:text-[#FFF3E3]/70">Booked Vendor / Venue:</span>
               <span className="font-bold text-[#30221D] dark:text-[#FFF3E3]">
                 {booking.vendor_name} ({booking.vendor_category})
               </span>
@@ -390,7 +395,7 @@ function CheckoutContent() {
       ) : (
         /* Standard Checkout Layout */
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 max-w-7xl mx-auto">
-          {/* Left Column: Booking & Artisan Summary */}
+          {/* Left Column: Booking & Vendor Summary */}
           <div className="lg:col-span-7 space-y-6">
             <div className="p-6 sm:p-8 rounded-3xl bg-[#FFFDF9] dark:bg-[#231715] border border-[#EAD2B0] dark:border-[#4D3331] shadow-sm space-y-6">
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-[#EAD2B0] dark:border-[#4D3331] pb-4">
@@ -504,7 +509,7 @@ function CheckoutContent() {
                   <label className="block text-[#30221D]/70 dark:text-[#FFF3E3]/70 font-bold uppercase tracking-wider text-[11px]">
                     Choose Payment Option
                   </label>
-                  <div className="grid grid-cols-2 gap-2">
+                  <div className="grid grid-cols-1 gap-2 sm:grid-cols-3">
                     <button
                       type="button"
                       onClick={() => setPaymentPurpose("advance")}
@@ -538,6 +543,19 @@ function CheckoutContent() {
                         {formatINR(totalINR)}
                       </span>
                     </button>
+
+                    <button
+                      type="button"
+                      onClick={() => setPaymentPurpose("partial")}
+                      className={`p-3 rounded-2xl border text-left transition-all cursor-pointer ${
+                        paymentPurpose === "partial"
+                          ? "bg-[#681B1D]/10 dark:bg-[#681B1D]/30 border-[#681B1D] dark:border-[#B77A36] shadow-xs"
+                          : "bg-[#FFF3E3]/50 dark:bg-[#1A1211] border-[#EAD2B0] dark:border-[#4D3331]"
+                      }`}
+                    >
+                      <span className="font-bold block text-[#30221D] dark:text-[#FFF3E3]">Enter an amount</span>
+                      <span className="font-serif font-bold text-[#681B1D] dark:text-[#EAD2B0] text-sm">Custom payment</span>
+                    </button>
                   </div>
                 </div>
               ) : (
@@ -547,12 +565,12 @@ function CheckoutContent() {
                 </div>
               )}
 
-              {booking.allow_partial_payments && remainingPaise > 0 && (
-                <div className="space-y-2 rounded-xl border border-[#EAD2B0] p-3 text-xs">
-                  <button type="button" onClick={() => setPaymentPurpose("partial")} className={`font-bold ${paymentPurpose === "partial" ? "text-[#681B1D]" : "text-[#7D6B63]"}`}>Choose a partial payment</button>
-                  {paymentPurpose === "partial" && <label className="block">Amount in INR (up to {formatINR(remainingINR)})<input type="number" min="1" max={remainingINR} step="0.01" required value={partialAmountINR} onChange={(event) => setPartialAmountINR(event.target.value)} className="mt-1 w-full rounded-lg border border-[#EAD2B0] bg-white p-2" /></label>}
+              {remainingPaise > 0 && paymentPurpose === "partial" && (
+                <div className="rounded-xl border border-[#EAD2B0] p-3 text-xs">
+                  <label className="block">Amount in INR (minimum ₹1, up to {formatINR(remainingINR)})<input type="number" min={minimumPartialPaise / 100} max={remainingINR} step="0.01" required value={partialAmountINR} onChange={(event) => setPartialAmountINR(event.target.value)} className="mt-1 w-full rounded-lg border border-[#EAD2B0] bg-white p-2" /><span className="mt-1 block text-[11px] text-[#7D6B63]">Each captured installment reduces the balance. The booking is confirmed only after verified payments reach the agreed advance.</span></label>
                 </div>
               )}
+              {remainingPaise > 0 && paidINR > 0 && paymentPurpose !== "partial" && <button type="button" onClick={() => setPaymentPurpose("partial")} className="text-left text-xs font-bold text-[#681B1D] underline">Enter a custom payment amount</button>}
 
               {/* Itemized Calculation */}
               <div className="space-y-2.5 pt-2 text-xs">
@@ -618,7 +636,7 @@ function CheckoutContent() {
               <button
                 type="button"
                 onClick={handleLaunchRazorpay}
-                disabled={isProcessing || payableINR <= 0}
+                disabled={isProcessing || !paymentAmountValid}
                 className="w-full py-4 rounded-2xl bg-[#681B1D] hover:bg-[#4B1117] text-[#FFF3E3] text-xs font-bold uppercase tracking-wider shadow-lg transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
               >
                 {isProcessing ? (

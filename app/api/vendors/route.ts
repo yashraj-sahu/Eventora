@@ -20,7 +20,7 @@ export async function GET(request: Request) {
     supabase.from("vendor_services").select("*").in("vendor_profile_id", ids).eq("is_active", true).order("sort_order"),
     supabase.from("vendor_packages").select("*").in("vendor_profile_id", ids).eq("is_active", true).order("sort_order"),
     supabase.from("vendor_portfolio").select("*").in("vendor_profile_id", ids).order("sort_order"),
-    supabase.from("vendor_listings").select("id,vendor_profile_id,vendor_service_id,name,category,subcategory,description,pricing_model,starting_price,capacity,duration_minutes,booking_requirements,terms").in("vendor_profile_id", ids).eq("status", "published").order("created_at", { ascending: false }),
+    supabase.from("vendor_listings").select("id,vendor_profile_id,vendor_service_id,name,category,subcategory,description,pricing_model,starting_price,capacity,duration_minutes,booking_requirements,terms,status").in("vendor_profile_id", ids).eq("status", "published").order("created_at", { ascending: false }),
     supabase.from("vendor_service_areas").select("vendor_profile_id,city,region").in("vendor_profile_id", ids).order("city"),
     supabase.from("vendor_reviews").select("id,vendor_profile_id,rating,review_text,vendor_response,created_at").in("vendor_profile_id", ids).order("created_at", { ascending: false }).limit(1000),
   ]);
@@ -29,7 +29,7 @@ export async function GET(request: Request) {
   if (services.error || packages.error || portfolio.error || listings.error || areas.error || reviews.error || addonError) return NextResponse.json({ error: "Unable to load vendor details" }, { status: 500 });
   return NextResponse.json({ vendors: (vendors ?? []).map((vendor) => ({
     ...vendor,
-    vendor_services: (services.data ?? []).filter((item) => item.vendor_profile_id === vendor.id),
+    vendor_services: (services.data ?? []).filter((item) => item.vendor_profile_id === vendor.id && (listings.data ?? []).some((listing) => listing.vendor_profile_id === vendor.id && listing.vendor_service_id === item.id && listing.status === "published")),
     vendor_packages: (packages.data ?? []).filter((item) => item.vendor_profile_id === vendor.id),
     vendor_portfolio: (portfolio.data ?? []).filter((item) => item.vendor_profile_id === vendor.id),
     vendor_listings: (listings.data ?? []).filter((item) => item.vendor_profile_id === vendor.id).map((listing) => ({ ...listing, addons: (addons ?? []).filter((addon) => addon.listing_id === listing.id) })),

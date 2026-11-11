@@ -86,6 +86,8 @@ import {
   CalendarDays,
   ChevronDown,
   CreditCard,
+  CheckSquare,
+  FileText,
   LayoutDashboard,
   LogOut,
   Menu,
@@ -98,6 +100,8 @@ import {
 const primary = [
   { section: "overview", label: "Overview", icon: LayoutDashboard },
   { section: "bookings", label: "Bookings", icon: CalendarDays },
+  { section: "service-tasks", label: "Service Tasks", icon: CheckSquare },
+  { section: "quote-requests", label: "Quote Requests", icon: FileText },
   { section: "availability", label: "Availability Calendar", icon: CalendarDays },
   { section: "finances", label: "Finances", icon: CreditCard },
   { section: "reviews", label: "Reviews", icon: ShieldCheck },

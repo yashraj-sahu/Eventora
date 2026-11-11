@@ -22,7 +22,7 @@ export default function SavedVendorsPage() {
         <div className="space-y-1">
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-amber-500/10 text-amber-300 text-xs font-semibold border border-amber-500/20">
             <Bookmark className="w-3.5 h-3.5" />
-            <span>Shortlisted Artisans</span>
+            <span>Shortlisted Vendors</span>
           </div>
           <h1 className="text-2xl sm:text-4xl font-serif font-bold text-white">
             Saved Vendors & Palace Estates
@@ -33,10 +33,10 @@ export default function SavedVendorsPage() {
         </div>
 
         <Link
-          href="/vendors?returnTo=%2Fdashboard%2Fsaved-vendors"
+          href="/dashboard/vendors?returnTo=%2Fdashboard%2Fsaved-vendors"
           className="px-5 py-2.5 rounded-xl bg-[#2E1F1E] hover:bg-[#4D3331] border border-[#4D3331] text-[#FFF3E3] font-semibold text-xs transition-all flex items-center gap-1.5 shrink-0"
         >
-          <span>Discover More Artisans</span>
+          <span>Discover More Vendors</span>
           <ArrowRight className="w-3.5 h-3.5" />
         </Link>
       </div>
@@ -49,7 +49,7 @@ export default function SavedVendorsPage() {
             Browse our nationwide directory and click the bookmark icon to save venues, caterers, or photographers here.
           </p>
           <Link
-            href="/vendors?returnTo=%2Fdashboard%2Fsaved-vendors"
+            href="/dashboard/vendors?returnTo=%2Fdashboard%2Fsaved-vendors"
             className="inline-block px-5 py-2.5 rounded-xl bg-amber-500 text-[#1A1211] font-bold text-xs"
           >
             Explore Vendors

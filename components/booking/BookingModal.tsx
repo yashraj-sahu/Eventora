@@ -27,7 +27,7 @@ export interface BookingModalProps {
     city: string;
     startingPrice: number | null;
     priceUnit: string;
-    serviceOptions?: Array<{ id: string; name: string; description: string | null }>;
+    serviceOptions?: Array<{ id: string; name: string; description: string | null; pricingUnit?: string; startingPrice?: number | null; minimumQuantity?: number | null; pricingModel?: string; pricingDetails?: Record<string, unknown>; inclusions?: string[]; exclusions?: string[] }>;
     packages?: Array<{
       id?: string;
       name: string;
@@ -38,6 +38,7 @@ export interface BookingModalProps {
   initialPackageName?: string;
   initialServiceId?: string;
   eventId?: string;
+  workspacePath?: string;
 }
 
 const NO_PACKAGES: NonNullable<BookingModalProps["vendor"]["packages"]> = [];
@@ -49,6 +50,7 @@ export function BookingModal({
   initialPackageName,
   initialServiceId,
   eventId,
+  workspacePath = "/vendors",
 }: BookingModalProps) {
   const router = useRouter();
   const { isAuthenticated, profile } = useAuth();
@@ -59,9 +61,14 @@ export function BookingModal({
     initialPackageName || packages[0]?.name || "Standard Package"
   );
   const [selectedServiceId, setSelectedServiceId] = useState("");
+  const [customerEvents, setCustomerEvents] = useState<Array<{ id: string; title: string; category: string; city: string; date: string; guest_count: number }>>([]);
+  const [selectedEventId, setSelectedEventId] = useState(eventId ?? "");
+  const [eventsLoading, setEventsLoading] = useState(false);
+  const [eventsError, setEventsError] = useState("");
   const [eventDate, setEventDate] = useState("");
-  const [eventCity, setEventCity] = useState(vendor.city || "");
-  const [guestCount, setGuestCount] = useState(100);
+  const [eventCity, setEventCity] = useState("");
+  const [guestCount, setGuestCount] = useState("");
+  const [serviceQuantity, setServiceQuantity] = useState("");
   const [advancePercent, setAdvancePercent] = useState<25 | 50 | 100>(25);
   const [requirements, setRequirements] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -70,15 +77,47 @@ export function BookingModal({
   const [bookingIdempotencyKey, setBookingIdempotencyKey] = useState(() => crypto.randomUUID());
 
   useEffect(() => {
+    if (!isOpen || !isAuthenticated) return;
+    let active = true;
+    setEventsLoading(true);
+    setEventsError("");
+    void fetch("/api/ai/events", { cache: "no-store" }).then(async (response) => {
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.error || "Your events could not be loaded.");
+      if (!active) return;
+      const events = Array.isArray(data.events) ? data.events : [];
+      setCustomerEvents(events);
+      let pendingEventId = "";
+      try {
+        const pending = sessionStorage.getItem("evntora_pending_booking");
+        pendingEventId = pending ? (JSON.parse(pending) as { eventId?: string }).eventId ?? "" : "";
+      } catch { /* A malformed draft is ignored; the customer can choose an event below. */ }
+      const selected = events.find((item: { id: string }) => item.id === (eventId || pendingEventId || selectedEventId));
+      if (selected) {
+        setSelectedEventId(selected.id);
+        setEventDate(selected.date);
+        setEventCity(selected.city);
+        setGuestCount(String(selected.guest_count));
+      } else if (eventId) {
+        setSelectedEventId("");
+        setEventsError("The selected event is unavailable. Choose one of your own events.");
+      }
+    }).catch((cause) => { if (active) setEventsError(cause instanceof Error ? cause.message : "Your events could not be loaded."); })
+      .finally(() => { if (active) setEventsLoading(false); });
+    return () => { active = false; };
+  }, [isOpen, isAuthenticated, eventId]);
+
+  useEffect(() => {
     if (!isOpen) return;
     try {
       const raw = sessionStorage.getItem("evntora_pending_booking");
       if (!raw) return;
-      const pending = JSON.parse(raw) as { vendorProfileId?: string; eventDate?: string; eventCity?: string; guestCount?: number; packageId?: string | null; serviceId?: string | null; idempotencyKey?: string; requirements?: string; advancePercentage?: 25 | 50 | 100 };
+      const pending = JSON.parse(raw) as { vendorProfileId?: string; eventId?: string; eventDate?: string; eventCity?: string; guestCount?: number | string; packageId?: string | null; serviceId?: string | null; idempotencyKey?: string; requirements?: string; advancePercentage?: 25 | 50 | 100 };
       if (pending.vendorProfileId !== vendor.id) return;
       if (pending.eventDate) setEventDate(pending.eventDate);
+      if (pending.eventId) setSelectedEventId(pending.eventId);
       if (pending.eventCity) setEventCity(pending.eventCity);
-      if (typeof pending.guestCount === "number") setGuestCount(pending.guestCount);
+      if (pending.guestCount !== undefined) setGuestCount(String(pending.guestCount));
       if (pending.requirements) setRequirements(pending.requirements);
       if (pending.advancePercentage && [25, 50, 100].includes(pending.advancePercentage)) setAdvancePercent(pending.advancePercentage);
       if (pending.packageId) {
@@ -99,6 +138,7 @@ export function BookingModal({
   if (!isOpen) return null;
 
   const currentPkg = selectedServiceId ? undefined : packages.find((p) => p.name === selectedPkgName) || packages[0];
+  const selectedService = vendor.serviceOptions?.find((service) => service.id === selectedServiceId);
   const totalPrice = currentPkg ? currentPkg.price : 0;
   const advanceAmount = Math.round(totalPrice * (advancePercent / 100));
   const remainingAmount = totalPrice - advanceAmount;
@@ -106,22 +146,39 @@ export function BookingModal({
   const handleProceedToCheckout = async (e: React.FormEvent) => {
     e.preventDefault();
     setErrorMessage(null);
+    if (isAuthenticated && (!selectedEventId || eventsLoading || eventsError)) {
+      setErrorMessage(eventsError || (eventsLoading ? "Wait while your events load." : "Choose the event this vendor service is for."));
+      return;
+    }
+    if (!eventDate || !eventCity.trim() || !Number.isSafeInteger(Number(guestCount)) || Number(guestCount) < 1) {
+      setErrorMessage("Enter the event date, city and a valid guest count before requesting this service.");
+      return;
+    }
+    const selectedServiceUnit = selectedService?.pricingUnit ?? "custom_quote";
+    if (selectedService?.minimumQuantity && selectedService.pricingUnit !== "per_guest" && selectedService.pricingUnit !== "per_event" && selectedService.pricingUnit !== "per_package" && Number(serviceQuantity) < selectedService.minimumQuantity) {
+      setErrorMessage(`This service requires at least ${selectedService.minimumQuantity} ${selectedServiceUnit.replaceAll("per_", "")}.`);
+      return;
+    }
+    const requestRequirements = [requirements, selectedService && serviceQuantity ? `Requested quantity: ${serviceQuantity} ${selectedService.pricingUnit || "custom quotation"}.` : ""].filter(Boolean).join("\n").slice(0, 3000);
 
     if (!isAuthenticated) {
       const pendingData = {
         vendorProfileId: vendor.id,
-        ...(eventId ? { eventId } : {}),
+        ...(selectedEventId ? { eventId: selectedEventId } : {}),
         packageId: currentPkg?.id ?? null,
         serviceId: selectedServiceId || null,
         eventDate,
         eventCity,
-        guestCount,
+        guestCount: Number(guestCount),
         advancePercentage: advancePercent,
         idempotencyKey: bookingIdempotencyKey,
-        requirements,
+        requirements: requestRequirements,
       };
       sessionStorage.setItem("evntora_pending_booking", JSON.stringify(pendingData));
-      router.push(`/signin?redirect=${encodeURIComponent(`/vendors${eventId ? `?eventId=${eventId}` : ""}`)}`);
+      const returnParams = new URLSearchParams();
+      if (selectedEventId || eventId) returnParams.set("eventId", selectedEventId || eventId!);
+      returnParams.set("returnTo", workspacePath);
+      router.push(`/signin?redirect=${encodeURIComponent(`${workspacePath}?${returnParams.toString()}`)}`);
       return;
     }
 
@@ -132,14 +189,14 @@ export function BookingModal({
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           vendorProfileId: vendor.id,
-          ...(eventId ? { eventId } : {}),
+          eventId: selectedEventId,
           packageId: currentPkg?.id ?? null,
           serviceId: selectedServiceId || null,
           eventDate,
           eventCity,
-          guestCount,
+          guestCount: Number(guestCount),
           advancePercentage: advancePercent,
-          requirements,
+          requirements: requestRequirements,
           idempotencyKey: bookingIdempotencyKey,
         }),
       });
@@ -170,7 +227,7 @@ export function BookingModal({
               </span>
               <span className="text-[11px] text-[#7D6B63] dark:text-[#D4C3B7] flex items-center gap-1 font-semibold">
                 <ShieldCheck className="w-3.5 h-3.5 text-[#B77A36]" />
-                Verified Artisan Booking
+                Verified Vendor Booking
               </span>
             </div>
             <h2 className="text-xl sm:text-2xl font-serif font-bold text-[#30221D] dark:text-[#FFF3E3]">
@@ -201,7 +258,8 @@ export function BookingModal({
           )}
 
           {/* Service and package selection */}
-          {!!vendor.serviceOptions?.length && <div className="space-y-2"><label className="block text-[#7D6B63] dark:text-[#D4C3B7] font-bold uppercase tracking-wider text-[11px]">Requested service (optional)</label><select value={selectedServiceId} onChange={(event) => setSelectedServiceId(event.target.value)} className="w-full rounded-xl border border-[#EAD2B0] bg-[#FFFCF6] p-3 text-sm"><option value="">Choose a listed service</option>{vendor.serviceOptions.map((service) => <option key={service.id} value={service.id}>{service.name}</option>)}</select>{selectedServiceId && <p className="text-[#7D6B63]">Final service price will be sent as a vendor quotation for your approval.</p>}</div>}
+          {!!vendor.serviceOptions?.length && <div className="space-y-2"><label className="block text-[#7D6B63] dark:text-[#D4C3B7] font-bold uppercase tracking-wider text-[11px]">Requested service</label><select value={selectedServiceId} onChange={(event) => { const next = vendor.serviceOptions?.find((service) => service.id === event.target.value); setSelectedServiceId(event.target.value); setServiceQuantity(next?.minimumQuantity ? String(next.minimumQuantity) : ""); }} className="w-full rounded-xl border border-[#EAD2B0] bg-[#FFFCF6] p-3 text-sm"><option value="">Choose a listed service</option>{vendor.serviceOptions.map((service) => <option key={service.id} value={service.id}>{service.name}{service.startingPrice != null ? ` · ${service.pricingModel === "starting_at" ? "from " : ""}${formatINR(service.startingPrice)} / ${service.pricingUnit}` : " · custom quotation"}</option>)}</select>{selectedService && <div className="rounded-xl border border-[#EAD2B0] bg-[#FFFCF6]/70 p-3 text-xs"><p className="font-semibold">{selectedService.startingPrice == null ? "Vendor quotation required; no price has been published." : `${selectedService.pricingModel === "starting_at" ? "Starting rate" : "Published rate"}: ${formatINR(selectedService.startingPrice)} per ${selectedService.pricingUnit}`}</p>{selectedService.minimumQuantity != null && <p className="mt-1">Minimum quantity or duration: {selectedService.minimumQuantity}</p>}{typeof selectedService.pricingDetails?.vendorNotes === "string" && selectedService.pricingDetails.vendorNotes && <p className="mt-1">{selectedService.pricingDetails.vendorNotes}</p>}{selectedService.inclusions?.length ? <p className="mt-1"><b>Includes:</b> {selectedService.inclusions.join(", ")}</p> : null}{selectedService.exclusions?.length ? <p className="mt-1"><b>Excludes:</b> {selectedService.exclusions.join(", ")}</p> : null}<p className="mt-1 text-[#7D6B63]">The vendor will confirm the exact amount in a proposal before payment.</p>{selectedService.pricingUnit && !["per_event", "per_package", "per_guest", "custom_quote"].includes(selectedService.pricingUnit) && <label className="mt-3 block">Requested quantity ({selectedService.pricingUnit.replace("per_", "")})<input required type="number" min={selectedService.minimumQuantity ?? 0.01} step="0.01" value={serviceQuantity} onChange={(event) => setServiceQuantity(event.target.value)} className="mt-1 w-full rounded-lg border border-[#EAD2B0] bg-white px-3 py-2"/></label>}</div>}</div>}
+          {isAuthenticated && <div className="space-y-2"><label htmlFor="booking-event" className="block text-[#7D6B63] dark:text-[#D4C3B7] font-bold uppercase tracking-wider text-[11px]">Book this service for an event</label><select id="booking-event" required value={selectedEventId} disabled={eventsLoading || customerEvents.length === 0} onChange={(event) => { const selected = customerEvents.find((item) => item.id === event.target.value); setSelectedEventId(event.target.value); if (selected) { setEventDate(selected.date); setEventCity(selected.city); setGuestCount(String(selected.guest_count)); } }} className="w-full rounded-xl border border-[#EAD2B0] bg-[#FFFCF6] p-3 text-sm"><option value="">{eventsLoading ? "Loading your events…" : customerEvents.length ? "Choose your event" : "Create an event before booking"}</option>{customerEvents.map((item) => <option key={item.id} value={item.id}>{item.title} · {item.date} · {item.city}</option>)}</select>{!eventsLoading && !customerEvents.length && <p className="text-xs text-[#7D6B63]">Create your event first so its bookings, work progress and payments stay together. <button type="button" onClick={() => router.push("/dashboard/events")} className="font-bold text-[#681B1D] underline">Go to My Events</button></p>}{eventsError && <p role="alert" className="text-xs text-rose-700">{eventsError}</p>}</div>}
           {/* Package Selection */}
           <div className="space-y-2">
             <label className="block text-[#7D6B63] dark:text-[#D4C3B7] font-bold uppercase tracking-wider text-[11px]">
@@ -282,10 +340,11 @@ export function BookingModal({
                 <Users className="w-3.5 h-3.5 text-[#7D6B63] absolute left-3 top-1/2 -translate-y-1/2" />
                 <input
                   type="number"
-                  min="10"
+                  required
+                  min="1"
                   max="5000"
                   value={guestCount}
-                  onChange={(e) => setGuestCount(Number(e.target.value))}
+                  onChange={(e) => setGuestCount(e.target.value)}
                   className="w-full pl-8 pr-3 py-2 rounded-xl bg-[#FFFCF6]/90 dark:bg-[#1A1211] border border-[#EAD2B0] dark:border-[#4D3331] text-[#30221D] dark:text-[#FFF3E3] focus:outline-none focus:border-[#B77A36]"
                 />
               </div>

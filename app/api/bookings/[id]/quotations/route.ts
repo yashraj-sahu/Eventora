@@ -28,7 +28,18 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
   const { id } = await params;
   const access = await getBookingAccess(request, id);
   if ("response" in access) return access.response;
-  if (access.role !== "vendor") return NextResponse.json({ error: "Only the vendor for this booking can create a quotation." }, { status: 403 });
+  // getBookingAccess may classify a multi-role vendor as an admin when they
+  // also hold booking-support permission. For quote creation, independently
+  // require both an active vendor role and ownership of this booking's vendor
+  // profile, matching the ownership check in create_booking_quotation().
+  const [vendorRoleResult, vendorProfileResult] = await Promise.all([
+    access.db.from("user_roles").select("user_id").eq("user_id", access.user.id).eq("role", "vendor").eq("is_active", true).maybeSingle(),
+    access.booking.vendor_profile_id
+      ? access.db.from("vendor_profiles").select("id").eq("id", access.booking.vendor_profile_id).eq("user_id", access.user.id).maybeSingle()
+      : Promise.resolve({ data: null, error: null }),
+  ]);
+  if (vendorRoleResult.error || vendorProfileResult.error) return NextResponse.json({ error: "Vendor booking access could not be verified." }, { status: 503 });
+  if (!vendorRoleResult.data || !vendorProfileResult.data) return NextResponse.json({ error: "Only the vendor for this booking can create a quotation." }, { status: 403 });
   const parsed = createSchema.safeParse(await request.json().catch(() => null));
   if (!parsed.success) return NextResponse.json({ error: "Review the quotation items, amounts, terms and expiry date." }, { status: 400 });
   try {

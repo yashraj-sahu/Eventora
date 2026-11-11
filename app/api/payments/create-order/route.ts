@@ -137,6 +137,9 @@ export async function POST(request: Request) {
   if (purpose === "partial" && (partialAmountPaise === null || !Number.isSafeInteger(partialAmountPaise))) {
     return NextResponse.json({ error: "Enter a valid partial payment amount." }, { status: 400 });
   }
+  if (purpose === "partial" && partialAmountPaise! < 100) {
+    return NextResponse.json({ error: "A partial payment must be at least ₹1." }, { status: 400 });
+  }
 
   try {
     const db = createAdminSupabaseClient();

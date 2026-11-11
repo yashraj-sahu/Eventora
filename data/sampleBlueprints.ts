@@ -54,7 +54,7 @@ export function generateAIBlueprint(params: GenerateBlueprintParams): AIEventBlu
       category: "Culinary & Beverage Experiences",
       percentage: Math.round(cateringPct * 100),
       amount: Math.round(totalBudget * cateringPct),
-      description: `Bespoke menu tasting, 6-8 live artisanal counters, signature welcome mocktails, and royal service staff.`,
+      description: `Bespoke menu tasting, 6-8 live Vendoral counters, signature welcome mocktails, and royal service staff.`,
     },
     {
       category: "Haute Decor & Spatial Production",
@@ -137,15 +137,15 @@ export function generateAIBlueprint(params: GenerateBlueprintParams): AIEventBlu
     culinaryStrategy: {
       cuisineStyle: "Progressive Indian Heritage & Mediterranean Fusion",
       recommendedCounters: [
-        "Artisanal Delhi & Lucknow Chaat Street with modern gastronomy flair",
-        "Wood-fired artisanal thin crust flatbreads and burrata bar",
+        "Vendoral Delhi & Lucknow Chaat Street with modern gastronomy flair",
+        "Wood-fired Vendoral thin crust flatbreads and burrata bar",
         "Awadhi Dum Biryani & Slow-cooked Dal Bukhara station",
         "Nitro Kulfi & Belgian Chocolate fondue dessert island",
       ],
       beverageHighlights: [
         "Signature Smoked Rosemary botanical mocktails",
         "Fresh tender coconut & rose-infused welcome elixirs",
-        "Specialty artisanal coffee & saffron chai bar",
+        "Specialty Vendoral coffee & saffron chai bar",
       ],
     },
     decorAndFloral: {

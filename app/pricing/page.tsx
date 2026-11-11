@@ -146,7 +146,7 @@ export default function PricingPage() {
         <div className="p-8 rounded-3xl bg-[#FFFDF9] dark:bg-[#231715] border border-[#EAD2B0] dark:border-[#4D3331] flex flex-col md:flex-row items-center justify-between gap-6 shadow-sm">
           <div className="space-y-2 max-w-2xl">
             <span className="text-xs uppercase tracking-wider text-[#B77A36] dark:text-[#EAD2B0] font-bold">
-              For Palace Estates & Artisans
+              For Palace Estates & Vendors
             </span>
             <h3 className="text-xl font-serif font-bold text-[#681B1D] dark:text-[#FFF3E3]">
               Are you a premier event vendor or venue owner in India?

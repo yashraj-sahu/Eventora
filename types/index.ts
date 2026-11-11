@@ -160,7 +160,7 @@ export interface Vendor {
   shortBio: string;
   description: string;
   services: string[];
-  serviceOptions?: { id: string; name: string; description: string | null }[];
+  serviceOptions?: { id: string; name: string; description: string | null; pricingUnit?: string; startingPrice?: number | null; minimumQuantity?: number | null; pricingModel?: string; pricingDetails?: Record<string, unknown>; inclusions?: string[]; exclusions?: string[] }[];
   experienceYears: number;
   pastEventsCount: number;
   contactPhone: string;
@@ -218,7 +218,7 @@ export interface MarketplaceVendor {
 
 export interface MarketplaceVendorListing {
   id: string; vendor_profile_id: string; vendor_service_id: string | null; name: string; category: string; subcategory: string | null; description: string;
-  pricing_model: "fixed" | "starting_at" | "custom_quote"; starting_price: number | null; capacity: number | null;
+  pricing_model: "fixed" | "starting_at" | "custom_quote"; pricing_unit: "per_hour" | "per_day" | "per_event" | "per_guest" | "per_item" | "per_package" | "custom_quote"; starting_price: number | null; minimum_quantity: number | null; pricing_details: Record<string, unknown>; inclusions: string[]; exclusions: string[]; capacity: number | null;
   duration_minutes: number | null; booking_requirements: string | null; terms: string | null;
   addons?: Array<{ id: string; listing_id: string; name: string; description: string | null; price: number }>;
 }
@@ -230,6 +230,7 @@ export interface MarketplaceVendorService {
   description: string | null;
   is_active: boolean;
   sort_order: number;
+  listing?: MarketplaceVendorListing | null;
 }
 
 export interface MarketplaceVendorPackage {
@@ -258,6 +259,9 @@ export interface MarketplaceVendorPortfolio {
  * used by existing UI components like BookingModal and vendor cards.
  */
 export function marketplaceVendorToLegacy(mv: MarketplaceVendor): VendorItem {
+  const pricedListing = (mv.vendor_listings || [])
+    .filter((listing) => listing.starting_price !== null && listing.pricing_model !== "custom_quote")
+    .sort((left, right) => (left.starting_price ?? Number.MAX_SAFE_INTEGER) - (right.starting_price ?? Number.MAX_SAFE_INTEGER))[0];
   return {
     id: mv.id,
     claimable: mv.user_id === null,
@@ -267,8 +271,8 @@ export function marketplaceVendorToLegacy(mv: MarketplaceVendor): VendorItem {
     rating: mv.rating ?? null,
     reviewCount: mv.review_count ?? null,
     priceRange: mv.price_range,
-    startingPrice: mv.starting_price > 0 ? mv.starting_price : null,
-    priceUnit: (mv.price_unit || "per event") as Vendor["priceUnit"],
+    startingPrice: pricedListing?.starting_price != null ? pricedListing.starting_price / 100 : null,
+    priceUnit: (pricedListing ? (pricedListing.pricing_unit || "per_event").replaceAll("_", " ") : "quotation required") as Vendor["priceUnit"],
     coverImage: mv.cover_image_url || mv.vendor_portfolio?.[0]?.public_url || null,
     galleryImages: mv.vendor_portfolio?.map((p) => p.public_url || "").filter(Boolean) || [],
     isVerified: mv.is_verified,
@@ -276,7 +280,10 @@ export function marketplaceVendorToLegacy(mv: MarketplaceVendor): VendorItem {
     shortBio: mv.short_bio || mv.business_description?.slice(0, 120) || "",
     description: mv.business_description || "",
     services: mv.vendor_services?.map((s) => s.name) || [],
-    serviceOptions: mv.vendor_services?.map((service) => ({ id: service.id, name: service.name, description: service.description })) || [],
+    serviceOptions: mv.vendor_services?.map((service) => {
+      const listing = mv.vendor_listings?.find((item) => item.vendor_service_id === service.id);
+      return { id: service.id, name: service.name, description: service.description, ...(listing ? { pricingUnit: listing.pricing_unit, startingPrice: listing.starting_price === null ? null : listing.starting_price / 100, minimumQuantity: listing.minimum_quantity, pricingModel: listing.pricing_model, pricingDetails: listing.pricing_details, inclusions: listing.inclusions, exclusions: listing.exclusions } : {}) };
+    }) || [],
     experienceYears: mv.experience_years,
     pastEventsCount: mv.past_events_count,
     contactPhone: mv.contact_phone || "",
@@ -318,7 +325,6 @@ export interface Destination {
   state: string;
   tagline: string;
   image: string;
-  venueCount: number;
   featuredVenue: string;
   popularFor: string[];
 }

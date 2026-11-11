@@ -44,7 +44,7 @@ import { Hero } from "@/components/home/Hero";
 import { CategoryShowcase } from "@/components/home/CategoryShowcase";
 import { HowItWorks } from "@/components/home/HowItWorks";
 import { FeaturedVendors } from "@/components/home/FeaturedVendors";
-import { DestinationShowcase } from "@/components/home/DestinationShowcase";
+//import { DestinationShowcase } from "@/components/home/DestinationShowcase";
 import { AIPlannerShowcase } from "@/components/home/AIPlannerShowcase";
 import { BudgetShowcase } from "@/components/home/BudgetShowcase";
 import { Testimonials } from "@/components/home/Testimonials";
@@ -71,9 +71,9 @@ export default function HomePage() {
         </ScrollReveal>
 
         {/* 3. Popular Destinations */}
-        <ScrollReveal delay={50}>
-          <DestinationShowcase />
-        </ScrollReveal>
+        {/* <ScrollReveal delay={50}> */}
+          {/* <DestinationShowcase /> */}
+        {/* </ScrollReveal> */}
 
         {/* 4. Featured Vendors */}
         <ScrollReveal delay={50}>

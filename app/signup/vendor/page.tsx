@@ -180,7 +180,7 @@ export default function VendorSignUpPage() {
               </h2>
               <p className="text-xs text-[#7D6B63] dark:text-[#D4C3B7] mt-2">
                 Thank you, <span className="text-[#681B1D] dark:text-[#EAD2B0] font-semibold">{contactName}</span>.
-                {awaitingEmailVerification ? "Your account was created. Your business application will be saved after you verify the email address, for " : "We&apos;ve received your artisan partner application for "}{" "}
+                {awaitingEmailVerification ? "Your account was created. Your business application will be saved after you verify the email address, for " : "We&apos;ve received your Vendor partner application for "}{" "}
                 <span className="text-[#30221D] dark:text-[#F4F0E7] font-semibold">{businessName}</span>.
               </p>
             </div>
@@ -219,7 +219,7 @@ export default function VendorSignUpPage() {
               <Store className="w-5 h-5 text-[#B77A36]" />
             </div>
             <h1 className="text-2xl font-serif font-bold text-[#681B1D] dark:text-[#F4F0E7]">
-              Artisan Partner Registration
+              Vendor Partner Registration
             </h1>
             <p className="text-xs text-[#7D6B63] dark:text-[#D4C3B7]">
               Join India&apos;s verified event planning ecosystem as a premier vendor partner
@@ -428,7 +428,7 @@ export default function VendorSignUpPage() {
               <label htmlFor="terms" className="text-[#7D6B63] dark:text-[#D4C3B7] leading-relaxed cursor-pointer text-xs">
                 I agree to the{" "}
                 <Link href="/terms" className="text-[#681B1D] dark:text-[#EAD2B0] hover:underline font-semibold">
-                  Artisan Partner Agreement
+                  Vendor Partner Agreement
                 </Link>{" "}
                 and{" "}
                 <Link href="/privacy" className="text-[#681B1D] dark:text-[#EAD2B0] hover:underline font-semibold">
@@ -447,7 +447,7 @@ export default function VendorSignUpPage() {
               ) : (
                 <>
                   <Store className="w-3.5 h-3.5 text-[#B77A36]" />
-                  <span>Submit Artisan Application</span>
+                  <span>Submit Vendor Application</span>
                   <ArrowRight className="w-3.5 h-3.5" />
                 </>
               )}

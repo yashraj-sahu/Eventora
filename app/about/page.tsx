@@ -35,7 +35,7 @@ export default function AboutPage() {
       icon: ShieldCheck,
     },
     {
-      title: "Vetted Top 1% Artisans",
+      title: "Vetted Top 1% Vendors",
       desc: "We accept less than 8% of vendor applicants. Every palace estate, caterer, and cinematographer is verified through rigorous past client interviews and on-ground audits.",
       icon: Award,
     },

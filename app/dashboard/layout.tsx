@@ -14,7 +14,7 @@ import { LayoutDashboard, CalendarDays, Store, CreditCard, Bookmark, Menu, X, Ch
 const navItems = [
   { href: "/dashboard", label: "Overview", icon: LayoutDashboard },
   { href: "/dashboard/events", label: "My Events", icon: CalendarDays },
-  { href: "/vendors", label: "Discover Vendors", icon: Store },
+  { href: "/dashboard/vendors", label: "Discover Vendors", icon: Store },
   { href: "/dashboard/payments", label: "Bookings & Payments", icon: CreditCard },
   { href: "/dashboard/saved-vendors", label: "Saved Vendors", icon: Bookmark },
 ];
@@ -30,11 +30,11 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     window.location.assign("/");
   };
 
-  const active = (href: string) => href === "/vendors" ? pathname.startsWith("/vendors") : href === "/dashboard" ? pathname === href : pathname === href || pathname.startsWith(`${href}/`);
+  const active = (href: string) => href === "/dashboard/vendors" ? pathname.startsWith(href) : href === "/dashboard" ? pathname === href : pathname === href || pathname.startsWith(`${href}/`);
   const selectedEventId = pathname.match(/^\/dashboard\/events\/([^/]+)/)?.[1];
   const nav = (mobile = false) => navItems.map((item) => {
     const Icon = item.icon;
-    const href = item.href === "/vendors" ? selectedEventId ? `/vendors?eventId=${encodeURIComponent(selectedEventId)}&returnTo=${encodeURIComponent(`/dashboard/events/${selectedEventId}`)}` : "/vendors?returnTo=%2Fdashboard" : item.href;
+    const href = item.href === "/dashboard/vendors" ? selectedEventId ? `/dashboard/vendors?eventId=${encodeURIComponent(selectedEventId)}&returnTo=${encodeURIComponent(`/dashboard/events/${selectedEventId}`)}` : "/dashboard/vendors?returnTo=%2Fdashboard" : item.href;
     return <Link key={item.href} href={href} onClick={() => mobile && setSidebarOpen(false)} aria-current={active(item.href) ? "page" : undefined}
       className={`group flex items-center gap-3 px-3.5 py-3 rounded-xl text-sm font-medium transition-all duration-200 ${active(item.href) ? "bg-gradient-to-r from-[#681B1D] to-[#4B1117] text-[#FFF3E3] shadow-md border border-[#B77A36]/30" : "text-[#7D6B63] dark:text-[#D4C3B7] hover:bg-[#EAD2B0]/50 dark:hover:bg-[#2E1F1E] hover:text-[#681B1D] dark:hover:text-[#FFF3E3]"}`}>
       <Icon className={`w-4 h-4 transition-transform group-hover:scale-105 ${active(item.href) ? "text-[#EAD2B0]" : ""}`} /><span>{item.label}</span>{active(item.href) && <span className="ml-auto h-1.5 w-1.5 rounded-full bg-[#EAD2B0]" />}

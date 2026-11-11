@@ -51,7 +51,7 @@ export function Footer() {
               </div>
               <div className="flex items-center gap-1.5">
                 <ShieldCheck className="w-4 h-4 text-[#B77A36]" />
-                <span>100% Verified Top 1% Artisans</span>
+                <span>100% Verified Top 1% Vendors</span>
               </div>
             </div>
           </div>
@@ -136,7 +136,7 @@ export function Footer() {
               {CITIES.map((city) => (
                 <li key={city.id}>
                   <Link href={`/vendors?city=${encodeURIComponent(city.name)}`} className="hover:text-[#681B1D] dark:hover:text-[#EAD2B0] transition-colors">
-                    {city.name} ({city.venueCount} Estates)
+                    {city.name}
                   </Link>
                 </li>
               ))}
