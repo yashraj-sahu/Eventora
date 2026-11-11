@@ -1773,24 +1773,24 @@ export function PlannerContent({ embedded = false }: { embedded?: boolean } = {}
             <div className="space-y-8 animate-in fade-in duration-300">
               {/* Action Banner */}
               <div className="p-6 rounded-3xl bg-[#FFF3E3] dark:bg-[#2E1F1E] border border-[#EAD2B0] dark:border-[#4D3331] shadow-lg flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                <div className="space-y-1">
-                  <div className="flex items-center gap-2">
-                    <span className="text-xs font-mono font-bold text-[#681B1D] dark:text-[#EAD2B0]">
+                <div className="min-w-0 space-y-1">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <span className="max-w-full break-all text-xs font-mono font-bold text-[#681B1D] dark:text-[#EAD2B0]">
                       {blueprint.blueprintId}
                     </span>
                     <span className="px-2.5 py-0.5 rounded-full bg-[#EAD2B0]/60 dark:bg-[#681B1D]/60 text-[#681B1D] dark:text-[#EAD2B0] text-[10px] font-bold uppercase tracking-wider">
                       AI Generated
                     </span>
                   </div>
-                  <h2 className="text-xl sm:text-2xl font-serif font-bold text-[#30221D] dark:text-[#FFF3E3]">
+                  <h2 className="break-words text-xl sm:text-2xl font-serif font-bold text-[#30221D] dark:text-[#FFF3E3]">
                     {blueprint.title}
                   </h2>
                 </div>
 
-                <div className="flex items-center gap-3">
+                <div className="grid w-full grid-cols-1 gap-3 sm:flex sm:w-auto sm:shrink-0 sm:items-center">
                   <button
                     onClick={() => setStep(1)}
-                    className="px-4 py-2.5 rounded-xl bg-[#FFFCF6] dark:bg-[#1A1211] hover:bg-[#FAF3E8] border border-[#EAD2B0] dark:border-[#4D3331] text-xs text-[#30221D] dark:text-[#FFF3E3] font-semibold flex items-center gap-1.5 cursor-pointer shadow-xs"
+                    className="flex w-full min-w-0 items-center justify-center gap-1.5 whitespace-normal rounded-xl border border-[#EAD2B0] bg-[#FFFCF6] px-4 py-2.5 text-center text-xs font-semibold text-[#30221D] shadow-xs hover:bg-[#FAF3E8] dark:border-[#4D3331] dark:bg-[#1A1211] dark:text-[#FFF3E3] sm:w-auto sm:whitespace-nowrap"
                   >
                     <RotateCcw className="w-3.5 h-3.5 text-[#B77A36]" />
                     <span>Recalculate</span>
@@ -1799,7 +1799,7 @@ export function PlannerContent({ embedded = false }: { embedded?: boolean } = {}
                   <button
                     onClick={handleSaveToDashboard}
                     disabled={savedToDashboard}
-                    className="px-5 py-2.5 rounded-xl bg-[#FFFCF6] dark:bg-[#1A1211] hover:bg-[#FAF3E8] border border-[#EAD2B0] dark:border-[#4D3331] text-[#681B1D] dark:text-[#EAD2B0] font-bold text-xs tracking-wide transition-all shadow-xs flex items-center gap-1.5 cursor-pointer disabled:opacity-50"
+                    className="flex w-full min-w-0 items-center justify-center gap-1.5 whitespace-normal rounded-xl border border-[#EAD2B0] bg-[#FFFCF6] px-5 py-2.5 text-center text-xs font-bold tracking-wide text-[#681B1D] shadow-xs transition-all hover:bg-[#FAF3E8] disabled:opacity-50 dark:border-[#4D3331] dark:bg-[#1A1211] dark:text-[#EAD2B0] sm:w-auto sm:whitespace-nowrap"
                   >
                     {savedToDashboard ? (
                       <>
@@ -1816,7 +1816,7 @@ export function PlannerContent({ embedded = false }: { embedded?: boolean } = {}
 
                   <button
                     onClick={handleProceedToMarketplace}
-                    className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-[#681B1D] to-[#4B1117] hover:from-[#7A2124] hover:to-[#5C151D] text-[#FFF3E3] font-bold text-xs uppercase tracking-wider flex items-center gap-1.5 cursor-pointer shadow-sm transition-all border border-[#B77A36]/40"
+                    className="flex w-full min-w-0 items-center justify-center gap-1.5 whitespace-normal rounded-xl border border-[#B77A36]/40 bg-gradient-to-r from-[#681B1D] to-[#4B1117] px-5 py-2.5 text-center text-xs font-bold uppercase tracking-wider text-[#FFF3E3] shadow-sm transition-all hover:from-[#7A2124] hover:to-[#5C151D] sm:w-auto sm:whitespace-nowrap"
                   >
                     <Sparkles className="w-3.5 h-3.5 text-[#EAD2B0]" />
                     <span>Explore Vendors</span>
