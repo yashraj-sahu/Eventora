@@ -45,17 +45,27 @@ export async function proxy(request: NextRequest) {
     const { data: rows, error } = await supabase.from("user_roles").select("role").eq("user_id", user.id).eq("is_active", true);
     if (error) return redirect(portal === "admin" ? "/admin/signin" : "/signin", { portal, error: "auth_unavailable" });
     const roles = (rows ?? []).map((row) => row.role).filter((role): role is UserRole => role === "customer" || role === "vendor" || role === "admin" || role === "platform_owner");
+    const vendorPendingPage = isVendor && pathname === "/vendor-portal/pending";
+    let vendorApplication: { approval_status: string } | null = null;
+    if (isVendor) {
+      const { data, error: vendorError } = await supabase.from("vendor_profiles").select("approval_status").eq("user_id", user.id).maybeSingle();
+      if (vendorError) return redirect("/signin", { portal: "vendor", error: "auth_unavailable" });
+      vendorApplication = data;
+    }
     const authorized = portal === "admin" ? roles.some((role) => role === "admin" || role === "platform_owner") : roles.includes(portal);
-    if (!authorized) return redirect(roleHome(roles, false), { access: `${portal}-required` });
+    const pendingApplicantMayViewStatus = vendorPendingPage && Boolean(vendorApplication) && vendorApplication?.approval_status !== "approved";
+    if (!authorized && !pendingApplicantMayViewStatus) {
+      if (isVendor && vendorApplication && vendorApplication.approval_status !== "approved") return redirect("/vendor-portal/pending");
+      return redirect(roleHome(roles, false), { access: `${portal}-required` });
+    }
     const workspaces = authorizedWorkspaces(roles);
     const selectedWorkspace = request.cookies.get(WORKSPACE_COOKIE)?.value;
-    if (workspaces.length > 1 && workspaceForPath(pathname) !== selectedWorkspace) {
+    if (!pendingApplicantMayViewStatus && workspaces.length > 1 && workspaceForPath(pathname) !== selectedWorkspace) {
       return redirect("/workspaces", { returnTo: `${pathname}${request.nextUrl.search}` });
     }
     if (isVendor) {
-      const { data: vendor } = await supabase.from("vendor_profiles").select("approval_status").eq("user_id", user.id).maybeSingle();
-      const approved = vendor?.approval_status === "approved";
-      const pendingPage = pathname === "/vendor-portal/pending";
+      const approved = vendorApplication?.approval_status === "approved";
+      const pendingPage = vendorPendingPage;
       if (!approved && !pendingPage) return redirect("/vendor-portal/pending");
       if (approved && pendingPage) return redirect("/vendor-portal");
     }

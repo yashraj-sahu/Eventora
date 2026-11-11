@@ -32,9 +32,9 @@ export interface Database {
         Relationships: [];
       };
       admin_invitations: {
-        Row: { id: string; email: string; admin_role: AdminRole; invited_by: string; target_user_id: string | null; expires_at: string; accepted_at: string | null; revoked_at: string | null; expired_at: string | null; created_at: string };
-        Insert: { id?: string; email: string; admin_role?: AdminRole; invited_by: string; target_user_id?: string | null; expires_at?: string; accepted_at?: string | null; revoked_at?: string | null; expired_at?: string | null; created_at?: string };
-        Update: { id?: string; email?: string; admin_role?: AdminRole; invited_by?: string; target_user_id?: string | null; expires_at?: string; accepted_at?: string | null; revoked_at?: string | null; expired_at?: string | null };
+        Row: { id: string; email: string; admin_role: AdminRole; invited_by: string; target_user_id: string | null; requires_password_setup: boolean; expires_at: string; accepted_at: string | null; revoked_at: string | null; expired_at: string | null; created_at: string };
+        Insert: { id?: string; email: string; admin_role?: AdminRole; invited_by: string; target_user_id?: string | null; requires_password_setup?: boolean; expires_at?: string; accepted_at?: string | null; revoked_at?: string | null; expired_at?: string | null; created_at?: string };
+        Update: { id?: string; email?: string; admin_role?: AdminRole; invited_by?: string; target_user_id?: string | null; requires_password_setup?: boolean; expires_at?: string; accepted_at?: string | null; revoked_at?: string | null; expired_at?: string | null };
         Relationships: [];
       };
       admin_role_assignments: {

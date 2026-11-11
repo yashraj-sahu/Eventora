@@ -27,7 +27,7 @@ export default function AdministratorsPage() {
   const submit = async (event: React.FormEvent) => {
     event.preventDefault(); setBusy(true); setMessage("");
     const response = await fetch("/api/admin/invitations", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ email, adminRole }) });
-    const data = await response.json(); setMessage(response.ok ? "Invitation email sent. It expires in seven days." : data.error ?? "Invitation failed.");
+    const data = await response.json(); setMessage(response.ok ? data.existingAccount ? "Invitation sent to the existing EVNTORA account. Their current password and other roles remain unchanged; they must verify the invited email to activate Admin access." : "Invitation sent. The recipient must verify the invited email by OTP and establish a password before Admin access activates; it expires in seven days." : data.error ?? "Invitation failed.");
     if (response.ok) { setEmail(""); await reload(); } setBusy(false);
   };
   const mutate = async (body: object) => {

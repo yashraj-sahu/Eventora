@@ -51,7 +51,7 @@ const CITIES = [
 ];
 
 export default function VendorSignUpPage() {
-  const { user } = useAuth();
+  const { user, roles, vendorProfile } = useAuth();
   const [contactName, setContactName] = useState("");
   const [businessName, setBusinessName] = useState("");
   const [email, setEmail] = useState("");
@@ -68,8 +68,33 @@ export default function VendorSignUpPage() {
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
   const [awaitingEmailVerification, setAwaitingEmailVerification] = useState(false);
+  const [existingAccountDetected, setExistingAccountDetected] = useState(false);
+  const [otp, setOtp] = useState("");
+  const [otpAttempts, setOtpAttempts] = useState(0);
+  const [resendCooldown, setResendCooldown] = useState(0);
+  const [otpType, setOtpType] = useState<"signup" | "email">("signup");
 
-  useEffect(() => { if (user?.email) setEmail(user.email); if (user?.user_metadata?.full_name) setContactName(String(user.user_metadata.full_name)); }, [user]);
+  useEffect(() => {
+    if (resendCooldown <= 0) return;
+    const timer = window.setTimeout(() => setResendCooldown((value) => Math.max(0, value - 1)), 1000);
+    return () => window.clearTimeout(timer);
+  }, [resendCooldown]);
+
+  useEffect(() => {
+    if (!user) return;
+    if (user.email) setEmail(user.email);
+    if (user.user_metadata?.full_name) setContactName(String(user.user_metadata.full_name));
+    const registration = user.user_metadata?.vendor_registration;
+    if (registration && typeof registration === "object") {
+      const values = registration as Record<string, unknown>;
+      if (typeof values.business_name === "string") setBusinessName(values.business_name);
+      if (typeof values.business_category === "string") setCategory(values.business_category);
+      if (typeof values.city === "string") setCity(values.city);
+      if (typeof values.business_description === "string") setDescription(values.business_description);
+      if (typeof values.address === "string") setAddress(values.address);
+      if (typeof values.contact_phone === "string") setPhone(values.contact_phone);
+    }
+  }, [user]);
 
   const validate = () => {
     if (!contactName.trim()) return "Please enter your name.";
@@ -116,7 +141,12 @@ export default function VendorSignUpPage() {
       };
 
       if (user) {
-        await submitApplication();
+        // A previously authenticated Customer/Admin must prove control of the
+        // same email before adding the vendor application. This never grants
+        // Vendor membership; approval remains an independent admin decision.
+        const { error: otpError } = await supabase.auth.signInWithOtp({ email: user.email ?? email.trim().toLowerCase(), options: { shouldCreateUser: false } });
+        if (otpError) throw new Error("A verification code could not be sent. Please try again later.");
+        setOtpType("email"); setAwaitingEmailVerification(true); setSuccess(true); setOtp(""); setOtpAttempts(0); setResendCooldown(60);
         return;
       }
       // 1. Create Supabase Auth user
@@ -142,7 +172,7 @@ export default function VendorSignUpPage() {
       });
 
       if (signUpError) {
-        if (signUpError.message.includes("already registered")) {
+        if (/already registered|already exists/i.test(signUpError.message)) {
           setError("An account with this email already exists. Please sign in.");
         } else {
           setError("We couldn’t create your vendor account right now. Please try again.");
@@ -155,14 +185,60 @@ export default function VendorSignUpPage() {
         return;
       }
 
-      if (data.session) await submitApplication();
-      else { setAwaitingEmailVerification(true); setSuccess(true); }
+      // Supabase intentionally returns an empty identities list for an existing
+      // email when email enumeration protection is enabled. Do not present that
+      // existing customer with a new-password or verification flow.
+      if (!data.session && data.user.identities?.length === 0) {
+        setExistingAccountDetected(true);
+        setError("This email already has an Evntora account. Sign in to submit your vendor application; your existing password and verified email will be reused.");
+        return;
+      }
+
+      if (data.session) {
+        await supabase.auth.signOut();
+        const { error: otpError } = await supabase.auth.signInWithOtp({ email: email.trim().toLowerCase(), options: { shouldCreateUser: false } });
+        if (otpError) { setError("Email code verification is required, but a code could not be sent. Contact support before continuing."); return; }
+        setOtpType("email");
+      } else setOtpType("signup");
+      setAwaitingEmailVerification(true); setSuccess(true); setOtp(""); setOtpAttempts(0); setResendCooldown(60);
     } catch (err: unknown) {
       console.error("Vendor sign-up exception:", err);
       setError("An unexpected error occurred during registration. Please try again.");
     } finally {
       setIsLoading(false);
     }
+  };
+
+  const verifyVendorOtp = async (event: React.FormEvent) => {
+    event.preventDefault();
+    if (otpAttempts >= 5 || isLoading) return;
+    setIsLoading(true); setError(null);
+    const { data, error: verifyError } = await supabase.auth.verifyOtp({ email: email.trim().toLowerCase(), token: otp.trim(), type: otpType });
+    if (verifyError || !data.user || !data.session) {
+      setOtpAttempts((value) => value + 1);
+      setError(otpAttempts >= 4 ? "Too many incorrect codes. Request a new code and try again." : "That code is invalid or expired. Check the email and try again.");
+      setIsLoading(false); return;
+    }
+    try {
+      const response = await fetch("/api/vendors/register", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ businessName: businessName.trim(), category: category.trim(), city: city.trim(), description: description.trim(), address: address.trim(), phone: phone.trim() }) });
+      const result = await response.json();
+      if (!response.ok) throw new Error(result.error || "The vendor application could not be saved.");
+      window.location.assign(result.vendorProfile?.approval_status === "approved" ? "/vendor-portal" : "/vendor-portal/pending");
+    } catch {
+      setError("Your email is verified, but the vendor application could not be saved. Sign in and submit it again; your account is preserved.");
+      setIsLoading(false);
+    }
+  };
+
+  const resendVendorOtp = async () => {
+    if (resendCooldown > 0 || isLoading) return;
+    setIsLoading(true); setError(null);
+    const { error: resendError } = otpType === "signup"
+      ? await supabase.auth.resend({ type: "signup", email: email.trim().toLowerCase() })
+      : await supabase.auth.signInWithOtp({ email: email.trim().toLowerCase(), options: { shouldCreateUser: false } });
+    if (resendError) setError("We couldn’t resend the code yet. Wait a moment and try again.");
+    else { setResendCooldown(60); setOtpAttempts(0); setOtp(""); }
+    setIsLoading(false);
   };
 
   if (success) {
@@ -176,21 +252,22 @@ export default function VendorSignUpPage() {
             </div>
             <div>
               <h2 className="text-2xl font-serif font-bold text-[#681B1D] dark:text-[#F4F0E7]">
-                {awaitingEmailVerification ? "Verify Your Email to Finish" : "Application Submitted"}
+                {awaitingEmailVerification ? "Verify your email" : "Application Submitted"}
               </h2>
               <p className="text-xs text-[#7D6B63] dark:text-[#D4C3B7] mt-2">
                 Thank you, <span className="text-[#681B1D] dark:text-[#EAD2B0] font-semibold">{contactName}</span>.
-                {awaitingEmailVerification ? "Your account was created. Your business application will be saved after you verify the email address, for " : "We&apos;ve received your Vendor partner application for "}{" "}
+                {awaitingEmailVerification ? "Enter the six-digit code we sent to verify this email before submitting your vendor application for " : "We&apos;ve received your Vendor partner application for "}{" "}
                 <span className="text-[#30221D] dark:text-[#F4F0E7] font-semibold">{businessName}</span>.
               </p>
             </div>
+            {awaitingEmailVerification && <><form onSubmit={verifyVendorOtp} className="space-y-3 text-left"><label htmlFor="vendor-signup-otp" className="block text-xs font-semibold">Email verification code</label><input id="vendor-signup-otp" inputMode="numeric" autoComplete="one-time-code" pattern="[0-9]{6}" maxLength={6} required value={otp} onChange={(event) => setOtp(event.target.value.replace(/\D/g, "").slice(0, 6))} className="w-full rounded-xl border border-[#EAD2B0] bg-[#FFF3E3] px-4 py-3 text-center text-lg tracking-[0.35em]" aria-label="Six-digit email verification code"/><button disabled={isLoading || otp.length !== 6 || otpAttempts >= 5} className="w-full rounded-xl bg-[#681B1D] px-4 py-3 text-xs font-bold text-white disabled:opacity-50">{isLoading ? "Verifying…" : "Verify and submit application"}</button></form><button type="button" disabled={isLoading || resendCooldown > 0} onClick={() => void resendVendorOtp()} className="text-xs font-semibold text-[#681B1D] underline disabled:opacity-50">{resendCooldown > 0 ? `Resend code in ${resendCooldown}s` : "Resend code"}</button></>}
             <div className="p-4 rounded-2xl bg-[#FFF3E3] dark:bg-[#241918] border border-[#EAD2B0] dark:border-[#4D3331] text-left space-y-2">
               <p className="text-xs font-bold text-[#681B1D] dark:text-[#EAD2B0] uppercase tracking-wider">
                 What happens next?
               </p>
               <ol className="text-xs text-[#7D6B63] dark:text-[#D4C3B7] space-y-1.5 list-decimal list-inside">
-                <li>Check your email ({email}) and verify your account.</li>
-                <li>After the application is saved, our verification team reviews it.</li>
+                <li>Verify the six-digit code sent to {email}.</li>
+                <li>After your application is saved, our verification team reviews it.</li>
                 <li>You&apos;ll receive an approval notification once verified.</li>
                 <li>After approval, access your full partner operations hub.</li>
               </ol>
@@ -235,10 +312,17 @@ export default function VendorSignUpPage() {
             </span>
           </div>
 
+          {user && <div className="rounded-xl border border-[#EAD2B0] bg-[#FFFCF6] p-3 text-xs text-[#30221D] dark:border-[#4D3331] dark:bg-[#241918]">
+            <p>Signed in as <b>{user.email}</b>. Your existing password is preserved. A six-digit email code verifies this vendor application.</p>
+            <p className="mt-1">Existing access: {roles.length ? roles.map((role) => role === "platform_owner" ? "Platform Owner" : role === "admin" ? "Admin" : role === "vendor" ? "Vendor" : "Customer").join(" · ") : "Evntora account"}.</p>
+            {vendorProfile && <p className="mt-1 font-semibold">Vendor application status: {vendorProfile.approval_status}. {vendorProfile.approval_status === "pending" ? "It is waiting for administrator approval." : vendorProfile.approval_status === "approved" ? "Your vendor access is already approved." : "Contact the Evntora team for next steps."}</p>}
+          </div>}
+
           {error && (
             <div className="flex items-start gap-2 p-3 rounded-xl bg-rose-50 dark:bg-rose-950/30 border border-rose-200 dark:border-rose-900/40 text-xs text-rose-700 dark:text-rose-300">
               <AlertCircle className="w-3.5 h-3.5 shrink-0 mt-0.5" />
               <span>{error}</span>
+              {existingAccountDetected && <Link className="ml-1 font-semibold underline" href={`/signin?redirectTo=${encodeURIComponent("/signup/vendor")}`}>Sign in</Link>}
             </div>
           )}
 

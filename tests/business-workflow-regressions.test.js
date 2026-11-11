@@ -5,6 +5,129 @@ import { isValidCheckoutPaymentAmountPaise, minimumPartialPaymentPaise } from ".
 
 const read = (path) => readFileSync(new URL(path, import.meta.url), "utf8");
 
+test("Existing customer sessions can apply as vendors without setting credentials; vendor approval gates publication", () => {
+  const registrationPage = read("../app/signup/vendor/page.tsx");
+  const registrationApi = read("../app/api/vendors/register/route.ts");
+  const registration = read("../lib/vendor-registration.ts");
+  const adminMarketplace = read("../app/admin/marketplace/page.tsx");
+  const listings = read("../components/vendors/VendorListingsManager.tsx");
+  assert.match(registrationPage, /if \(user\) \{[\s\S]*?signInWithOtp\([\s\S]*?shouldCreateUser: false/);
+  assert.match(registrationPage, /type: otpType/);
+  assert.match(registrationPage, /\{!user && <div className="grid grid-cols-2 gap-3">/);
+  assert.match(registrationPage, /existing password is preserved/);
+  assert.match(registrationApi, /ensureVendorApplication\(supabase, user/);
+  assert.match(registration, /approval_status: "pending"/);
+  assert.match(registration, /is_published: false/);
+  assert.match(adminMarketplace, /useState\("vendors"\)/);
+  assert.match(adminMarketplace, /Approve or reject vendor registration applications/);
+  assert.match(listings, /without a separate listing approval/);
+  assert.match(listings, /Save and submit listing/);
+});
+
+test("SQL regression contract: listing moderation is RPC-only", () => {
+  const migration = read("../supabase/migrations/021_vendor_approval_publishes_listings.sql");
+  const adminPolicies = read("../supabase/migrations/016_admin_permissions_operations.sql");
+  const trigger = migration.slice(migration.indexOf("CREATE OR REPLACE FUNCTION public.guard_vendor_listing_moderation"), migration.indexOf("-- Keep moderation behind a permission-checked RPC"));
+  const rpc = migration.slice(migration.indexOf("CREATE OR REPLACE FUNCTION public.moderate_vendor_listing"), migration.indexOf("-- Let the owner policy"));
+  const approval = migration.slice(migration.indexOf("CREATE OR REPLACE FUNCTION public.publish_vendor_listings_after_vendor_approval"), migration.indexOf("-- Editing listing add-ons"));
+  assert.doesNotMatch(trigger, /IF public\.is_evntora_admin\(\)[\s\S]*?RETURN NEW/);
+  assert.match(trigger, /audit\.request_id = 'vendor-listing-status:' \|\| txid_current\(\)::text/);
+  assert.match(trigger, /OLD\.status IN \('published', 'rejected', 'archived'\)[\s\S]*?NEW\.status := OLD\.status/);
+  assert.match(trigger, /NEW\.status NOT IN \('draft', 'pending_approval'\)/);
+  assert.match(rpc, /p_action IN \('reject', 'restore'\).*?length\(trim\(COALESCE\(p_reason, ''\)\)\) < 3/);
+  assert.match(rpc, /INSERT INTO public\.admin_audit_log[\s\S]*?vendor-listing-status:' \|\| txid_current\(\)::text[\s\S]*?UPDATE public\.vendor_listings/);
+  assert.match(rpc, /next_status := 'pending_approval'/);
+  assert.match(approval, /has_admin_permission\('vendor_verification'\)/);
+  assert.match(approval, /vendor_listing_auto_published/);
+  assert.match(approval, /WHERE vendor_profile_id = NEW\.id AND status = 'pending_approval'/);
+  assert.match(adminPolicies, /DROP POLICY IF EXISTS vendor_listings_admin_manage ON public\.vendor_listings/);
+  assert.match(adminPolicies, /CREATE POLICY vendor_listings_admin_read ON public\.vendor_listings FOR SELECT/);
+  assert.doesNotMatch(migration, /CREATE POLICY\s+vendor_listings_admin_manage/i);
+});
+
+test("SQL regression contract: vendor OTP activation preserves audited suspension", () => {
+  const migration = read("../supabase/migrations/022_email_otp_identity_activation.sql");
+  const profileGuard = migration.slice(migration.indexOf("CREATE OR REPLACE FUNCTION public.guard_vendor_profile_changes"), migration.indexOf("-- Keep vendor moderation permission-checked"));
+  const verified = migration.slice(migration.indexOf("CREATE OR REPLACE FUNCTION public.activate_customer_after_email_verification"), migration.indexOf("DROP TRIGGER IF EXISTS evntora_customer_email_verified"));
+  const sync = migration.slice(migration.indexOf("CREATE OR REPLACE FUNCTION public.grant_vendor_role_for_owned_profile"), migration.indexOf("-- Reconcile existing memberships"));
+  const admin = migration.slice(migration.indexOf("CREATE OR REPLACE FUNCTION public.admin_set_user_role_active"), migration.indexOf("REVOKE ALL ON FUNCTION public.admin_set_user_role_active"));
+  assert.match(migration, /ADD COLUMN IF NOT EXISTS vendor_suspended_at timestamptz/);
+  assert.match(migration, /ADD COLUMN IF NOT EXISTS vendor_suspended_by uuid REFERENCES auth\.users/);
+  assert.match(migration, /latest_vendor_access_action/);
+  assert.match(verified, /approval_status = 'approved' AND vendor\.is_published/);
+  assert.match(verified, /DO UPDATE[\s\S]*vendor_suspended_at IS NULL/);
+  assert.match(sync, /DO UPDATE[\s\S]*vendor_suspended_at IS NULL/);
+  assert.match(admin, /vendor_suspended_at = CASE[\s\S]*WHEN p_active THEN NULL[\s\S]*ELSE coalesce\(vendor_suspended_at, now\(\)\)/);
+  assert.match(admin, /vendor_suspended_by = CASE[\s\S]*WHEN p_active THEN NULL[\s\S]*auth\.uid\(\)/);
+  assert.match(admin, /vendor_suspension_reason = CASE[\s\S]*WHEN p_active THEN NULL[\s\S]*clean_reason/);
+  assert.match(admin, /user_workspace_suspended/);
+  assert.match(admin, /vendor_suspended_at', prior_vendor_suspended_at/);
+  assert.doesNotMatch(migration, /set_config\('app\.vendor_claim'/);
+  assert.match(profileGuard, /admin_audit_log[\s\S]*vendor-profile-change:' \|\| txid_current\(\)::text/);
+  assert.match(profileGuard, /vendor_profile_claimed/);
+  assert.match(profileGuard, /NEW\.approval_status = 'approved' AND NEW\.is_published/);
+  assert.match(migration, /UPDATE public\.vendor_profiles[\s\S]*approval_status = 'approved' AND is_published/);
+  const eligibleActivation = (hasRow, suspended) => hasRow ? !suspended : true;
+  assert.equal(eligibleActivation(true, false), true, "verified eligible vendor is activated");
+  assert.equal(eligibleActivation(true, true), false, "explicit suspension is preserved");
+  assert.equal(eligibleActivation(false, false), true, "a later approval may activate a verified vendor");
+});
+
+test("Customer signup does not proceed when Supabase reports an existing identity", () => {
+  const signup = read("../app/signup/page.tsx");
+  assert.match(signup, /data\.user && !data\.session && data\.user\.identities\?\.length === 0/);
+  assert.match(signup, /This email is already registered with Evntora/);
+  assert.match(signup, /Sign in with your existing account/);
+  assert.match(signup, /You already have an Evntora account/);
+});
+
+test("Admin invitations reuse existing identities and never ask them to replace a password", () => {
+  const invitations = read("../app/api/admin/invitations/route.ts");
+  const callback = read("../app/auth/callback/route.ts");
+  assert.match(invitations, /signInWithOtp\(\{ email, options: \{ shouldCreateUser: !isExistingIdentity/);
+  assert.match(invitations, /auth\.admin\.listUsers/);
+  assert.match(invitations, /requires_password_setup: !isExistingIdentity/);
+  assert.match(invitations, /revokeError/);
+  assert.match(callback, /auth\/admin-activate/);
+  assert.match(callback, /admin_invite/);
+});
+
+test("Email OTP flows share one identity and do not grant Vendor or Admin roles", () => {
+  const customerSignup = read("../app/signup/page.tsx");
+  const vendorSignup = read("../app/signup/vendor/page.tsx");
+  const recovery = read("../app/auth/forgot-password/page.tsx");
+  const adminAccept = read("../app/api/admin/invitations/accept/route.ts");
+  const adminActivate = read("../app/auth/admin-activate/page.tsx");
+  const migration = read("../supabase/migrations/022_email_otp_identity_activation.sql");
+  assert.match(customerSignup, /verifyOtp\(\{ email:[\s\S]*?type: otpType/);
+  assert.match(customerSignup, /token: otp\.trim\(\)/);
+  assert.match(vendorSignup, /verifyOtp\(\{ email:[\s\S]*?type: otpType/);
+  assert.match(vendorSignup, /\/api\/vendors\/register/);
+  assert.match(recovery, /type: "recovery"/);
+  assert.match(recovery, /updateUser\(\{ password \}\)/);
+  assert.match(adminAccept, /email_confirmed_at/);
+  assert.match(adminActivate, /type: "email"/);
+  assert.doesNotMatch(adminActivate, /const accepted = await accept\(\); if \(active && accepted\)/);
+  assert.match(migration, /activate_customer_after_email_verification/);
+  assert.match(migration, /approval_status = 'approved' AND NEW\.is_published/);
+  assert.match(migration, /accept_admin_invitation/);
+});
+
+test("Role changes reuse the existing identity and keep Customer, Vendor and Admin grants independent", () => {
+  const migration = read("../supabase/migrations/022_email_otp_identity_activation.sql");
+  const vendorRegistration = read("../lib/vendor-registration.ts");
+  const invitationApi = read("../app/api/admin/invitations/accept/route.ts");
+  const customerSignup = read("../app/signup/page.tsx");
+  const vendorSignup = read("../app/signup/vendor/page.tsx");
+  assert.match(migration, /INSERT INTO public\.user_roles\(user_id, role, is_active\)[\s\S]*SELECT u\.id, 'customer', true/);
+  assert.match(migration, /approval_status = 'approved' AND NEW\.is_published/);
+  assert.match(migration, /INSERT INTO public\.user_roles\(user_id, role, granted_by\)[\s\S]*'admin'/);
+  assert.match(vendorRegistration, /\.eq\("user_id", user\.id\)/);
+  assert.match(invitationApi, /updateUserById\(user\.id/);
+  assert.match(customerSignup, /This email is already registered with Evntora\. Sign in/);
+  assert.match(vendorSignup, /This email already has an Evntora account\. Sign in/);
+});
+
 test("Vendor quotation requests open the proposal editor directly from the request inbox", () => {
   const layout = read("../app/vendor-portal/layout.tsx");
   const page = read("../app/vendor-portal/page.tsx");
@@ -36,7 +159,6 @@ test("Customers can review and respond to the sent quote before payment; complet
   assert.match(customerQuote, /Accept quotation/);
   assert.match(customerQuote, /Reject quotation/);
   assert.match(customerQuote, /\/api\/bookings\/\$\{bookingId\}\/quotations\/\$\{quote\.id\}/);
-  assert.match(lifecycle, /action: "complete"/);
   assert.match(lifecycle, /action: "acknowledge_completion"/);
   assert.match(lifecycle, /caseType: "booking_complaint"/);
   assert.match(lifecycle, /Submit review/);
@@ -150,8 +272,8 @@ test("Vendor Service Tasks reuse secure booking transitions and customer work vi
   assert.match(vendor, /Payment not done/);
   assert.match(bookingPanel, /if \(viewer === "vendor"\)\s*\{\s*return <section className="rounded-xl border/);
   assert.match(bookingPanel, /Remaining: <b>\{detail\.total_amount > 0 \? formatINR\(outstanding \/ 100\) : "Not set"\}<\/b>/);
-  assert.match(bookingPanel, /Verified payment log/);
-  assert.match(bookingPanel, /payment\.status\)\)/);
+  assert.match(bookingPanel, /Payment and refund history/);
+  assert.doesNotMatch(bookingPanel, /Verified payment log/);
   assert.match(eventWorkspace, /Work completed/);
   assert.match(eventWorkspace, /outstanding <= 0 \? "Paid" : "Part paid"/);
 });

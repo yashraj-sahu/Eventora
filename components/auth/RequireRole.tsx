@@ -6,7 +6,7 @@ import { useAuth } from "@/lib/auth-context";
 import type { PortalIntent } from "@/lib/portal-routing";
 
 export function RequireRole({ role, children }: { role: PortalIntent; children: ReactNode }) {
-  const { user, profile, isLoading, hasRole, rolesError, profileError, signOut } = useAuth();
+  const { user, profile, vendorProfile, isLoading, hasRole, rolesError, profileError, signOut } = useAuth();
   const pathname = usePathname();
   const [enabling, setEnabling] = useState(false);
   const [enableError, setEnableError] = useState("");
@@ -67,6 +67,9 @@ export function RequireRole({ role, children }: { role: PortalIntent; children: 
       </main>
     );
   }
+  // Pending applicants may read only their application-status screen. They do
+  // not receive Vendor membership or access to operational pages until approval.
+  if (role === "vendor" && pathname === "/vendor-portal/pending" && vendorProfile) return <>{children}</>;
   if (!hasRole(role)) {
     if (role === "admin") {
       return (

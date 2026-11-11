@@ -1,153 +1,77 @@
 "use client";
 
-import { useState, Suspense } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
-import { useSearchParams } from "next/navigation";
 import { Navbar } from "@/components/layout/Navbar";
 import { Footer } from "@/components/layout/Footer";
 import { supabase } from "@/lib/supabase";
-import { Mail, ArrowLeft, AlertCircle, CheckCircle } from "lucide-react";
-
-function ForgotPasswordForm() {
-  const searchParams = useSearchParams();
-  const [email, setEmail] = useState(searchParams.get("email") ?? "");
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [sent, setSent] = useState(false);
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setError(null);
-    setIsLoading(true);
-
-    try {
-      const { error: resetError } = await supabase.auth.resetPasswordForEmail(
-        email.trim(),
-        {
-          redirectTo: `${window.location.origin}/auth/callback?next=/auth/reset-password`,
-        }
-      );
-
-      if (resetError) {
-        setError("We couldn’t send a recovery link. Check the email address and try again.");
-      } else {
-        setSent(true);
-      }
-    } catch (err: unknown) {
-      console.error("Forgot password exception:", err);
-      setError(err instanceof Error ? err.message : "An unexpected error occurred. Please try again.");
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  if (sent) {
-    return (
-      <div className="w-full max-w-md p-10 rounded-3xl bg-[#1A1211]/90 border border-rose-900/20 shadow-2xl text-center space-y-6">
-        <div className="w-16 h-16 rounded-2xl bg-rose-900/10 border border-rose-900/30 flex items-center justify-center mx-auto">
-          <CheckCircle className="w-8 h-8 text-amber-700" />
-        </div>
-        <div>
-          <h2 className="text-2xl font-serif font-bold text-white">Check Your Email</h2>
-          <p className="text-sm text-[#D4C3B7] mt-2">
-            We&apos;ve sent password reset instructions to{" "}
-            <span className="text-amber-400 font-semibold">{email}</span>.
-            The link expires in 1 hour.
-          </p>
-        </div>
-        <p className="text-xs text-[#9E897F]">
-          Didn&apos;t receive it? Check spam, or{" "}
-          <button
-            onClick={() => setSent(false)}
-            className="text-amber-400 hover:underline"
-          >
-            try again
-          </button>
-          .
-        </p>
-        <Link
-          href="/signin"
-          className="flex items-center justify-center gap-2 w-full py-3 rounded-xl border border-[#4D3331] text-[#D4C3B7] text-sm font-medium hover:bg-[#2E1F1E] transition-colors"
-        >
-          <ArrowLeft className="w-4 h-4" />
-          Back to Sign In
-        </Link>
-      </div>
-    );
-  }
-
-  return (
-    <div className="w-full max-w-md p-8 sm:p-10 rounded-3xl bg-[#1A1211]/90 border border-amber-500/20 shadow-2xl backdrop-blur-md space-y-6">
-      <div className="text-center space-y-2">
-        <Link href="/" className="inline-flex items-center justify-center">
-          <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-amber-500 to-amber-600 flex items-center justify-center font-serif font-black text-[#1A1211] text-xl shadow-lg shadow-amber-500/20">
-            E
-          </div>
-        </Link>
-        <h1 className="text-2xl font-serif font-bold text-white">Reset Password</h1>
-        <p className="text-xs text-[#D4C3B7]">
-          Enter your email and we&apos;ll send you a reset link
-        </p>
-      </div>
-
-      {error && (
-        <div className="flex items-start gap-2 p-3 rounded-xl bg-rose-500/10 border border-rose-500/30 text-xs text-rose-300">
-          <AlertCircle className="w-3.5 h-3.5 shrink-0 mt-0.5" />
-          <span>{error}</span>
-        </div>
-      )}
-
-      <form onSubmit={handleSubmit} className="space-y-4 text-xs">
-        <div>
-          <label htmlFor="email" className="block text-[#D4C3B7] mb-1.5">
-            Email Address
-          </label>
-          <div className="relative">
-            <Mail className="w-4 h-4 text-[#9E897F] absolute left-3 top-1/2 -translate-y-1/2" />
-            <input
-              id="email"
-              type="email"
-              required
-              autoComplete="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              placeholder="you@example.com"
-              className="w-full pl-9 pr-3 py-2.5 rounded-xl bg-[#1A1211] border border-[#4D3331] text-white placeholder-[#9E897F] focus:outline-none focus:border-amber-400 transition-colors"
-            />
-          </div>
-        </div>
-
-        <button
-          type="submit"
-          disabled={isLoading}
-          className="w-full py-3 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-[#1A1211] font-bold text-xs uppercase tracking-wider transition-all shadow-lg shadow-amber-500/20 flex items-center justify-center gap-2 cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed"
-        >
-          {isLoading ? "Sending..." : "Send Reset Link"}
-        </button>
-      </form>
-
-      <Link
-        href="/signin"
-        className="flex items-center justify-center gap-1.5 text-xs text-[#D4C3B7] hover:text-amber-400 transition-colors"
-      >
-        <ArrowLeft className="w-3.5 h-3.5" />
-        Back to Sign In
-      </Link>
-    </div>
-  );
-}
+import { Mail, ArrowLeft, AlertCircle, CheckCircle, Lock } from "lucide-react";
 
 export default function ForgotPasswordPage() {
-  return (
-    <div data-evntora-theme="portal" className="min-h-screen flex flex-col bg-[#08090d] text-[#FFF3E3]">
-      <Navbar />
-      <main className="flex-1 flex items-center justify-center py-16 px-4 sm:px-6 lg:px-8">
-        <Suspense fallback={<div className="w-full max-w-md h-80 rounded-3xl bg-[#1A1211]/90 animate-pulse" />}>
-          <ForgotPasswordForm />
-        </Suspense>
-      </main>
-      <Footer />
-    </div>
-  );
-}
+  const [email, setEmail] = useState("");
+  const [otp, setOtp] = useState("");
+  const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [codeSent, setCodeSent] = useState(false);
+  const [verified, setVerified] = useState(false);
+  const [success, setSuccess] = useState(false);
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [attempts, setAttempts] = useState(0);
+  const [cooldown, setCooldown] = useState(0);
 
+  useEffect(() => {
+    if (cooldown <= 0) return;
+    const timer = window.setTimeout(() => setCooldown((value) => Math.max(0, value - 1)), 1000);
+    return () => window.clearTimeout(timer);
+  }, [cooldown]);
+
+  const sendCode = async () => {
+    if (busy || cooldown > 0 || !email.trim()) return;
+    setBusy(true); setError(null);
+    const { error: resetError } = await supabase.auth.resetPasswordForEmail(email.trim().toLowerCase(), { redirectTo: `${window.location.origin}/auth/reset-password` });
+    if (resetError) setError("We couldn’t send a recovery code right now. Check the address and try again later.");
+    else { setCodeSent(true); setVerified(false); setOtp(""); setAttempts(0); setCooldown(60); }
+    setBusy(false);
+  };
+
+  const verifyCode = async (event: React.FormEvent) => {
+    event.preventDefault();
+    if (busy || attempts >= 5) return;
+    setBusy(true); setError(null);
+    const { data, error: verifyError } = await supabase.auth.verifyOtp({ email: email.trim().toLowerCase(), token: otp.trim(), type: "recovery" });
+    if (verifyError || !data.session) {
+      setAttempts((value) => value + 1);
+      setError(attempts >= 4 ? "Too many incorrect codes. Request a new code to continue." : "That code is invalid or expired. Check your email and try again.");
+    } else setVerified(true);
+    setBusy(false);
+  };
+
+  const updatePassword = async (event: React.FormEvent) => {
+    event.preventDefault();
+    if (!verified || busy) return;
+    setError(null);
+    if (password.length < 8) { setError("Password must be at least 8 characters."); return; }
+    if (password !== confirmPassword) { setError("Passwords do not match."); return; }
+    setBusy(true);
+    const { error: updateError } = await supabase.auth.updateUser({ password });
+    if (updateError) setError("The password could not be updated. Verify the code again or request a new one.");
+    else setSuccess(true);
+    setBusy(false);
+  };
+
+  return <div data-evntora-theme="portal" className="min-h-screen flex flex-col bg-[#FFF3E3] text-[#30221D] dark:bg-[#08090d] dark:text-[#FFF3E3]">
+    <Navbar />
+    <main className="flex-1 flex items-center justify-center py-16 px-4 sm:px-6 lg:px-8">
+      <section className="w-full max-w-md space-y-6 rounded-3xl border border-[#EAD2B0] bg-[#FFFCF6] p-8 shadow-2xl dark:border-[#4D3331] dark:bg-[#1A1211] sm:p-10">
+        <header className="space-y-2 text-center"><div className="mx-auto grid h-12 w-12 place-items-center rounded-2xl bg-[#681B1D] text-[#EAD2B0]"><Lock className="h-5 w-5"/></div><h1 className="font-serif text-2xl font-bold text-[#681B1D] dark:text-[#EAD2B0]">Reset your password</h1><p className="text-xs text-[#7D6B63] dark:text-[#D4C3B7]">One verified email and one password work across your authorized EVNTORA workspaces.</p></header>
+        {error && <p role="alert" className="flex gap-2 rounded-xl border border-rose-200 bg-rose-50 p-3 text-xs text-rose-700"><AlertCircle className="h-4 w-4 shrink-0"/>{error}</p>}
+        {success ? <div role="status" className="space-y-4 text-center"><CheckCircle className="mx-auto h-10 w-10 text-emerald-700"/><p className="text-sm">Your password is updated. Your roles and workspace access were not changed.</p><Link href="/signin" className="inline-flex rounded-xl bg-[#681B1D] px-5 py-3 text-sm font-semibold text-white">Sign in</Link></div> : <>
+          <label className="block text-xs font-semibold">Email address<input type="email" required autoComplete="email" value={email} onChange={(event) => setEmail(event.target.value)} disabled={verified} className="mt-1 w-full rounded-xl border border-[#EAD2B0] bg-[#FFF3E3] px-3 py-3 dark:border-[#4D3331] dark:bg-[#241918]"/></label>
+          {!codeSent ? <button type="button" disabled={busy || !email.trim()} onClick={() => void sendCode()} className="w-full rounded-xl bg-[#681B1D] px-4 py-3 text-xs font-bold text-white disabled:opacity-50">{busy ? "Sending…" : "Send six-digit code"}</button> : !verified ? <><form onSubmit={verifyCode} className="space-y-3"><label className="block text-xs font-semibold">Six-digit email code<input inputMode="numeric" autoComplete="one-time-code" pattern="[0-9]{6}" maxLength={6} required value={otp} onChange={(event) => setOtp(event.target.value.replace(/\D/g, "").slice(0, 6))} className="mt-1 w-full rounded-xl border border-[#EAD2B0] bg-[#FFF3E3] px-3 py-3 text-center text-lg tracking-[0.35em] dark:border-[#4D3331] dark:bg-[#241918]"/></label><button disabled={busy || otp.length !== 6 || attempts >= 5} className="w-full rounded-xl bg-[#681B1D] px-4 py-3 text-xs font-bold text-white disabled:opacity-50">{busy ? "Verifying…" : "Verify code"}</button></form><button type="button" disabled={busy || cooldown > 0} onClick={() => void sendCode()} className="w-full text-xs font-semibold text-[#681B1D] underline disabled:opacity-50">{cooldown > 0 ? `Resend code in ${cooldown}s` : "Resend code"}</button></> : <form onSubmit={updatePassword} className="space-y-3"><label className="block text-xs font-semibold">New password<input type="password" required minLength={8} autoComplete="new-password" value={password} onChange={(event) => setPassword(event.target.value)} className="mt-1 w-full rounded-xl border border-[#EAD2B0] bg-[#FFF3E3] px-3 py-3 dark:border-[#4D3331] dark:bg-[#241918]"/></label><label className="block text-xs font-semibold">Confirm new password<input type="password" required minLength={8} autoComplete="new-password" value={confirmPassword} onChange={(event) => setConfirmPassword(event.target.value)} className="mt-1 w-full rounded-xl border border-[#EAD2B0] bg-[#FFF3E3] px-3 py-3 dark:border-[#4D3331] dark:bg-[#241918]"/></label><button disabled={busy} className="w-full rounded-xl bg-[#681B1D] px-4 py-3 text-xs font-bold text-white disabled:opacity-50">{busy ? "Updating…" : "Set new password"}</button></form>}
+        </>}
+        <Link href="/signin" className="flex items-center justify-center gap-2 text-xs text-[#7D6B63] hover:underline"><ArrowLeft className="h-3.5 w-3.5"/>Back to Sign In</Link>
+      </section>
+    </main><Footer/>
+  </div>;
+}

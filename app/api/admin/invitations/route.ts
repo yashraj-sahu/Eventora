@@ -1,5 +1,4 @@
 import { NextResponse } from "next/server";
-import { createClient } from "@supabase/supabase-js";
 import { getAuthenticatedUser, createServiceRoleSupabaseClient } from "@/lib/supabase-server";
 
 async function ownerOnly() {
@@ -48,26 +47,37 @@ export async function POST(request: Request) {
   const { data: existing, error: existingError } = await access.service.from("admin_invitations").select("id").ilike("email", emailPattern).is("accepted_at", null).is("revoked_at", null).is("expired_at", null).gt("expires_at", now).maybeSingle();
   if (existingError) return NextResponse.json({ error: "Invitation status could not be verified." }, { status: 503 });
   if (existing) return NextResponse.json({ error: "A pending invitation already exists for this email address." }, { status: 409 });
-  const { data: invitation, error: insertError } = await access.service.from("admin_invitations").insert({ email, admin_role: adminRole, invited_by: access.auth!.user!.id }).select("id").single();
+  const { data: matchingProfiles, error: profileError } = await access.service.from("profiles").select("id,email").ilike("email", emailPattern).limit(2);
+  if (profileError) return NextResponse.json({ error: "Account identity could not be checked." }, { status: 503 });
+  const existingProfile = (matchingProfiles ?? []).find((profile) => profile.email?.trim().toLowerCase() === email);
+  if ((matchingProfiles ?? []).filter((profile) => profile.email?.trim().toLowerCase() === email).length > 1) return NextResponse.json({ error: "Multiple account records require support before this invitation can be issued." }, { status: 409 });
+  // A legacy Auth identity may lack its profile row. Search Auth as well so an
+  // existing password is never replaced or a duplicate identity invited.
+  let existingAuthUserId: string | null = existingProfile?.id ?? null;
+  let authSearchComplete = Boolean(existingAuthUserId);
+  if (!existingAuthUserId) {
+    for (let page = 1; page <= 50; page += 1) {
+      const { data: authPage, error: authListError } = await access.service.auth.admin.listUsers({ page, perPage: 1000 });
+      if (authListError) return NextResponse.json({ error: "Account identity could not be checked." }, { status: 503 });
+      const matches = (authPage.users ?? []).filter((candidate) => candidate.email?.trim().toLowerCase() === email);
+      if (matches.length > 1) return NextResponse.json({ error: "Multiple account identities require support before this invitation can be issued." }, { status: 409 });
+      if (matches[0]) { existingAuthUserId = matches[0].id; authSearchComplete = true; break; }
+      if ((authPage.users ?? []).length < 1000) { authSearchComplete = true; break; }
+    }
+  }
+  if (!authSearchComplete) return NextResponse.json({ error: "Account identity could not be conclusively checked. Try again later." }, { status: 503 });
+  const isExistingIdentity = Boolean(existingAuthUserId);
+  const { data: invitation, error: insertError } = await access.service.from("admin_invitations").insert({ email, admin_role: adminRole, invited_by: access.auth!.user!.id, target_user_id: existingAuthUserId, requires_password_setup: !isExistingIdentity }).select("id").single();
   if (insertError || !invitation) return NextResponse.json({ error: insertError?.code === "23505" ? "A valid invitation already exists for this email address." : "The invitation could not be created." }, { status: insertError?.code === "23505" ? 409 : 503 });
   const callback = new URL("/auth/callback", new URL(request.url).origin);
-  callback.searchParams.set("admin_invite", invitation.id);
-  callback.searchParams.set("next", "/admin");
-  const { data: invited, error: inviteError } = await access.service.auth.admin.inviteUserByEmail(email, { redirectTo: callback.toString() });
-  if (inviteError) {
-    // Existing accounts receive a sign-in link only; account creation remains disabled.
-    const mailer = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!);
-    const { error: otpError } = await mailer.auth.signInWithOtp({ email, options: { shouldCreateUser: false, emailRedirectTo: callback.toString() } });
-    if (otpError) {
-      const { error: revokeError } = await access.service.from("admin_invitations").update({ revoked_at: new Date().toISOString() }).eq("id", invitation.id);
-      if (revokeError) console.error("[admin-invitations] failed to revoke unsent invitation", { invitationId: invitation.id, code: revokeError.code });
-      return NextResponse.json({ error: "Invitation email could not be sent." }, { status: 502 });
-    }
-  } else if (invited.user) {
-    const { error: targetError } = await access.service.from("admin_invitations").update({ target_user_id: invited.user.id }).eq("id", invitation.id);
-    if (targetError) return NextResponse.json({ error: "Invitation was sent but the invitation record could not be linked. Revoke it before retrying." }, { status: 503 });
+  callback.searchParams.set("next", "/auth/admin-activate");
+  const { error: otpError } = await access.service.auth.signInWithOtp({ email, options: { shouldCreateUser: !isExistingIdentity, emailRedirectTo: callback.toString() } });
+  if (otpError) {
+    const { error: revokeError } = await access.service.from("admin_invitations").update({ revoked_at: new Date().toISOString() }).eq("id", invitation.id);
+    if (revokeError) console.error("[admin-invitations] failed to revoke unsent invitation", { invitationId: invitation.id, code: revokeError.code });
+    return NextResponse.json({ error: "Invitation email could not be sent." }, { status: 502 });
   }
-  return NextResponse.json({ ok: true, invitationId: invitation.id });
+  return NextResponse.json({ ok: true, invitationId: invitation.id, existingAccount: isExistingIdentity });
 }
 
 export async function PATCH(request: Request) {

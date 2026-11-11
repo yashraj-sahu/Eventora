@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { Search, ChevronLeft, ChevronRight, RefreshCw, Eye } from "lucide-react";
 
-type Props = { resource: string; title: string; description: string; statuses?: string[]; fixedStatus?: string };
+type Props = { resource: string; title: string; description: string; statuses?: string[]; fixedStatus?: string; defaultStatus?: string };
 type Row = Record<string, unknown> & { id?: string | number };
 const nice = (key: string) => key.replaceAll("_", " ").replace(/\b\w/g, (letter) => letter.toUpperCase());
 const display = (value: unknown) => {
@@ -23,10 +23,10 @@ const fields: Record<string, string[]> = {
   reviews: ["vendor_profile_id", "rating", "review_text", "vendor_response", "moderation_status", "created_at"],
 };
 
-export function AdminRecordsTable({ resource, title, description, statuses = [], fixedStatus }: Props) {
+export function AdminRecordsTable({ resource, title, description, statuses = [], fixedStatus, defaultStatus = "" }: Props) {
   const [rows, setRows] = useState<Row[]>([]);
   const [query, setQuery] = useState("");
-  const [status, setStatus] = useState("");
+  const [status, setStatus] = useState(defaultStatus);
   const [page, setPage] = useState(1);
   const [sort, setSort] = useState("created_at");
   const [direction, setDirection] = useState<"asc" | "desc">("desc");
@@ -97,7 +97,7 @@ export function AdminRecordsTable({ resource, title, description, statuses = [],
     setNotice(`Review ${action === "hide" ? "hidden" : "restored"}.`); setRefreshKey((value) => value + 1);
   };
   const pages = Math.max(1, Math.ceil(total / 25));
-  useEffect(() => { setPage(1); setStatus(""); setSort(resource === "listings" ? "updated_at" : resource === "verifications" ? "submitted_at" : "created_at"); setDirection("desc"); }, [fixedStatus, resource]);
+  useEffect(() => { setPage(1); setStatus(defaultStatus); setSort(resource === "listings" ? "updated_at" : resource === "verifications" ? "submitted_at" : "created_at"); setDirection("desc"); }, [defaultStatus, fixedStatus, resource]);
   return <section className="space-y-5">
     <header><p className="text-xs font-semibold uppercase tracking-[.2em] text-[#B77A36]">Admin Workspace</p><h1 className="mt-2 font-serif text-3xl font-bold text-[#681B1D] dark:text-[#EAD2B0]">{title}</h1><p className="mt-2 text-sm text-[#715D54] dark:text-[#D4C3B7]">{description}</p></header>
     <div className="flex flex-col gap-3 rounded-2xl border border-[#EAD2B0] bg-[#FFFCF6] p-4 dark:border-[#4D3331] dark:bg-[#241918] sm:flex-row"><div className="relative min-w-0 flex-1"><Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[#8C766B]"/><input value={query} onChange={(event) => { setPage(1); setQuery(event.target.value); }} placeholder={`Search ${title.toLowerCase()}…`} className="w-full rounded-xl border border-[#EAD2B0] bg-[#FFF9F0] py-2.5 pl-9 pr-3 text-sm outline-none focus:border-[#B77A36] dark:border-[#4D3331] dark:bg-[#1A1211]"/></div>{statuses.length > 0 && <select value={status} onChange={(event) => { setPage(1); setStatus(event.target.value); }} className="rounded-xl border border-[#EAD2B0] bg-[#FFF9F0] px-3 py-2 text-sm dark:border-[#4D3331] dark:bg-[#1A1211]"><option value="">All statuses</option>{statuses.map((item) => <option key={item} value={item}>{nice(item)}</option>)}</select>}<button onClick={() => setRefreshKey((value) => value + 1)} className="inline-flex items-center justify-center gap-2 rounded-xl border border-[#EAD2B0] px-3 py-2 text-sm hover:bg-[#F5E5D0]"><RefreshCw size={15}/>Refresh</button></div>

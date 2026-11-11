@@ -1,11 +1,12 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Navbar } from "@/components/layout/Navbar";
 import { Footer } from "@/components/layout/Footer";
 import { supabase } from "@/lib/supabase";
+import { useAuth } from "@/lib/auth-context";
 import {
   Sparkles,
   Lock,
@@ -21,6 +22,7 @@ import {
 
 export default function SignUpPage() {
   const router = useRouter();
+  const { user, roles } = useAuth();
   const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
@@ -32,6 +34,17 @@ export default function SignUpPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
+  const [existingAccountDetected, setExistingAccountDetected] = useState(false);
+  const [otp, setOtp] = useState("");
+  const [otpAttempts, setOtpAttempts] = useState(0);
+  const [resendCooldown, setResendCooldown] = useState(0);
+  const [otpType, setOtpType] = useState<"signup" | "email">("signup");
+
+  useEffect(() => {
+    if (resendCooldown <= 0) return;
+    const timer = window.setTimeout(() => setResendCooldown((value) => Math.max(0, value - 1)), 1000);
+    return () => window.clearTimeout(timer);
+  }, [resendCooldown]);
 
   const validate = () => {
     if (!fullName.trim()) return "Please enter your full name.";
@@ -66,13 +79,15 @@ export default function SignUpPage() {
           emailRedirectTo: `${window.location.origin}/auth/callback?next=${encodeURIComponent(safeDestination)}`,
           data: {
             full_name: fullName.trim(),
+            phone: phone.trim() || null,
             role: "customer",
           },
         },
       });
 
       if (signUpError) {
-        if (signUpError.message.includes("already registered")) {
+        if (/already registered|already exists/i.test(signUpError.message)) {
+          setExistingAccountDetected(true);
           setError("An account with this email already exists. Please sign in.");
         } else {
           setError("We couldn’t create your account right now. Please try again.");
@@ -80,32 +95,27 @@ export default function SignUpPage() {
         return;
       }
 
-      const userId = data.user?.id;
-
-      // 2. Insert into public.profiles
-      if (userId) {
-        try {
-          await supabase.from("profiles").upsert(
-            {
-              id: userId,
-              email: email.trim(),
-              full_name: fullName.trim(),
-              phone: phone.trim() || null,
-              role: "customer",
-            },
-            { onConflict: "id" }
-          );
-        } catch (profileErr) {
-          console.warn("Profile table upsert non-critical warning:", profileErr);
-        }
+      // Supabase may deliberately return an empty identities array for a
+      // duplicate email instead of returning an account-exists error.
+      if (data.user && !data.session && data.user.identities?.length === 0) {
+        setExistingAccountDetected(true);
+        setError("This email is already registered with Evntora. Sign in to use your existing account and access.");
+        return;
       }
+
+      if (!data.user) { setError("We couldn’t create your account. Please try again."); return; }
 
       // Check if email confirmation is required
       if (data.user && !data.session) {
         setSuccess(true);
+        setOtp(""); setOtpAttempts(0); setResendCooldown(60); setOtpType("signup");
       } else if (data.session) {
-        // Immediate session established
-        window.location.assign(safeDestination);
+        // Some projects allow auto-confirm and return a session immediately.
+        // Still require the requested six-digit UX before continuing.
+        await supabase.auth.signOut();
+        const { error: otpError } = await supabase.auth.signInWithOtp({ email: email.trim().toLowerCase(), options: { shouldCreateUser: false } });
+        if (otpError) { setError("Email code verification is required, but a code could not be sent. Contact support before continuing."); return; }
+        setOtpType("email"); setSuccess(true); setOtp(""); setOtpAttempts(0); setResendCooldown(60);
       } else {
         setSuccess(true);
       }
@@ -117,6 +127,33 @@ export default function SignUpPage() {
     } finally {
       setIsLoading(false);
     }
+  };
+
+  const verifySignupOtp = async (event: React.FormEvent) => {
+    event.preventDefault();
+    if (otpAttempts >= 5 || isLoading) return;
+    setIsLoading(true); setError(null);
+    const { data, error: verifyError } = await supabase.auth.verifyOtp({ email: email.trim().toLowerCase(), token: otp.trim(), type: otpType });
+    if (verifyError || !data.user || !data.session) {
+      setOtpAttempts((value) => value + 1);
+      setError(otpAttempts >= 4 ? "Too many incorrect codes. Request a new code and try again." : "That code is invalid or expired. Check the email and try again.");
+      setIsLoading(false); return;
+    }
+    const params = new URLSearchParams(window.location.search);
+    const requestedRedirect = params.get("redirectTo") || "";
+    const destination = requestedRedirect.startsWith("/") && !requestedRedirect.startsWith("//") && !requestedRedirect.includes("\\") && new URL(requestedRedirect, window.location.origin).origin === window.location.origin ? requestedRedirect : "/dashboard";
+    window.location.assign(destination);
+  };
+
+  const resendSignupOtp = async () => {
+    if (resendCooldown > 0 || isLoading) return;
+    setIsLoading(true); setError(null);
+    const { error: resendError } = otpType === "signup"
+      ? await supabase.auth.resend({ type: "signup", email: email.trim().toLowerCase() })
+      : await supabase.auth.signInWithOtp({ email: email.trim().toLowerCase(), options: { shouldCreateUser: false } });
+    if (resendError) setError("We couldn’t resend the code yet. Wait a moment and try again.");
+    else { setResendCooldown(60); setOtpAttempts(0); setOtp(""); }
+    setIsLoading(false);
   };
 
   return (
@@ -155,12 +192,17 @@ export default function SignUpPage() {
                 <CheckCircle className="w-6 h-6 text-[#B77A36]" />
               </div>
               <h2 className="text-base font-serif font-bold text-[#681B1D] dark:text-[#F4F0E7]">
-                Check Your Inbox
+                Verify your email
               </h2>
               <p className="text-xs text-[#7D6B63] dark:text-[#D4C3B7] leading-relaxed">
-                We have sent an activation link to <strong className="text-[#681B1D] dark:text-[#F4F0E7]">{email}</strong>.
-                Please verify your email address to access your workspace.
+                We sent a six-digit code to <strong className="text-[#681B1D] dark:text-[#F4F0E7]">{email}</strong>. Verify it to activate Customer access.
               </p>
+              <form onSubmit={verifySignupOtp} className="space-y-3 text-left">
+                <label htmlFor="signup-otp" className="block text-xs font-semibold">Email verification code</label>
+                <input id="signup-otp" inputMode="numeric" autoComplete="one-time-code" pattern="[0-9]{6}" maxLength={6} required value={otp} onChange={(event) => setOtp(event.target.value.replace(/\D/g, "").slice(0, 6))} className="w-full rounded-xl border border-[#EAD2B0] bg-[#FFFCF6] px-4 py-3 text-center text-lg tracking-[0.35em]" aria-label="Six-digit email verification code" />
+                <button disabled={isLoading || otp.length !== 6 || otpAttempts >= 5} className="w-full rounded-xl bg-[#681B1D] px-4 py-3 text-xs font-bold text-white disabled:opacity-50">{isLoading ? "Verifying…" : "Verify email"}</button>
+              </form>
+              <button type="button" disabled={isLoading || resendCooldown > 0} onClick={() => void resendSignupOtp()} className="text-xs font-semibold text-[#681B1D] underline disabled:opacity-50">{resendCooldown > 0 ? `Resend code in ${resendCooldown}s` : "Resend code"}</button>
               <div className="pt-2">
                 <Link
                   href="/signin?portal=customer"
@@ -169,6 +211,13 @@ export default function SignUpPage() {
                   Return to Sign In
                 </Link>
               </div>
+            </div>
+          ) : user ? (
+            <div className="space-y-4 rounded-2xl border border-[#EAD2B0] bg-[#FFF3E3] p-5 text-center dark:border-[#4D3331] dark:bg-[#241918]">
+              <h2 className="font-serif text-xl font-bold text-[#681B1D] dark:text-[#EAD2B0]">You already have an Evntora account</h2>
+              <p className="text-sm text-[#7D6B63] dark:text-[#D4C3B7]">Signed in as <b>{user.email}</b>. Your existing password and access stay unchanged.</p>
+              <p className="text-xs text-[#7D6B63] dark:text-[#D4C3B7]">Your access: {roles.length ? roles.map((role) => role === "platform_owner" ? "Platform Owner" : role === "admin" ? "Admin" : role === "vendor" ? "Vendor" : "Customer").join(" · ") : "Account"}</p>
+              <Link href="/workspaces" className="inline-flex rounded-xl bg-[#681B1D] px-5 py-3 text-sm font-semibold text-[#FFF3E3]">Open your workspaces</Link>
             </div>
           ) : (
             <form onSubmit={handleSignUp} className="space-y-4 text-xs">
@@ -332,6 +381,7 @@ export default function SignUpPage() {
           )}
 
           <div className="text-center text-xs text-[#7D6B63] dark:text-[#D4C3B7] pt-2 border-t border-[#EAD2B0] dark:border-[#4D3331] space-y-2">
+            {existingAccountDetected && <Link href="/signin?portal=customer" className="block font-semibold text-[#681B1D] underline">Sign in with your existing account</Link>}
             <p>
               Already have an account?{" "}
               <Link href="/signin?portal=customer" className="text-[#681B1D] dark:text-[#EAD2B0] hover:underline font-semibold">

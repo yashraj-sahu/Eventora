@@ -51,7 +51,7 @@ export async function POST(request: Request) {
     if (typeof actionBody.id !== "string" || !z.string().uuid().safeParse(actionBody.id).success) return NextResponse.json({ error: "Invalid listing." }, { status: 400 });
     if (actionBody.action === "submit") {
       const { data, error } = await access.supabase.from("vendor_listings").update({ status: "pending_approval" }).eq("id", actionBody.id).eq("vendor_profile_id", access.vendorId).select("id,status,vendor_service_id,name,description").maybeSingle();
-      if (error) return NextResponse.json({ error: "Listing could not be submitted for review." }, { status: 400 });
+      if (error) return NextResponse.json({ error: "Listing could not be submitted." }, { status: 400 });
       if (!data) return NextResponse.json({ error: "Listing not found." }, { status: 404 });
       return NextResponse.json({ listing: data });
     }
@@ -73,7 +73,7 @@ export async function POST(request: Request) {
   const result = id
     ? await access.supabase.from("vendor_listings").update(update).eq("id", id).eq("vendor_profile_id", access.vendorId).select("id,status,vendor_service_id").maybeSingle()
     : await access.supabase.from("vendor_listings").insert({ ...update, vendor_profile_id: access.vendorId }).select("id,status,vendor_service_id").single();
-  if (result.error) return NextResponse.json({ error: "Listing could not be saved. A published listing may require review after editing." }, { status: 400 });
+  if (result.error) return NextResponse.json({ error: "Listing could not be saved. Check the listing details and vendor account approval status." }, { status: 400 });
   if (!result.data) return NextResponse.json({ error: "Listing not found." }, { status: 404 });
   let serviceId = result.data.vendor_service_id;
   if (!serviceId) {
