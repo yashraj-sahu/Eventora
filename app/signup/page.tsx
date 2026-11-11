@@ -7,12 +7,13 @@ import { Navbar } from "@/components/layout/Navbar";
 import { Footer } from "@/components/layout/Footer";
 import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/lib/auth-context";
+import { normalizePhoneNumber } from "@/lib/phone-number";
+import { PhoneNumberField } from "@/components/ui/PhoneNumberField";
 import {
   Sparkles,
   Lock,
   Mail,
   User,
-  Phone,
   ArrowRight,
   Eye,
   EyeOff,
@@ -49,6 +50,7 @@ export default function SignUpPage() {
   const validate = () => {
     if (!fullName.trim()) return "Please enter your full name.";
     if (!email.trim()) return "Please enter your email address.";
+    if (!normalizePhoneNumber(phone)) return "Choose a country code and enter a valid phone number.";
     if (password.length < 8) return "Password must be at least 8 characters.";
     if (password !== confirmPassword) return "Passwords do not match.";
     if (!agreedToTerms) return "Please accept the Terms & Privacy Policy.";
@@ -79,7 +81,7 @@ export default function SignUpPage() {
           emailRedirectTo: `${window.location.origin}/auth/callback?next=${encodeURIComponent(safeDestination)}`,
           data: {
             full_name: fullName.trim(),
-            phone: phone.trim() || null,
+            phone: normalizePhoneNumber(phone),
             role: "customer",
           },
         },
@@ -260,24 +262,13 @@ export default function SignUpPage() {
                 </div>
               </div>
 
-              {/* Phone (optional) */}
+              {/* Phone */}
               <div>
                 <label htmlFor="phone" className="block text-[#7D6B63] dark:text-[#D4C3B7] mb-1.5 font-medium">
-                  Phone Number{" "}
-                  <span className="text-[#7D6B63]/60 font-normal">(optional)</span>
+                  Phone Number <span className="text-rose-500">*</span>
                 </label>
-                <div className="relative">
-                  <Phone className="w-4 h-4 text-[#7D6B63] dark:text-[#D4C3B7] absolute left-3 top-1/2 -translate-y-1/2" />
-                  <input
-                    id="phone"
-                    type="tel"
-                    autoComplete="tel"
-                    value={phone}
-                    onChange={(e) => setPhone(e.target.value)}
-                    placeholder="+91 98765 43210"
-                    className="w-full pl-9 pr-3 py-2.5 rounded-xl bg-[#FFF3E3] dark:bg-[#241918] border border-[#EAD2B0] dark:border-[#4D3331] text-[#30221D] dark:text-[#F4F0E7] placeholder-[#7D6B63]/60 focus:outline-none focus:border-[#681B1D] dark:focus:border-[#EAD2B0] transition-colors"
-                  />
-                </div>
+                <PhoneNumberField id="phone" required value={phone} onChange={setPhone}/>
+                <p className="mt-1 text-[11px] text-[#7D6B63]">Select your country code, then enter your phone number.</p>
               </div>
 
               {/* Password */}

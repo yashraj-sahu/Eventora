@@ -27,8 +27,15 @@ export async function GET(request: Request) {
   if (!access.ok && access.status === 403 && resource === "bookings") access = await requireAdminPermission("finance_read", request);
   if (!access.ok) return NextResponse.json({ error: access.error }, { status: access.status });
   const detailId = searchParams.get("detailId");
-  if (detailId && (resource === "bookings" || resource === "listings")) {
+  if (detailId && (resource === "users" || resource === "bookings" || resource === "listings")) {
     if (!z.string().uuid().safeParse(detailId).success) return NextResponse.json({ error: "Invalid record ID." }, { status: 400 });
+    if (resource === "users") {
+      const { data: profile, error: profileError } = await access.supabase.from("profiles")
+        .select("id,full_name,email,phone,created_at,updated_at").eq("id", detailId).maybeSingle();
+      if (profileError) return NextResponse.json({ error: "User details are unavailable." }, { status: 503 });
+      if (!profile) return NextResponse.json({ error: "User not found." }, { status: 404 });
+      return NextResponse.json({ record: profile, history: [] }, { headers: { "Cache-Control": "private, no-store" } });
+    }
     if (resource === "bookings") {
       const [{ data: booking, error: bookingError }, { data: history, error: historyError }] = await Promise.all([
         access.supabase.from("bookings").select("id,booking_reference,customer_id,event_id,vendor_profile_id,vendor_name,vendor_category,package_name,event_date,event_city,guest_count,total_amount,advance_amount,paid_amount,currency,status,created_at,updated_at").eq("id", detailId).maybeSingle(),

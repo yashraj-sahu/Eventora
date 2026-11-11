@@ -67,9 +67,9 @@ export function RequireRole({ role, children }: { role: PortalIntent; children: 
       </main>
     );
   }
-  // Pending applicants may read only their application-status screen. They do
-  // not receive Vendor membership or access to operational pages until approval.
-  if (role === "vendor" && pathname === "/vendor-portal/pending" && vendorProfile) return <>{children}</>;
+  // Pending applicants may open their own Vendor Hub, but operational actions
+  // remain protected by the active Vendor membership checks in the APIs/RLS.
+  if (role === "vendor" && vendorProfile && vendorProfile.approval_status !== "approved") return <>{children}</>;
   if (!hasRole(role)) {
     if (role === "admin") {
       return (

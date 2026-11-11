@@ -61,6 +61,14 @@ function SignInForm({ forcedPortal }: { forcedPortal?: PortalIntent }) {
         const roles = (memberships ?? []).map((item) => item.role);
         const requestedHasAccess = requestedPortal && (roles.includes(requestedPortal) || (requestedPortal === "admin" && roles.includes("platform_owner")));
         if (requestedPortal && !requestedHasAccess) {
+          if (requestedPortal === "vendor") {
+            const { data: application, error: applicationError } = await supabase.from("vendor_profiles").select("approval_status").eq("user_id", session.user.id).maybeSingle();
+            if (applicationError) { if (isMounted) setError("We couldn’t verify your vendor application status."); return; }
+            if (application && application.approval_status !== "approved") {
+              window.location.assign("/vendor-portal");
+              return;
+            }
+          }
           if (isMounted) setError(requestedPortal === "admin" ? "This account does not have authorized administrator access." : requestedPortal === "vendor" ? "This account does not have Vendor access yet. Register your business to add it." : "Customer access is not enabled for this account.");
           return;
         }
@@ -137,6 +145,19 @@ function SignInForm({ forcedPortal }: { forcedPortal?: PortalIntent }) {
       const isAdminUser = has("admin") || has("platform_owner");
 
       if (requestedPortal && !workspaces.includes(requestedPortal)) {
+        if (requestedPortal === "vendor") {
+          const { data: application, error: applicationError } = await supabase.from("vendor_profiles").select("approval_status").eq("user_id", data.user.id).maybeSingle();
+          if (applicationError) {
+            setError("We couldn’t verify your vendor application status. Please try again.");
+            setIsLoading(false);
+            return;
+          }
+          if (application && application.approval_status !== "approved") {
+            redirectUrl = "/vendor-portal";
+            window.location.assign(redirectUrl);
+            return;
+          }
+        }
         setError(requestedPortal === "admin" ? "This account does not have authorized administrator access." : requestedPortal === "vendor" ? "This account does not have Vendor access yet. Register your business to add it." : "Customer access is not enabled for this account.");
         setIsLoading(false);
         return;

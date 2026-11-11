@@ -48,6 +48,6 @@ export function portalForPath(pathname: string): PortalIntent {
 
 export function portalHome(role: UserRole, vendorApproved = false): string {
   if (role === "admin" || role === "platform_owner") return "/admin";
-  if (role === "vendor") return vendorApproved ? "/vendor-portal" : "/vendor-portal/pending";
+  if (role === "vendor") return "/vendor-portal";
   return "/dashboard";
 }

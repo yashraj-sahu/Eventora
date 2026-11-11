@@ -9,7 +9,7 @@ test("Portal Routing Matrix: Correctly resolves single-role users", () => {
   assert.equal(portalHome("customer"), "/dashboard");
 
   assert.deepEqual(authorizedWorkspaces(["vendor"]), ["vendor"]);
-  assert.equal(portalHome("vendor", false), "/vendor-portal/pending");
+  assert.equal(portalHome("vendor", false), "/vendor-portal");
   assert.equal(portalHome("vendor", true), "/vendor-portal");
 
   assert.deepEqual(authorizedWorkspaces(["admin"]), ["admin"]);

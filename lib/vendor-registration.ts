@@ -1,6 +1,7 @@
 import "server-only";
 import type { SupabaseClient, User } from "@supabase/supabase-js";
 import type { Database } from "@/types/database";
+import { normalizePhoneNumber } from "@/lib/phone-number";
 
 export type VendorRegistration = {
   businessName: string;
@@ -23,11 +24,25 @@ export async function ensureVendorApplication(
   const businessName = registration.businessName.trim();
   const category = registration.category.trim();
   const city = registration.city.trim();
-  const phone = registration.phone?.trim() ?? "";
+  const phone = normalizePhoneNumber(registration.phone ?? "");
   if (!businessName || businessName.length > 160) throw new Error("Enter a business name up to 160 characters.");
   if (!category || category.length > 80) throw new Error("Enter a business category up to 80 characters.");
   if (!city || city.length > 120) throw new Error("Enter a city or region up to 120 characters.");
-  if (phone.length > 40) throw new Error("Enter a phone number up to 40 characters.");
+  if (!phone) throw new Error("Enter a valid international phone number including country code.");
+
+  const { data: accountProfile, error: profileLookupError } = await supabase
+    .from("profiles").select("phone").eq("id", user.id).maybeSingle();
+  if (profileLookupError || !accountProfile) throw new Error("Your account profile could not be checked. Please try again.");
+  if (!accountProfile.phone?.trim()) {
+    let profileUpdate = supabase.from("profiles").update({ phone }).eq("id", user.id);
+    profileUpdate = accountProfile.phone === null ? profileUpdate.is("phone", null) : profileUpdate.eq("phone", accountProfile.phone);
+    const { data: updatedProfile, error: profileUpdateError } = await profileUpdate.select("id").maybeSingle();
+    if (profileUpdateError) throw new Error("Your account phone number could not be saved. Please update your profile and retry.");
+    if (!updatedProfile) {
+      const { data: latestProfile, error: latestError } = await supabase.from("profiles").select("phone").eq("id", user.id).maybeSingle();
+      if (latestError || !latestProfile?.phone?.trim()) throw new Error("Your account phone number could not be saved. Please update your profile and retry.");
+    }
+  }
 
   const { data: existing, error: lookupError } = await supabase
     .from("vendor_profiles")
@@ -46,7 +61,7 @@ export async function ensureVendorApplication(
       city,
       business_description: typeof registration.description === "string" ? registration.description.trim().slice(0, 5000) || null : null,
       address: typeof registration.address === "string" ? registration.address.trim().slice(0, 300) || null : null,
-      contact_phone: phone || null,
+      contact_phone: phone,
       contact_email: user.email.trim().toLowerCase(),
       approval_status: "pending",
       is_published: false,

@@ -43,8 +43,8 @@ export default function VendorPendingPage() {
           </p>
         </div>
 
-        {/* Steps */}
-        {status === "pending" && <div className="p-6 rounded-2xl bg-[#1A1211] border border-[#4D3331] space-y-2"><p className="text-xs font-bold text-amber-400 uppercase tracking-wider">Application status</p><p className="text-xs text-[#D4C3B7]">Your listing is not visible in the marketplace until an administrator approves and publishes it.</p><p className="text-[11px] text-[#9E897F]">Account email: <span className="text-amber-400">{profile?.email}</span></p></div>}
+        {/* This is a read-only Vendor workspace landing page until approval. */}
+        <div className="p-6 rounded-2xl bg-[#1A1211] border border-[#4D3331] space-y-2"><p className="text-xs font-bold text-amber-400 uppercase tracking-wider">Vendor workspace · application status</p><p className="text-xs text-[#D4C3B7]">You can sign in and check this application dashboard while review is pending. Vendor tools, listings, bookings and availability stay locked until approval.</p><p className="text-[11px] text-[#9E897F]">Account email: <span className="text-amber-400">{profile?.email}</span></p></div>
 
         <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
           <Link

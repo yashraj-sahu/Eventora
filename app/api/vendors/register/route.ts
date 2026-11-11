@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { getAuthenticatedUser } from "@/lib/supabase-server";
 import { ensureVendorApplication } from "@/lib/vendor-registration";
+import { normalizePhoneNumber } from "@/lib/phone-number";
 
 export async function POST(request: Request) {
   const { user, supabase, error } = await getAuthenticatedUser(request);
@@ -16,6 +17,8 @@ export async function POST(request: Request) {
   }
 
   const asText = (value: unknown) => typeof value === "string" ? value : "";
+  const phone = normalizePhoneNumber(asText(body.phone));
+  if (!phone) return NextResponse.json({ error: "Enter a valid international phone number including country code." }, { status: 400 });
   try {
     const result = await ensureVendorApplication(supabase, user, {
       businessName: asText(body.businessName),
@@ -23,7 +26,7 @@ export async function POST(request: Request) {
       city: asText(body.city),
       description: asText(body.description),
       address: asText(body.address),
-      phone: asText(body.phone),
+      phone,
     });
     return NextResponse.json({ ok: true, ...result }, { status: result.alreadyExists ? 200 : 201 });
   } catch (cause) {

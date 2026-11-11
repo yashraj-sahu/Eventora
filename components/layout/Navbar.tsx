@@ -68,6 +68,7 @@ function AccountMenu({ onClose }: { onClose: () => void }) {
     ? "/admin"
     : "/signin";
   const workspaces = authorizedWorkspaces(roles);
+  const pendingVendor = Boolean(vendorProfile && vendorProfile.approval_status !== "approved" && !roles.includes("vendor"));
   const portalHref = workspaces.length > 1 ? "/workspaces" : homeHref;
   const settingsHref = roles.includes("customer") ? "/dashboard/settings" : roles.includes("vendor") ? "/vendor-portal/settings" : "/admin";
 
@@ -105,11 +106,12 @@ function AccountMenu({ onClose }: { onClose: () => void }) {
         <span>Account Settings</span>
       </Link>
 
-      {workspaces.length > 1 && (
+      {(workspaces.length > 1 || pendingVendor) && (
         <div className="border-t border-[#EAD2B0] dark:border-[#4D3331] mt-1 pt-1">
           <p className="px-4 py-1 text-[10px] font-bold uppercase tracking-wider text-[#B77A36] dark:text-[#EAD2B0]">Switch workspace</p>
           {roles.includes("customer") && <Link href="/dashboard" onClick={() => { if (user) rememberWorkspace("customer", user.id); onClose(); }} className="block px-4 py-2 text-xs font-medium text-[#30221D] dark:text-[#FFF3E3] hover:bg-[#EAD2B0]/30 dark:hover:bg-[#3D2624]">Customer Workspace</Link>}
           {roles.includes("vendor") && <Link href={portalHome("vendor", vendorProfile?.approval_status === "approved")} onClick={() => { if (user) rememberWorkspace("vendor", user.id); onClose(); }} className="block px-4 py-2 text-xs font-medium text-[#30221D] dark:text-[#FFF3E3] hover:bg-[#EAD2B0]/30 dark:hover:bg-[#3D2624]">Vendor Hub</Link>}
+          {pendingVendor && <Link href="/vendor-portal" onClick={() => { if (user) rememberWorkspace("vendor", user.id); onClose(); }} className="block px-4 py-2 text-xs font-medium text-[#30221D] dark:text-[#FFF3E3] hover:bg-[#EAD2B0]/30 dark:hover:bg-[#3D2624]">Vendor Hub · Approval pending</Link>}
           {(roles.includes("admin") || roles.includes("platform_owner")) && <Link href="/admin" onClick={() => { if (user) rememberWorkspace("admin", user.id); onClose(); }} className="block px-4 py-2 text-xs font-medium text-[#30221D] dark:text-[#FFF3E3] hover:bg-[#EAD2B0]/30 dark:hover:bg-[#3D2624]">Admin Desk</Link>}
         </div>
       )}
@@ -445,6 +447,7 @@ export function Navbar() {
               </div>
               <Link href={workspaces.length > 1 ? "/workspaces" : homeHref} onClick={() => setMobileMenuOpen(false)} className="block px-3 py-2 text-xs font-semibold text-[#681B1D] dark:text-[#EAD2B0]">My Dashboard</Link>
               {workspaces.length > 1 && workspaces.map((workspace) => <Link key={workspace} href={portalHome(workspace, vendorProfile?.approval_status === "approved")} onClick={() => { if (user) rememberWorkspace(workspace, user.id); setMobileMenuOpen(false); }} className="block px-3 py-2 text-xs font-medium text-[#59453E] dark:text-[#D4C3B7] hover:text-[#681B1D]">Switch to {workspace === "customer" ? "Customer Workspace" : workspace === "vendor" ? "Vendor Hub" : "Admin Desk"}</Link>)}
+              {vendorProfile && vendorProfile.approval_status !== "approved" && !roles.includes("vendor") && <Link href="/vendor-portal" onClick={() => { if (user) rememberWorkspace("vendor", user.id); setMobileMenuOpen(false); }} className="block px-3 py-2 text-xs font-medium text-[#59453E] dark:text-[#D4C3B7] hover:text-[#681B1D]">Vendor Hub · Approval pending</Link>}
               </>
             ) : (
               <Link

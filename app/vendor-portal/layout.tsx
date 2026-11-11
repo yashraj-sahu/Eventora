@@ -135,7 +135,7 @@ const groups = [
 ];
 
 function VendorPortalShell({ children }: { children: React.ReactNode }) {
-  const { signOut, profile, user } = useAuth();
+  const { signOut, profile, user, vendorProfile } = useAuth();
   const search = useSearchParams();
   const router = useRouter();
 
@@ -415,6 +415,15 @@ function VendorPortalShell({ children }: { children: React.ReactNode }) {
 
             {/* Page Content */}
             <main className="mx-auto w-full max-w-7xl flex-1 p-4 sm:p-6 lg:p-8">
+              {vendorProfile && vendorProfile.approval_status !== "approved" && (
+                <section role="status" className="mb-5 rounded-2xl border border-[#D7A85D]/50 bg-[#FFF8E8] p-4 text-[#5A3B18] shadow-sm dark:border-[#8D6939] dark:bg-[#2E2518] dark:text-[#F0D7A9]">
+                  <p className="font-semibold">Vendor account not approved yet</p>
+                  <p className="mt-1 text-sm">
+                    Your Vendor Hub is available while your application is reviewed. Listings, availability, bookings, and other vendor operations remain unavailable until approval.
+                    {vendorProfile.approval_status === "rejected" ? " Your application was not approved; contact support for next steps." : vendorProfile.approval_status === "suspended" ? " Vendor access is suspended; contact support for assistance." : " We’ll update this workspace when the review is complete."}
+                  </p>
+                </section>
+              )}
               {children}
             </main>
           </div>

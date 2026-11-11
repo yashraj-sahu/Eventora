@@ -1,9 +1,50 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
+import { normalizePhoneNumber } from "../lib/phone-number.ts";
 import { isValidCheckoutPaymentAmountPaise, minimumPartialPaymentPaise } from "../lib/payment-amounts.ts";
 
 const read = (path) => readFileSync(new URL(path, import.meta.url), "utf8");
+
+test("Phone numbers are required in canonical international format and Indian numbers are validated", () => {
+  assert.equal(normalizePhoneNumber("+91 98765 43210"), "+919876543210");
+  assert.equal(normalizePhoneNumber("+1 (415) 555-2671"), "+14155552671");
+  assert.equal(normalizePhoneNumber("0091 98765 43210"), "+919876543210");
+  assert.equal(normalizePhoneNumber("98765 43210"), null);
+  assert.equal(normalizePhoneNumber("+91 12345 67890"), null);
+});
+
+test("Verified existing customers submit a vendor application without another OTP", () => {
+  const vendorSignup = read("../app/signup/vendor/page.tsx");
+  const vendorRegistration = read("../lib/vendor-registration.ts");
+  const existingUserBranch = vendorSignup.slice(vendorSignup.indexOf("if (user) {"), vendorSignup.indexOf("// 1. Create Supabase Auth user"));
+  assert.match(existingUserBranch, /if \(user\.email_confirmed_at\)\s*\{\s*await submitApplication\(\);\s*return;/);
+  assert.match(existingUserBranch, /signInWithOtp\([\s\S]*?shouldCreateUser: false/);
+  assert.match(vendorRegistration, /Verify the account email before submitting a vendor application/);
+});
+
+test("Signup, profile updates, Admin activation, and Admin user directory enforce/use profiles.phone", () => {
+  const signup = read("../app/signup/page.tsx");
+  const vendorSignup = read("../app/signup/vendor/page.tsx");
+  const vendorApi = read("../app/api/vendors/register/route.ts");
+  const profileApi = read("../app/api/account/profile/route.ts");
+  const adminAccept = read("../app/api/admin/invitations/accept/route.ts");
+  const adminDirectory = read("../components/admin/AdminRecordsTable.tsx");
+  const adminRecords = read("../app/api/admin/records/route.ts");
+  const migration = read("../supabase/migrations/023_mandatory_profile_phone.sql");
+  assert.match(signup, /normalizePhoneNumber\(phone\)/);
+  assert.match(signup, /id="phone"[\s\S]*?required/);
+  assert.match(vendorSignup, /normalizePhoneNumber\(phone\)/);
+  assert.match(vendorApi, /normalizePhoneNumber\(asText\(body\.phone\)\)/);
+  assert.match(profileApi, /normalizePhoneNumber\(parsed\.data\.phone\)/);
+  assert.match(adminAccept, /requiresPhone: !existingPhone/);
+  assert.match(adminAccept, /existingPhone \? null : normalizePhoneNumber/);
+  assert.match(adminDirectory, /users: \["full_name", "email", "phone"/);
+  assert.match(adminRecords, /select\("id,full_name,email,phone,created_at,updated_at"\)/);
+  assert.match(migration, /profiles_phone_number_guard/);
+  assert.match(migration, /Phone number is required to create an Evntora account/);
+  assert.match(migration, /admin_invitations AS invitation/);
+});
 
 test("Existing customer sessions can apply as vendors without setting credentials; vendor approval gates publication", () => {
   const registrationPage = read("../app/signup/vendor/page.tsx");
@@ -83,13 +124,14 @@ test("Customer signup does not proceed when Supabase reports an existing identit
 
 test("Admin invitations reuse existing identities and never ask them to replace a password", () => {
   const invitations = read("../app/api/admin/invitations/route.ts");
-  const callback = read("../app/auth/callback/route.ts");
-  assert.match(invitations, /signInWithOtp\(\{ email, options: \{ shouldCreateUser: !isExistingIdentity/);
+  assert.match(invitations, /auth\.admin\.getUserById/);
   assert.match(invitations, /auth\.admin\.listUsers/);
-  assert.match(invitations, /requires_password_setup: !isExistingIdentity/);
+  assert.match(invitations, /requires_password_setup: requiresPasswordSetup/);
+  assert.match(invitations, /This email already has an unverified Evntora identity/);
+  assert.match(invitations, /sendAdminAccessGrantedEmail/);
+  assert.match(invitations, /auth\.admin\.generateLink\(\{ type: "invite"/);
   assert.match(invitations, /revokeError/);
-  assert.match(callback, /auth\/admin-activate/);
-  assert.match(callback, /admin_invite/);
+  assert.match(invitations, /email_confirmed_at/);
 });
 
 test("Email OTP flows share one identity and do not grant Vendor or Admin roles", () => {
@@ -106,7 +148,7 @@ test("Email OTP flows share one identity and do not grant Vendor or Admin roles"
   assert.match(recovery, /type: "recovery"/);
   assert.match(recovery, /updateUser\(\{ password \}\)/);
   assert.match(adminAccept, /email_confirmed_at/);
-  assert.match(adminActivate, /type: "email"/);
+  assert.match(adminActivate, /type: verificationType/);
   assert.doesNotMatch(adminActivate, /const accepted = await accept\(\); if \(active && accepted\)/);
   assert.match(migration, /activate_customer_after_email_verification/);
   assert.match(migration, /approval_status = 'approved' AND NEW\.is_published/);
@@ -126,6 +168,42 @@ test("Role changes reuse the existing identity and keep Customer, Vendor and Adm
   assert.match(invitationApi, /updateUserById\(user\.id/);
   assert.match(customerSignup, /This email is already registered with Evntora\. Sign in/);
   assert.match(vendorSignup, /This email already has an Evntora account\. Sign in/);
+});
+
+test("Pending vendor applicants can open the Vendor Hub while operational APIs remain membership-gated", () => {
+  const proxy = read("../proxy.ts");
+  const requireRole = read("../components/auth/RequireRole.tsx");
+  const layout = read("../app/vendor-portal/layout.tsx");
+  const workspaceChooser = read("../app/workspaces/page.tsx");
+  const signIn = read("../components/auth/PortalSignInPage.tsx");
+  const listingApi = read("../app/api/vendors/listings/route.ts");
+  const availabilityApi = read("../app/api/vendors/availability/route.ts");
+  assert.match(proxy, /vendorPendingApplicant = isVendor && Boolean\(vendorApplication\)[\s\S]*approval_status !== "approved"/);
+  assert.match(proxy, /if \(!authorized && !vendorPendingApplicant\)/);
+  assert.match(requireRole, /role === "vendor" && vendorProfile && vendorProfile\.approval_status !== "approved"/);
+  assert.match(layout, /Vendor account not approved yet/);
+  assert.match(layout, /Listings, availability, bookings, and other vendor operations remain unavailable until approval/);
+  assert.match(workspaceChooser, /vendorProfile && vendorProfile\.approval_status !== "approved" && !available\.includes\("vendor"\)/);
+  assert.match(workspaceChooser, /Approval \{vendorProfile\.approval_status\}/);
+  assert.match(signIn, /window\.location\.assign\("\/vendor-portal"\)/);
+  assert.match(listingApi, /roles\?\.some\(\(role\) => role\.role === "vendor"\)/);
+  assert.match(availabilityApi, /roles\?\.some\(\(role\) => role\.role === "vendor"\)/);
+});
+
+test("Admin vendor moderation exposes existing visibility actions and the API uses the authorized moderation RPC", () => {
+  const recordsTable = read("../components/admin/AdminRecordsTable.tsx");
+  const adminApi = read("../app/api/vendors/admin/route.ts");
+  assert.match(recordsTable, /row\.approval_status === "approved"[\s\S]*?"unpublish" : "publish"/);
+  assert.match(adminApi, /requireAdminPermission\("vendor_verification", request\)/);
+  assert.match(adminApi, /rpc\("moderate_vendor_profile"/);
+  assert.match(adminApi, /PGRST202.*Apply the required vendor moderation migrations/);
+  assert.match(adminApi, /vendor visibility change conflicts with the current moderation state/);
+  const moderationFix = read("../supabase/migrations/025_vendor_moderation_enum_safety.sql");
+  assert.match(moderationFix, /next_approval_status public\.approval_status/);
+  assert.match(moderationFix, /OLD\.approval_status::text/);
+  assert.match(moderationFix, /NEW\.approval_status::text/);
+  assert.match(moderationFix, /GRANT EXECUTE ON FUNCTION public\.moderate_vendor_profile/);
+  assert.match(read("../app/admin/layout.tsx"), /Link href="\/" aria-label="Evntora home"/);
 });
 
 test("Vendor quotation requests open the proposal editor directly from the request inbox", () => {
@@ -311,5 +389,38 @@ test("Platform Owner role assignment provisions only verified existing users and
   assert.doesNotMatch(migration, /UPDATE public\.admin_role_assignments SET is_active = p_active/);
   assert.match(invitationMigration, /lower\(i\.email\)=current_email/);
   assert.match(invitationMigration, /role='platform_owner' AND o\.is_active/);
-  assert.match(invitationApi, /rpc\("set_admin_assignment"/);
+  assert.match(invitationApi, /rpc\("set_admin_assignment_reasoned"/);
+});
+
+test("Existing verified identities receive immediate audited Admin access without account recreation", () => {
+  const api = read("../app/api/admin/invitations/route.ts");
+  const migration = read("../supabase/migrations/024_admin_existing_account_grants.sql");
+  assert.match(api, /if \(body\.intent === "existing"\)/);
+  assert.match(api, /auth\.admin\.getUserById/);
+  assert.match(api, /rpc\("grant_admin_access"/);
+  assert.match(api, /sendAdminAccessGrantedEmail/);
+  assert.match(api, /from\("admin_role_permissions"\)/);
+  assert.match(api, /from\("admin_permissions"\)/);
+  assert.doesNotMatch(api.slice(api.indexOf('if (body.intent === "existing")'), api.indexOf('if (existingAuthUser && verifiedExisting)')), /signInWithOtp|generateLink|updateUserById/);
+  assert.match(migration, /IF NOT public\.is_evntora_owner\(\)/);
+  assert.match(migration, /p_admin_role IS NULL/);
+  assert.match(migration, /INSERT INTO public\.user_roles\(user_id, role, is_active, granted_by\)/);
+  assert.match(migration, /INSERT INTO public\.admin_audit_log/);
+  assert.match(migration, /UPDATE public\.admin_invitations/);
+  assert.match(migration, /JOIN public\.admin_permissions AS permission/);
+  assert.match(migration, /REVOKE ALL ON FUNCTION public\.set_admin_membership\(uuid, boolean\)/);
+  assert.match(migration, /last_resent_at/);
+  assert.match(read("../app/api/admin/invitations/resend/route.ts"), /status: 429/);
+});
+
+test("Vendor applicants can open the Vendor Hub before approval without vendor membership", () => {
+  const signIn = read("../components/auth/PortalSignInPage.tsx");
+  const proxy = read("../proxy.ts");
+  const guard = read("../components/auth/RequireRole.tsx");
+  const statusPage = read("../app/vendor-portal/pending/page.tsx");
+  assert.match(signIn, /requestedPortal === "vendor"[\s\S]*?vendor_profiles[\s\S]*?approval_status !== "approved"[\s\S]*?\/vendor-portal/);
+  assert.match(proxy, /vendorPendingApplicant = isVendor && Boolean\(vendorApplication\) && vendorApplication\?\.approval_status !== "approved"/);
+  assert.match(guard, /role === "vendor" && vendorProfile && vendorProfile\.approval_status !== "approved"/);
+  assert.match(read("../app/vendor-portal/layout.tsx"), /Vendor account not approved yet/);
+  assert.match(statusPage, /Vendor tools, listings, bookings and availability stay locked until approval/);
 });

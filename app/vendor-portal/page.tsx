@@ -81,6 +81,7 @@ export default function VendorDashboardPage() {
 
   const businessName = vendorProfile?.business_name || "Your business";
   const city = vendorProfile?.city || "";
+  const vendorApproved = vendorProfile?.approval_status === "approved";
 
   const navigateToSection = (section: string, bookingId?: string | null) => {
     const params = new URLSearchParams(searchParams.toString());
@@ -96,7 +97,7 @@ export default function VendorDashboardPage() {
     setBookingsError(null);
     try {
       // Query bookings for this vendor
-      if (!vendorProfile?.id) { setBookings([]); setLoading(false); return; }
+      if (!vendorProfile?.id || !vendorApproved) { setBookings([]); setSentQuotationAmounts({}); setLoading(false); return; }
       const query = supabase
         .from("bookings")
         .select("id,booking_reference,customer_id,vendor_name,vendor_category,package_name,event_date,event_city,guest_count,requirements,total_amount,advance_amount,paid_amount,status,created_at,profiles:customer_id(full_name,email,phone)")
@@ -132,10 +133,10 @@ export default function VendorDashboardPage() {
 
   useEffect(() => {
     fetchBookings();
-  }, [vendorProfile]);
+  }, [vendorProfile, vendorApproved]);
 
   useEffect(() => {
-    if (activeTab !== "finances") return;
+    if (activeTab !== "finances" || !vendorApproved) return;
     let active = true;
     setFinanceError(null); setFinanceLoading(true);
     const query = new URLSearchParams(); if (financeFrom) query.set("from", financeFrom); if (financeTo) query.set("to", financeTo);
@@ -145,7 +146,7 @@ export default function VendorDashboardPage() {
       if (active) setFinance(data);
     }).catch((cause) => { if (active) setFinanceError(cause instanceof Error ? cause.message : "Financial records could not be loaded."); }).finally(() => { if (active) setFinanceLoading(false); });
     return () => { active = false; };
-  }, [activeTab, financeFrom, financeTo]);
+  }, [activeTab, financeFrom, financeTo, vendorApproved]);
 
   const handleUpdateBookingStatus = async (id: string, action: string) => {
     setActionInProgress(id);
@@ -206,6 +207,37 @@ export default function VendorDashboardPage() {
   const serviceTasks = bookings.filter((booking) => ["confirmed", "in_progress", "completed"].includes(booking.status));
   const capturedPaise = Math.max(0, finance.payments.filter((payment) => ["captured", "partially_refunded", "refunded"].includes(payment.status)).reduce((sum, payment) => sum + payment.amount, 0) - finance.refunds.filter((refund) => refund.status === "processed").reduce((sum, refund) => sum + refund.amount, 0));
   const financeOutstandingPaise = finance.bookings.reduce((sum, booking) => sum + Math.max(0, booking.total_amount - booking.paid_amount), 0);
+
+  if (vendorProfile && !vendorApproved) {
+    const applicationStatus = vendorProfile.approval_status;
+    const statusCopy = applicationStatus === "pending"
+      ? "Your business application is awaiting review. You can open every Vendor Hub section, but operational tools remain locked until an administrator approves the business."
+      : applicationStatus === "rejected"
+        ? "Your vendor application was not approved. Vendor operations remain locked. Contact Evntora support for next steps."
+        : "Vendor access is currently suspended. Vendor operations remain locked; contact Evntora support for assistance.";
+    return (
+      <div className="space-y-6 animate-in fade-in duration-200">
+        <header className="border-b border-[#EAD2B0] pb-6 dark:border-[#4D3331]">
+          <p className="text-xs font-semibold uppercase tracking-[.18em] text-[#B77A36]">Vendor workspace</p>
+          <h1 className="mt-2 font-serif text-3xl font-bold text-[#681B1D] dark:text-[#EAD2B0]">{activeTab === "overview" ? `Welcome${profile?.full_name ? `, ${profile.full_name.split(" ")[0]}` : ""}` : activeTab.replaceAll("-", " ").replace(/\b\w/g, (letter) => letter.toUpperCase())}</h1>
+          <p className="mt-2 text-sm text-[#7D6B63] dark:text-[#D4C3B7]">{businessName}{city ? ` · ${city}` : ""}</p>
+        </header>
+        <section role="status" className="rounded-3xl border border-[#D7A85D]/60 bg-[#FFF8E8] p-6 shadow-sm dark:border-[#8D6939] dark:bg-[#2E2518]">
+          <p className="text-xs font-bold uppercase tracking-[.16em] text-[#8D5B1A] dark:text-[#F0D7A9]">Application {applicationStatus}</p>
+          <h2 className="mt-2 font-serif text-2xl font-bold text-[#681B1D] dark:text-[#EAD2B0]">Your Vendor Hub is open</h2>
+          <p className="mt-2 max-w-3xl text-sm leading-relaxed text-[#5A463A] dark:text-[#D4C3B7]">{statusCopy}</p>
+        </section>
+        {activeTab === "overview" ? (
+          <section className="grid gap-4 md:grid-cols-2">
+            <div className="rounded-2xl border border-[#EAD2B0] bg-[#FFFCF6] p-5 dark:border-[#4D3331] dark:bg-[#241918]"><h2 className="font-serif text-xl font-bold text-[#681B1D] dark:text-[#EAD2B0]">Business application</h2><p className="mt-3 text-sm">Status: <strong className="capitalize">{applicationStatus}</strong></p><p className="mt-1 text-sm">Storefront: <strong>{vendorProfile.is_published ? "Published" : "Not published"}</strong></p></div>
+            <div className="rounded-2xl border border-[#EAD2B0] bg-[#FFFCF6] p-5 dark:border-[#4D3331] dark:bg-[#241918]"><h2 className="font-serif text-xl font-bold text-[#681B1D] dark:text-[#EAD2B0]">What happens next</h2><p className="mt-3 text-sm text-[#7D6B63] dark:text-[#D4C3B7]">An administrator reviews your vendor application. Once approved, your listings, booking requests, availability and business operations become available here.</p></div>
+          </section>
+        ) : (
+          <section className="rounded-2xl border border-[#EAD2B0] bg-[#FFFCF6] p-6 dark:border-[#4D3331] dark:bg-[#241918]"><h2 className="font-serif text-xl font-bold text-[#681B1D] dark:text-[#EAD2B0]">This section unlocks after vendor approval</h2><p className="mt-2 text-sm text-[#7D6B63] dark:text-[#D4C3B7]">The section is part of your Vendor Hub. You can return here after your application status changes to approved.</p></section>
+        )}
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-8 animate-in fade-in duration-200">

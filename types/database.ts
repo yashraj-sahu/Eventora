@@ -32,9 +32,9 @@ export interface Database {
         Relationships: [];
       };
       admin_invitations: {
-        Row: { id: string; email: string; admin_role: AdminRole; invited_by: string; target_user_id: string | null; requires_password_setup: boolean; expires_at: string; accepted_at: string | null; revoked_at: string | null; expired_at: string | null; created_at: string };
-        Insert: { id?: string; email: string; admin_role?: AdminRole; invited_by: string; target_user_id?: string | null; requires_password_setup?: boolean; expires_at?: string; accepted_at?: string | null; revoked_at?: string | null; expired_at?: string | null; created_at?: string };
-        Update: { id?: string; email?: string; admin_role?: AdminRole; invited_by?: string; target_user_id?: string | null; requires_password_setup?: boolean; expires_at?: string; accepted_at?: string | null; revoked_at?: string | null; expired_at?: string | null };
+        Row: { id: string; email: string; admin_role: AdminRole; invited_by: string; target_user_id: string | null; requires_password_setup: boolean; expires_at: string; accepted_at: string | null; revoked_at: string | null; expired_at: string | null; last_resent_at: string | null; created_at: string };
+        Insert: { id?: string; email: string; admin_role?: AdminRole; invited_by: string; target_user_id?: string | null; requires_password_setup?: boolean; expires_at?: string; accepted_at?: string | null; revoked_at?: string | null; expired_at?: string | null; last_resent_at?: string | null; created_at?: string };
+        Update: { id?: string; email?: string; admin_role?: AdminRole; invited_by?: string; target_user_id?: string | null; requires_password_setup?: boolean; expires_at?: string; accepted_at?: string | null; revoked_at?: string | null; expired_at?: string | null; last_resent_at?: string | null };
         Relationships: [];
       };
       admin_role_assignments: {
@@ -763,6 +763,9 @@ export interface Database {
       claim_vendor_listing: { Args: { p_vendor_id: string; p_confirm_role_change: boolean }; Returns: string };
       is_evntora_owner: { Args: Record<string, never>; Returns: boolean };
       accept_admin_invitation: { Args: { p_invitation_id: string }; Returns: boolean };
+      grant_admin_access: { Args: { p_user_id: string; p_admin_role: AdminRole; p_reason: string }; Returns: boolean };
+      set_admin_assignment_reasoned: { Args: { p_user_id: string; p_admin_role: AdminRole; p_active: boolean; p_reason: string }; Returns: boolean };
+      set_admin_membership_reasoned: { Args: { p_user_id: string; p_active: boolean; p_reason: string }; Returns: boolean };
       enable_customer_access: { Args: Record<string, never>; Returns: boolean };
       set_admin_membership: { Args: { p_user_id: string; p_active: boolean }; Returns: boolean };
       consume_ai_request: { Args: Record<string, never>; Returns: boolean };

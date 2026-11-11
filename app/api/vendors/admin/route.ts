@@ -59,6 +59,17 @@ export async function PATCH(request: Request) {
   const reason = typeof body.reason === "string" ? body.reason.trim().slice(0, 1000) : "";
   if (action === "reject" && reason.length < 3) return NextResponse.json({ error: "Provide a reason when rejecting a vendor." }, { status: 400 });
   const { data, error } = await access.supabase.rpc("moderate_vendor_profile", { p_vendor_profile_id: id, p_action: String(action), p_reason: reason || null });
-  if (error) return NextResponse.json({ error: error.code === "P0002" ? "Vendor profile not found." : error.code === "42501" ? "Vendor moderation is not permitted." : "Unable to update vendor visibility." }, { status: error.code === "P0002" ? 404 : error.code === "42501" ? 403 : 400 });
+  if (error) {
+    // Keep database details out of browser responses, but distinguish the
+    // common migration/constraint failures from permission and missing-row
+    // cases so an administrator can take the correct next step.
+    console.error("Vendor moderation RPC failed", { code: error.code, action, profileId: id, message: error.message });
+    if (error.code === "P0002") return NextResponse.json({ error: "Vendor profile not found. Refresh the applications list and try again." }, { status: 404 });
+    if (error.code === "42501") return NextResponse.json({ error: "Your account is not authorized to moderate this vendor, or a required moderation permission is missing." }, { status: 403 });
+    if (error.code === "PGRST202" || error.code === "42883") return NextResponse.json({ error: "Vendor moderation is not available in the connected database. Apply the required vendor moderation migrations in order, then retry." }, { status: 503 });
+    if (error.code === "22023") return NextResponse.json({ error: error.message.slice(0, 240) }, { status: 400 });
+    if (error.code === "23514") return NextResponse.json({ error: error.message.includes("approved vendors") ? "Only an approved vendor can be published." : "The requested vendor visibility change conflicts with the current moderation state." }, { status: 409 });
+    return NextResponse.json({ error: "The database rejected the vendor visibility change. Please refresh and retry; if it continues, share the time of the attempt with support." }, { status: 503 });
+  }
   return NextResponse.json({ ok: true, vendor: data });
 }

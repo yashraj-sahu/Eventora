@@ -7,12 +7,13 @@ import { Footer } from "@/components/layout/Footer";
 import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/lib/auth-context";
 import { SearchableSelect } from "@/components/ui/SearchableSelect";
+import { normalizePhoneNumber } from "@/lib/phone-number";
+import { PhoneNumberField } from "@/components/ui/PhoneNumberField";
 import {
   Store,
   Lock,
   Mail,
   User,
-  Phone,
   MapPin,
   ArrowRight,
   Eye,
@@ -100,7 +101,7 @@ export default function VendorSignUpPage() {
     if (!contactName.trim()) return "Please enter your name.";
     if (!businessName.trim()) return "Please enter your business name.";
     if (!user && !email.trim()) return "Please enter your email address.";
-    if (!phone.trim()) return "Phone number is required for vendor accounts.";
+    if (!normalizePhoneNumber(phone)) return "Choose a country code and enter a valid phone number.";
     if (!user && password.length < 8) return "Password must be at least 8 characters.";
     if (!user && password !== confirmPassword) return "Passwords do not match.";
     if (!category.trim()) return "Please enter a business category.";
@@ -132,7 +133,7 @@ export default function VendorSignUpPage() {
             city: city.trim(),
             description: description.trim(),
             address: address.trim(),
-            phone: phone.trim(),
+            phone: normalizePhoneNumber(phone),
           }),
         });
         const result = await response.json();
@@ -141,9 +142,14 @@ export default function VendorSignUpPage() {
       };
 
       if (user) {
-        // A previously authenticated Customer/Admin must prove control of the
-        // same email before adding the vendor application. This never grants
-        // Vendor membership; approval remains an independent admin decision.
+        // A verified, signed-in identity has already proved control of this
+        // email. Do not make existing customers repeat email OTP for a role
+        // application; vendor approval remains a separate admin decision.
+        if (user.email_confirmed_at) {
+          await submitApplication();
+          return;
+        }
+        // Unverified existing identities still need to complete email proof.
         const { error: otpError } = await supabase.auth.signInWithOtp({ email: user.email ?? email.trim().toLowerCase(), options: { shouldCreateUser: false } });
         if (otpError) throw new Error("A verification code could not be sent. Please try again later.");
         setOtpType("email"); setAwaitingEmailVerification(true); setSuccess(true); setOtp(""); setOtpAttempts(0); setResendCooldown(60);
@@ -164,7 +170,7 @@ export default function VendorSignUpPage() {
               city: city.trim(),
               business_description: description.trim(),
               address: address.trim(),
-              contact_phone: phone.trim(),
+              contact_phone: normalizePhoneNumber(phone),
               contact_email: email.trim().toLowerCase(),
             },
           },
@@ -203,7 +209,7 @@ export default function VendorSignUpPage() {
       setAwaitingEmailVerification(true); setSuccess(true); setOtp(""); setOtpAttempts(0); setResendCooldown(60);
     } catch (err: unknown) {
       console.error("Vendor sign-up exception:", err);
-      setError("An unexpected error occurred during registration. Please try again.");
+      setError(err instanceof Error ? err.message : "An unexpected error occurred during registration. Please try again.");
     } finally {
       setIsLoading(false);
     }
@@ -220,7 +226,7 @@ export default function VendorSignUpPage() {
       setIsLoading(false); return;
     }
     try {
-      const response = await fetch("/api/vendors/register", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ businessName: businessName.trim(), category: category.trim(), city: city.trim(), description: description.trim(), address: address.trim(), phone: phone.trim() }) });
+      const response = await fetch("/api/vendors/register", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ businessName: businessName.trim(), category: category.trim(), city: city.trim(), description: description.trim(), address: address.trim(), phone: normalizePhoneNumber(phone) }) });
       const result = await response.json();
       if (!response.ok) throw new Error(result.error || "The vendor application could not be saved.");
       window.location.assign(result.vendorProfile?.approval_status === "approved" ? "/vendor-portal" : "/vendor-portal/pending");
@@ -393,19 +399,8 @@ export default function VendorSignUpPage() {
               <label htmlFor="phone" className="block text-[#7D6B63] dark:text-[#D4C3B7] mb-1.5 font-medium">
                 Business Phone <span className="text-rose-500">*</span>
               </label>
-              <div className="relative">
-                <Phone className="w-4 h-4 text-[#7D6B63] dark:text-[#D4C3B7] absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
-                <input
-                  id="phone"
-                  type="tel"
-                  required
-                  autoComplete="tel"
-                  value={phone}
-                  onChange={(e) => setPhone(e.target.value)}
-                  placeholder="+91 294 243 3300"
-                  className="w-full pl-9 pr-3 py-2.5 rounded-xl bg-[#FFF3E3] dark:bg-[#241918] border border-[#EAD2B0] dark:border-[#4D3331] text-[#30221D] dark:text-[#F4F0E7] placeholder-[#7D6B63]/60 focus:outline-none focus:border-[#681B1D] dark:focus:border-[#EAD2B0] transition-colors"
-                />
-              </div>
+              <PhoneNumberField id="phone" required value={phone} onChange={setPhone}/>
+              <p className="mt-1 text-[11px] text-[#7D6B63]">Select your country code, then enter your business phone number.</p>
             </div>
 
             <div className="grid grid-cols-2 gap-3">
