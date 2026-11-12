@@ -40,6 +40,8 @@ export default function SignUpPage() {
   const [otpAttempts, setOtpAttempts] = useState(0);
   const [resendCooldown, setResendCooldown] = useState(0);
   const [otpType, setOtpType] = useState<"signup" | "email">("signup");
+  const [otpFocused, setOtpFocused] = useState(false);
+  const [otpFocusIndex, setOtpFocusIndex] = useState(0);
 
   useEffect(() => {
     if (resendCooldown <= 0) return;
@@ -201,7 +203,41 @@ export default function SignUpPage() {
               </p>
               <form onSubmit={verifySignupOtp} className="space-y-3 text-left">
                 <label htmlFor="signup-otp" className="block text-xs font-semibold">Email verification code</label>
-                <input id="signup-otp" inputMode="numeric" autoComplete="one-time-code" pattern="[0-9]{6}" maxLength={6} required value={otp} onChange={(event) => setOtp(event.target.value.replace(/\D/g, "").slice(0, 6))} className="w-full rounded-xl border border-[#EAD2B0] bg-[#FFFCF6] px-4 py-3 text-center text-lg tracking-[0.35em]" aria-label="Six-digit email verification code" />
+                <div className="relative w-full" onClick={() => document.getElementById("signup-otp")?.focus()}>
+                  <div aria-hidden="true" className="grid grid-cols-6 gap-2 sm:gap-3">
+                    {Array.from({ length: 6 }, (_, index) => (
+                      <div
+                        key={index}
+                        className={`flex aspect-square min-w-0 items-center justify-center rounded-xl border bg-[#FFFCF7] text-xl font-semibold text-[#681B1D] shadow-sm transition duration-150 sm:aspect-auto sm:h-14 sm:text-2xl dark:bg-[#241918] ${
+                          otpFocused && otpFocusIndex === index
+                            ? "border-[#681B1D] ring-2 ring-[#681B1D]/20"
+                            : "border-[#D9B995]"
+                        }`}
+                      >
+                        {otp[index] ?? ""}
+                      </div>
+                    ))}
+                  </div>
+                  <input
+                    id="signup-otp"
+                    inputMode="numeric"
+                    autoComplete="one-time-code"
+                    pattern="[0-9]{6}"
+                    maxLength={6}
+                    required
+                    value={otp}
+                    onChange={(event) => setOtp(event.target.value.replace(/\D/g, "").slice(0, 6))}
+                    onFocus={(event) => {
+                      setOtpFocused(true);
+                      setOtpFocusIndex(Math.min(event.currentTarget.selectionStart ?? otp.length, 5));
+                    }}
+                    onBlur={() => setOtpFocused(false)}
+                    onSelect={(event) => setOtpFocusIndex(Math.min(event.currentTarget.selectionStart ?? otp.length, 5))}
+                    onKeyUp={(event) => setOtpFocusIndex(Math.min(event.currentTarget.selectionStart ?? otp.length, 5))}
+                    className="absolute inset-0 h-full w-full cursor-text rounded-xl text-center text-lg tracking-[0.35em] opacity-0"
+                    aria-label="Six-digit email verification code"
+                  />
+                </div>
                 <button disabled={isLoading || otp.length !== 6 || otpAttempts >= 5} className="w-full rounded-xl bg-[#681B1D] px-4 py-3 text-xs font-bold text-white disabled:opacity-50">{isLoading ? "Verifying…" : "Verify email"}</button>
               </form>
               <button type="button" disabled={isLoading || resendCooldown > 0} onClick={() => void resendSignupOtp()} className="text-xs font-semibold text-[#681B1D] underline disabled:opacity-50">{resendCooldown > 0 ? `Resend code in ${resendCooldown}s` : "Resend code"}</button>
